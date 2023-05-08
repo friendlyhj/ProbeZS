@@ -71,6 +71,10 @@ repositories {
             includeGroup "curse.maven"
         }
     }
+    maven {
+        name = 'blamejared'
+        url = 'https://maven.blamejared.com'
+    }
     mavenLocal() // Must be last for caching to work
 }
 
@@ -92,6 +96,8 @@ dependencies {
         annotationProcessor('com.google.code.gson:gson:2.8.6')
         annotationProcessor ("org.spongepowered:mixin:0.8.3") {transitive = false}
     }
+
+    implementation rfg.deobf("CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.685")
 
 }
 
