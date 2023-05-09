@@ -1,7 +1,5 @@
 package youyihj.probezs.util;
 
-import joptsimple.internal.Strings;
-
 /**
  * @author youyihj
  */
@@ -25,7 +23,10 @@ public class IndentStringBuilder {
 
     public IndentStringBuilder nextLine() {
         sb.append("\n");
-        sb.append(Strings.repeat(' ', indentSpaceCount * indentLevel));
+        int spaceCount = indentSpaceCount * indentLevel;
+        for (int i = 0; i < spaceCount; i++) {
+            sb.append(' ');
+        }
         return this;
     }
 
