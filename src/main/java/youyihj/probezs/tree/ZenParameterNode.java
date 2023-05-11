@@ -8,7 +8,7 @@ import java.lang.reflect.Parameter;
 /**
  * @author youyihj
  */
-public class ZenParameterNode {
+public class ZenParameterNode implements IZenDumpable {
     private final String name;
     private final LazyZenClassNode type;
     private final Optional optional;
@@ -23,6 +23,15 @@ public class ZenParameterNode {
         return new ZenParameterNode(parameter.getName(), tree.createLazyClassNode(parameter.getParameterizedType()), parameter.getAnnotation(Optional.class));
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public LazyZenClassNode getType() {
+        return type;
+    }
+
+    @Override
     public void toZenScript(IndentStringBuilder sb) {
         String typeName = type.isExisted() ? type.get().getName() : "unknown";
         sb.append(name).append(" as ").append(typeName);

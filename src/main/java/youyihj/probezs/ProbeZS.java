@@ -1,5 +1,6 @@
 package youyihj.probezs;
 
+import crafttweaker.zenscript.GlobalRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import youyihj.probezs.tree.ZenClassTree;
@@ -17,6 +18,7 @@ public class ProbeZS {
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
         ZenClassTree root = ZenClassTree.getRoot();
+        root.readGlobals(GlobalRegistry.getGlobals());
         root.fresh();
         root.output();
     }

@@ -5,7 +5,7 @@ import youyihj.probezs.util.IndentStringBuilder;
 /**
  * @author youyihj
  */
-public class ZenPropertyNode {
+public class ZenPropertyNode implements IZenDumpable {
     private final LazyZenClassNode type;
     private final String name;
 
@@ -33,9 +33,10 @@ public class ZenPropertyNode {
         this.hasSetter = hasSetter;
     }
 
+    @Override
     public void toZenScript(IndentStringBuilder sb) {
         if (type.isExisted()) {
-            String declareKeyword = hasSetter ? "var" : "val";
+            String declareKeyword = isHasSetter() ? "var" : "val";
             sb.append(declareKeyword);
             sb.append(" ").append(name).append(" as ").append(type.get().getName()).append(";");
         }

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * @author youyihj
  */
-public class ZenClassNode {
+public class ZenClassNode implements IZenDumpable {
     private final String name;
     private final ZenClassTree tree;
     private final List<LazyZenClassNode> extendClasses = new ArrayList<>();
@@ -82,6 +82,7 @@ public class ZenClassNode {
         }
     }
 
+    @Override
     public void toZenScript(IndentStringBuilder sb) {
         String extendInformation = extendClasses.stream()
                 .filter(LazyZenClassNode::isExisted)

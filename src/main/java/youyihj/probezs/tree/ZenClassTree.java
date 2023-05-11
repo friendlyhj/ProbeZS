@@ -2,13 +2,21 @@ package youyihj.probezs.tree;
 
 import crafttweaker.util.IEventHandler;
 import crafttweaker.zenscript.expand.*;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.commons.io.FileUtils;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenExpansion;
+import stanhebben.zenscript.symbols.IZenSymbol;
+import stanhebben.zenscript.symbols.SymbolJavaStaticField;
+import stanhebben.zenscript.symbols.SymbolJavaStaticGetter;
+import stanhebben.zenscript.symbols.SymbolJavaStaticMethod;
+import stanhebben.zenscript.type.natives.IJavaMethod;
+import stanhebben.zenscript.type.natives.JavaMethod;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +31,7 @@ public class ZenClassTree {
     private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();
     private final Map<Class<?>, ZenClassNode> javaMap = new HashMap<>();
     private final List<LazyZenClassNode> lazyZenClassNodes = new ArrayList<>();
+    private final List<IZenDumpable> globals = new ArrayList<>();
 
     private final Set<Class<?>> blackList = new HashSet<>();
 
@@ -114,6 +123,11 @@ public class ZenClassTree {
         IndentStringBuilder builder = new IndentStringBuilder();
         builder.append("#norun");
         builder.interLine();
+        for (IZenDumpable global : globals) {
+            global.toZenScript(builder);
+            builder.nextLine();
+        }
+        builder.nextLine();
         for (ZenClassNode classNode : classes.values()) {
             classNode.toZenScript(builder);
             builder.interLine();
@@ -123,6 +137,26 @@ public class ZenClassTree {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void readGlobals(Map<String, IZenSymbol> globalMap) {
+        globalMap.forEach((name, symbol) -> {
+            if (symbol instanceof SymbolJavaStaticField) {
+                SymbolJavaStaticField javaStaticField = (SymbolJavaStaticField) symbol;
+                Field field = ObfuscationReflectionHelper.getPrivateValue(SymbolJavaStaticField.class, javaStaticField, "field");
+                globals.add(new ZenGlobalFieldNode(name, createLazyClassNode(field.getGenericType())));
+            } else if (symbol instanceof SymbolJavaStaticGetter) {
+                SymbolJavaStaticGetter javaStaticGetter = (SymbolJavaStaticGetter) symbol;
+                IJavaMethod method = ObfuscationReflectionHelper.getPrivateValue(SymbolJavaStaticGetter.class, javaStaticGetter, "method");
+                globals.add(new ZenGlobalFieldNode(name, createLazyClassNode(method.getReturnType().toJavaClass())));
+            } else if (symbol instanceof SymbolJavaStaticMethod) {
+                SymbolJavaStaticMethod javaStaticMethod = (SymbolJavaStaticMethod) symbol;
+                IJavaMethod javaMethod = ObfuscationReflectionHelper.getPrivateValue(SymbolJavaStaticMethod.class, javaStaticMethod, "method");
+                if (javaMethod instanceof JavaMethod) {
+                    globals.add(ZenGlobalMethodNode.read(name, ((JavaMethod) javaMethod).getMethod(), this));
+                }
+            }
+        });
     }
 
     private void registerPrimitiveClass() {
@@ -151,5 +185,6 @@ public class ZenClassTree {
         javaMap.put(Double.class, doubleNode);
         javaMap.put(void.class, voidNode);
         javaMap.put(String.class, stringNode);
+        javaMap.put(Object.class, new ZenClassNode("Object", this));
     }
 }

@@ -14,12 +14,12 @@ import java.util.List;
 /**
  * @author youyihj
  */
-public class ZenMemberNode {
+public class ZenMemberNode implements IZenDumpable {
     private final String name;
     private final LazyZenClassNode returnType;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
-    private String comment;
+    private String comment = "...";
 
     public ZenMemberNode(String name, LazyZenClassNode returnType, List<ZenParameterNode> parameters, boolean isStatic) {
         this.name = name;
@@ -65,6 +65,11 @@ public class ZenMemberNode {
         return new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
     }
 
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    @Override
     public void toZenScript(IndentStringBuilder sb) {
         if (returnType.isExisted()) {
             if (isStatic) {
@@ -84,7 +89,7 @@ public class ZenMemberNode {
                     .append(" {")
                     .push()
                     .append("//")
-                    .append(comment != null ? comment : "...")
+                    .append(comment)
                     .pop()
                     .append("}");
         }
