@@ -52,15 +52,23 @@ public class ZenParameterNode implements IZenDumpable {
                     sb.append(String.valueOf(optional.valueDouble()));
                     break;
                 case "string":
-                    sb.append("\"").append(optional.value()).append("\"");
+                    if (optional.value().isEmpty()) {
+                        sb.append(null);
+                    } else {
+                        sb.append("\"").append(optional.value()).append("\"");
+                    }
                     break;
                 default:
-                    sb.append(optional.methodClass().getName())
-                            .append(".")
-                            .append(optional.methodName())
-                            .append("(")
-                            .append("\"").append(optional.value()).append("\"")
-                            .append(")");
+                    if (optional.methodClass() == Optional.class) {
+                        sb.append(null);
+                    } else {
+                        sb.append(optional.methodClass().getName())
+                                .append(".")
+                                .append(optional.methodName())
+                                .append("(")
+                                .append("\"").append(optional.value()).append("\"")
+                                .append(")");
+                    }
                     break;
             }
         }
