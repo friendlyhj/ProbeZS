@@ -20,7 +20,7 @@ import java.util.*;
 public class ZenClassTree {
     private static ZenClassTree root;
 
-    private final Map<String, ZenClassNode> classes = new HashMap<>();
+    private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();
     private final Map<Class<?>, ZenClassNode> javaMap = new HashMap<>();
     private final List<LazyZenClassNode> lazyZenClassNodes = new ArrayList<>();
 

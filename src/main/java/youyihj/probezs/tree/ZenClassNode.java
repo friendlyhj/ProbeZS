@@ -5,10 +5,8 @@ import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Modifier;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -20,7 +18,7 @@ public class ZenClassNode {
     private final List<LazyZenClassNode> extendClasses = new ArrayList<>();
 
     private final List<ZenMemberNode> members = new ArrayList<>();
-    private final Map<String, ZenPropertyNode> properties = new HashMap<>();
+    private final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
 
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
@@ -53,7 +51,7 @@ public class ZenClassNode {
                     }
                     ZenPropertyNode propertyNode = new ZenPropertyNode(type, name);
                     propertyNode.setHasGetter(true);
-                    propertyNode.setHasSetter(true);
+                    propertyNode.setHasSetter(!Modifier.isFinal(field.getModifiers()));
                     properties.put(name, propertyNode);
                 }
             }
