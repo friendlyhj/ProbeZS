@@ -35,6 +35,6 @@ public class LazyZenClassNode {
     void fresh() {
         init = true;
         zenClass = classTree.getZenClassNode(type);
-        existed = zenClass != null;
+        existed = zenClass != classTree.getUnknownClass();
     }
 }

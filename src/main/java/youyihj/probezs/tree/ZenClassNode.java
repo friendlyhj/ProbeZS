@@ -1,12 +1,17 @@
 package youyihj.probezs.tree;
 
-import stanhebben.zenscript.annotations.*;
+import stanhebben.zenscript.annotations.ZenGetter;
+import stanhebben.zenscript.annotations.ZenProperty;
+import stanhebben.zenscript.annotations.ZenSetter;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -16,9 +21,9 @@ public class ZenClassNode implements IZenDumpable {
     private final String name;
     private final ZenClassTree tree;
     private final List<LazyZenClassNode> extendClasses = new ArrayList<>();
-
     private final List<ZenMemberNode> members = new ArrayList<>();
     private final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
+    private ZenLambdaTypeNode lambdaTypeNode;
 
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
@@ -38,6 +43,7 @@ public class ZenClassNode implements IZenDumpable {
         for (Class<?> anInterface : clazz.getInterfaces()) {
             extendClasses.add(tree.createLazyClassNode(anInterface));
         }
+        lambdaTypeNode = ZenLambdaTypeNode.read(clazz, tree);
     }
 
     public void readMembers(Class<?> clazz, boolean isClass) {
@@ -94,15 +100,20 @@ public class ZenClassNode implements IZenDumpable {
         sb.append(" {");
         sb.push();
         if (!extendInformation.isEmpty()) {
-            sb.append("// extends: ").append(extendInformation).interLine();
+            sb.append("// extends: ").append(extendInformation).nextLine();
+        }
+        if (lambdaTypeNode != null) {
+            sb.append("// alias: ");
+            lambdaTypeNode.toZenScript(sb);
+            sb.nextLine();
         }
         for (ZenPropertyNode propertyNode : properties.values()) {
             propertyNode.toZenScript(sb);
             sb.nextLine();
         }
         for (ZenMemberNode member : members) {
-            member.toZenScript(sb);
             sb.interLine();
+            member.toZenScript(sb);
         }
         sb.pop();
         sb.append("}");

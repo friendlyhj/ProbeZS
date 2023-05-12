@@ -34,6 +34,7 @@ public class ZenClassTree {
     private final List<IZenDumpable> globals = new ArrayList<>();
 
     private final Set<Class<?>> blackList = new HashSet<>();
+    private final ZenClassNode unknownClass = new ZenClassNode("unknown", this);
 
     public static ZenClassTree getRoot() {
         if (root == null) {
@@ -56,6 +57,7 @@ public class ZenClassTree {
 
     public ZenClassTree() {
         registerPrimitiveClass();
+        classes.put("unknown", unknownClass);
     }
 
     public void putClass(Class<?> clazz) {
@@ -95,7 +97,7 @@ public class ZenClassTree {
             if (type instanceof Class) {
                 Class<?> clazz = (Class<?>) type;
                 if (!clazz.isArray()) {
-                    return javaMap.get(((Class<?>) type));
+                    return javaMap.getOrDefault(((Class<?>) type), unknownClass);
                 } else {
                     return new ZenClassNode(getZenClassNode(clazz.getComponentType()).getName() + "[]", this);
                 }
@@ -106,17 +108,21 @@ public class ZenClassTree {
                     return new ZenClassNode("[" + getZenClassNode(arguments[0]).getName() + "]", this);
                 }
                 if (parameterizedType.getRawType() == IEventHandler.class) {
-                    return new ZenClassNode("crafttweaker.events.IEventHandler<" + getZenClassNode(arguments[0]).getName() + ">", this);
+                    return new ZenClassNode("function(" + getZenClassNode(arguments[0]).getName() + ")void", this);
                 }
                 if (parameterizedType.getRawType() == Map.class) {
                     return new ZenClassNode(getZenClassNode(arguments[1]).getName() + "[" + getZenClassNode(arguments[0]).getName() + "]", this);
                 }
-                return null;
+                return unknownClass;
             }
         } catch (Exception e) {
-            return null;
+            return unknownClass;
         }
-        return null;
+        return unknownClass;
+    }
+
+    public ZenClassNode getUnknownClass() {
+        return unknownClass;
     }
 
     public void output() {
