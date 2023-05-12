@@ -150,10 +150,12 @@ public class ZenClassTree {
             if (symbol instanceof SymbolJavaStaticField) {
                 SymbolJavaStaticField javaStaticField = (SymbolJavaStaticField) symbol;
                 Field field = ObfuscationReflectionHelper.getPrivateValue(SymbolJavaStaticField.class, javaStaticField, "field");
+                putGlobalInternalClass(field.getType());
                 globals.add(new ZenGlobalFieldNode(name, createLazyClassNode(field.getGenericType())));
             } else if (symbol instanceof SymbolJavaStaticGetter) {
                 SymbolJavaStaticGetter javaStaticGetter = (SymbolJavaStaticGetter) symbol;
                 IJavaMethod method = ObfuscationReflectionHelper.getPrivateValue(SymbolJavaStaticGetter.class, javaStaticGetter, "method");
+                putGlobalInternalClass(method.getReturnType().toJavaClass());
                 globals.add(new ZenGlobalFieldNode(name, createLazyClassNode(method.getReturnType().toJavaClass())));
             } else if (symbol instanceof SymbolJavaStaticMethod) {
                 SymbolJavaStaticMethod javaStaticMethod = (SymbolJavaStaticMethod) symbol;
@@ -163,6 +165,14 @@ public class ZenClassTree {
                 }
             }
         });
+    }
+
+    private void putGlobalInternalClass(Class<?> clazz) {
+        if (!javaMap.containsKey(clazz)) {
+            ZenClassNode classNode = classes.computeIfAbsent(clazz.getName(), it -> new ZenClassNode(it, this));
+            javaMap.put(clazz, classNode);
+            classNode.readMembers(clazz, true);
+        }
     }
 
     private void registerPrimitiveClass() {
