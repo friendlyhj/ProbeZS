@@ -34,7 +34,7 @@ public class ZenClassTree {
     private final List<IZenDumpable> globals = new ArrayList<>();
 
     private final Set<Class<?>> blackList = new HashSet<>();
-    private final ZenClassNode unknownClass = new ZenClassNode("unknown", this);
+    private final ZenClassNode anyClass = new ZenClassNode("any", this);
 
     public static ZenClassTree getRoot() {
         if (root == null) {
@@ -57,7 +57,6 @@ public class ZenClassTree {
 
     public ZenClassTree() {
         registerPrimitiveClass();
-        classes.put("unknown", unknownClass);
     }
 
     public void putClass(Class<?> clazz) {
@@ -97,7 +96,7 @@ public class ZenClassTree {
             if (type instanceof Class) {
                 Class<?> clazz = (Class<?>) type;
                 if (!clazz.isArray()) {
-                    return javaMap.getOrDefault(((Class<?>) type), unknownClass);
+                    return javaMap.getOrDefault(((Class<?>) type), anyClass);
                 } else {
                     return new ZenClassNode(getZenClassNode(clazz.getComponentType()).getName() + "[]", this);
                 }
@@ -113,16 +112,16 @@ public class ZenClassTree {
                 if (parameterizedType.getRawType() == Map.class) {
                     return new ZenClassNode(getZenClassNode(arguments[1]).getName() + "[" + getZenClassNode(arguments[0]).getName() + "]", this);
                 }
-                return unknownClass;
+                return anyClass;
             }
         } catch (Exception e) {
-            return unknownClass;
+            return anyClass;
         }
-        return unknownClass;
+        return anyClass;
     }
 
-    public ZenClassNode getUnknownClass() {
-        return unknownClass;
+    public ZenClassNode getAnyClass() {
+        return anyClass;
     }
 
     public void output() {
