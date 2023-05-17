@@ -1,14 +1,14 @@
 [
 {
-  "modid": "examplemod",
-  "name": "Example Mod",
-  "description": "Example placeholder mod.",
+  "modid": "probezs",
+  "name": "ProbeZS",
+  "description": "Export zenmethods to a .d.zs file for language server",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
-  "authorList": ["CleanroomMC"],
-  "credits": "Authors of this project",
+  "authorList": ["youyihj"],
+  "credits": "",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []
