@@ -62,7 +62,8 @@ public class ZenClassNode implements IZenDumpable {
                 }
             }
         }
-        for (Method method : clazz.getMethods()) {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (!Modifier.isPublic(method.getModifiers())) continue;
             if (method.isAnnotationPresent(ZenGetter.class)) {
                 LazyZenClassNode type = tree.createLazyClassNode(method.getGenericReturnType());
                 String name = method.getAnnotation(ZenGetter.class).value();
