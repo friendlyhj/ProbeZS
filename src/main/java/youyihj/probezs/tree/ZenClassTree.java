@@ -112,10 +112,9 @@ public class ZenClassTree {
                 if (parameterizedType.getRawType() == Map.class) {
                     return new ZenClassNode(getZenClassNode(arguments[1]).getName() + "[" + getZenClassNode(arguments[0]).getName() + "]", this);
                 }
-                return anyClass;
+                return getZenClassNode(parameterizedType.getRawType());
             }
-        } catch (Exception e) {
-            return anyClass;
+        } catch (Exception ignored) {
         }
         return anyClass;
     }
