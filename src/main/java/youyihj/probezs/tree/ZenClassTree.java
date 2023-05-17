@@ -63,18 +63,18 @@ public class ZenClassTree {
         if (blackList.contains(clazz)) return;
         ZenClass zenClass = clazz.getAnnotation(ZenClass.class);
         ZenExpansion zenExpansion = clazz.getAnnotation(ZenExpansion.class);
-        String name;
         if (zenClass != null) {
-            name = zenClass.value();
-        } else if (zenExpansion != null) {
-            name = zenExpansion.value();
-        } else return;
-        ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
-        if (zenClass != null) {
+            String name = zenClass.value();
+            ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
             javaMap.put(clazz, classNode);
             classNode.readExtendClasses(clazz);
+            classNode.readMembers(clazz, true);
         }
-        classNode.readMembers(clazz, zenClass != null);
+        if (zenExpansion != null) {
+            String name = zenExpansion.value();
+            ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
+            classNode.readMembers(clazz, false);
+        }
     }
 
     public LazyZenClassNode createLazyClassNode(Type type) {
