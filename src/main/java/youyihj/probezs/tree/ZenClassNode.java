@@ -49,7 +49,8 @@ public class ZenClassNode implements IZenDumpable {
 
     public void readMembers(Class<?> clazz, boolean isClass) {
         if (isClass) {
-            for (Field field : clazz.getFields()) {
+            for (Field field : clazz.getDeclaredFields()) {
+                if (!Modifier.isPublic(field.getModifiers())) continue;
                 if (field.isAnnotationPresent(ZenProperty.class)) {
                     LazyZenClassNode type = tree.createLazyClassNode(field.getGenericType());
                     String name = field.getAnnotation(ZenProperty.class).value();
