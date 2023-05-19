@@ -22,11 +22,11 @@ import java.util.stream.Collectors;
 public class ZenClassNode implements IZenDumpable {
     private final String name;
     private final ZenClassTree tree;
-    private final List<LazyZenClassNode> extendClasses = new ArrayList<>();
-    private final List<ZenMemberNode> members = new ArrayList<>();
-    private final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
+    protected final List<LazyZenClassNode> extendClasses = new ArrayList<>();
+    protected final List<ZenMemberNode> members = new ArrayList<>();
+    protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
     private ZenLambdaTypeNode lambdaTypeNode;
-    private final List<LazyZenClassNode> casterClasses = new ArrayList<>();
+    protected final List<LazyZenClassNode> casterClasses = new ArrayList<>();
 
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;

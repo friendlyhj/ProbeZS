@@ -12,6 +12,7 @@ import stanhebben.zenscript.symbols.SymbolJavaStaticGetter;
 import stanhebben.zenscript.symbols.SymbolJavaStaticMethod;
 import stanhebben.zenscript.type.natives.IJavaMethod;
 import stanhebben.zenscript.type.natives.JavaMethod;
+import youyihj.probezs.tree.primitive.*;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.io.File;
@@ -42,12 +43,9 @@ public class ZenClassTree {
             root.addBlockList(
                     ExpandAnyDict.class,
                     ExpandAnyArray.class,
-                    ExpandBool.class,
-                    ExpandByte.class,
                     ExpandByteArray.class,
                     ExpandFloat.class,
                     ExpandInt.class,
-                    ExpandIntArray.class,
                     ExpandLong.class,
                     ExpandShort.class
             );
@@ -173,32 +171,37 @@ public class ZenClassTree {
         }
     }
 
+    private void registerPrimitiveClass(Class<?> javaClass, ZenClassNode node) {
+        classes.put(node.getName(), node);
+        javaMap.put(javaClass, node);
+    }
+
     private void registerPrimitiveClass() {
-        ZenClassNode intNode = new ZenClassNode("int", this);
-        ZenClassNode longNode = new ZenClassNode("long", this);
-        ZenClassNode byteNode = new ZenClassNode("byte", this);
-        ZenClassNode shortNode = new ZenClassNode("short", this);
-        ZenClassNode booleanNode = new ZenClassNode("bool", this);
-        ZenClassNode floatNode = new ZenClassNode("float", this);
-        ZenClassNode doubleNode = new ZenClassNode("double", this);
-        ZenClassNode stringNode = new ZenClassNode("string", this);
+        ZenClassNode intNode = new ZenIntNode(this);
+        ZenClassNode longNode = new ZenLongNode(this);
+        ZenClassNode byteNode = new ZenByteNode(this);
+        ZenClassNode shortNode = new ZenShortNode(this);
+        ZenClassNode booleanNode = new ZenBoolNode(this);
+        ZenClassNode floatNode = new ZenFloatNode(this);
+        ZenClassNode doubleNode = new ZenDoubleNode(this);
+        ZenClassNode stringNode = new ZenStringNode(this);
         ZenClassNode voidNode = new ZenClassNode("void", this);
-        javaMap.put(int.class, intNode);
-        javaMap.put(Integer.class, intNode);
-        javaMap.put(long.class, longNode);
-        javaMap.put(Long.class, longNode);
-        javaMap.put(byte.class, byteNode);
-        javaMap.put(Byte.class, byteNode);
-        javaMap.put(short.class, shortNode);
-        javaMap.put(Short.class, shortNode);
-        javaMap.put(boolean.class, booleanNode);
-        javaMap.put(Boolean.class, booleanNode);
-        javaMap.put(float.class, floatNode);
-        javaMap.put(Float.class, floatNode);
-        javaMap.put(double.class, doubleNode);
-        javaMap.put(Double.class, doubleNode);
+        registerPrimitiveClass(int.class, intNode);
+        registerPrimitiveClass(Integer.class, intNode);
+        registerPrimitiveClass(long.class, longNode);
+        registerPrimitiveClass(Long.class, longNode);
+        registerPrimitiveClass(byte.class, byteNode);
+        registerPrimitiveClass(Byte.class, byteNode);
+        registerPrimitiveClass(short.class, shortNode);
+        registerPrimitiveClass(Short.class, shortNode);
+        registerPrimitiveClass(boolean.class, booleanNode);
+        registerPrimitiveClass(Boolean.class, booleanNode);
+        registerPrimitiveClass(float.class, floatNode);
+        registerPrimitiveClass(Float.class, floatNode);
+        registerPrimitiveClass(double.class, doubleNode);
+        registerPrimitiveClass(Double.class, doubleNode);
         javaMap.put(void.class, voidNode);
-        javaMap.put(String.class, stringNode);
+        registerPrimitiveClass(String.class, stringNode);
         javaMap.put(Object.class, new ZenClassNode("Object", this));
     }
 }
