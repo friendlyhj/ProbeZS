@@ -62,7 +62,11 @@ public class ZenMemberNode implements IZenDumpable {
         for (int i = startIndex; i < method.getParameterCount(); i++) {
             parameterNodes.add(ZenParameterNode.read(parameters[i], tree));
         }
-        return new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
+        ZenMemberNode zenMemberNode = new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
+        if (method.isVarArgs()) {
+            zenMemberNode.setComment("$varargs");
+        }
+        return zenMemberNode;
     }
 
     public void setComment(String comment) {

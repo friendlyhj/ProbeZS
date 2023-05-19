@@ -1,5 +1,6 @@
 package youyihj.probezs.tree;
 
+import stanhebben.zenscript.annotations.ZenCaster;
 import stanhebben.zenscript.annotations.ZenGetter;
 import stanhebben.zenscript.annotations.ZenProperty;
 import stanhebben.zenscript.annotations.ZenSetter;
@@ -25,6 +26,7 @@ public class ZenClassNode implements IZenDumpable {
     private final List<ZenMemberNode> members = new ArrayList<>();
     private final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
     private ZenLambdaTypeNode lambdaTypeNode;
+    private final List<LazyZenClassNode> casterClasses = new ArrayList<>();
 
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
@@ -84,6 +86,9 @@ public class ZenClassNode implements IZenDumpable {
                 ZenPropertyNode propertyNode = properties.computeIfAbsent(name, it -> new ZenPropertyNode(type, it));
                 propertyNode.setHasSetter(true);
             }
+            if (method.isAnnotationPresent(ZenCaster.class)) {
+                casterClasses.add(tree.createLazyClassNode(method.getGenericReturnType()));
+            }
             ZenMemberNode memberNode = ZenMemberNode.read(method, tree, isClass);
             if (memberNode != null) {
                 members.add(memberNode);
@@ -104,12 +109,20 @@ public class ZenClassNode implements IZenDumpable {
         sb.append(" {");
         sb.push();
         if (!extendInformation.isEmpty()) {
-            sb.append("// extends: ").append(extendInformation).nextLine();
+            sb.append("//$extends: ").append(extendInformation).nextLine();
         }
         if (lambdaTypeNode != null) {
-            sb.append("// alias: ");
+            sb.append("//$function: ");
             lambdaTypeNode.toZenScript(sb);
             sb.nextLine();
+        }
+        String casterInformation = casterClasses.stream()
+                .filter(LazyZenClassNode::isExisted)
+                .map(LazyZenClassNode::get)
+                .map(ZenClassNode::getName)
+                .collect(Collectors.joining(", "));
+        if (!casterInformation.isEmpty()) {
+            sb.append("//$caster: ").append(casterInformation).nextLine();
         }
         for (ZenPropertyNode propertyNode : properties.values()) {
             propertyNode.toZenScript(sb);
