@@ -44,10 +44,7 @@ public class ZenClassTree {
                     ExpandAnyDict.class,
                     ExpandAnyArray.class,
                     ExpandByteArray.class,
-                    ExpandFloat.class,
-                    ExpandInt.class,
-                    ExpandLong.class,
-                    ExpandShort.class
+                    ExpandIntArray.class
             );
         }
         return root;
