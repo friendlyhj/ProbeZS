@@ -1,7 +1,9 @@
 package youyihj.probezs.tree;
 
+import stanhebben.zenscript.annotations.ZenCaster;
 import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
+import stanhebben.zenscript.annotations.ZenOperator;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Method;
@@ -10,6 +12,7 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author youyihj
@@ -19,16 +22,52 @@ public class ZenMemberNode implements IZenDumpable {
     private final LazyZenClassNode returnType;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
-    private String comment = "...";
+    private final ZenAnnotationNode annotationNode = new ZenAnnotationNode();
+    private final Supplier<String> returnTypeNameSupplier;
 
     public ZenMemberNode(String name, LazyZenClassNode returnType, List<ZenParameterNode> parameters, boolean isStatic) {
         this.name = name;
         this.returnType = returnType;
         this.parameters = parameters;
         this.isStatic = isStatic;
+        this.returnTypeNameSupplier = () -> returnType.get().getName();
+    }
+
+    public ZenMemberNode(String name, String returnType, List<ZenParameterNode> parameters, boolean isStatic) {
+        this.name = name;
+        this.returnType = null;
+        this.parameters = parameters;
+        this.isStatic = isStatic;
+        this.returnTypeNameSupplier = () -> returnType;
     }
 
     public static ZenMemberNode read(Method method, ZenClassTree tree, boolean isClass) {
+        if (method.isAnnotationPresent(ZenCaster.class)) {
+            ZenMethod zenMethod = method.getAnnotation(ZenMethod.class);
+            String name = method.getName();
+            if (zenMethod != null && !zenMethod.value().isEmpty()) {
+                name = zenMethod.value();
+            }
+            ZenMemberNode memberNode = readInternal(method, tree, name, false, !isClass);
+            memberNode.addAnnotation("caster");
+            if (zenMethod == null) {
+                memberNode.addAnnotation("hidden");
+            }
+            return memberNode;
+        }
+        if (method.isAnnotationPresent(ZenOperator.class)) {
+            ZenMethod zenMethod = method.getAnnotation(ZenMethod.class);
+            String name = method.getName();
+            if (zenMethod != null && !zenMethod.value().isEmpty()) {
+                name = zenMethod.value();
+            }
+            ZenMemberNode memberNode = readInternal(method, tree, name, false, !isClass);
+            memberNode.addAnnotation("operator", method.getAnnotation(ZenOperator.class).value().name());
+            if (zenMethod == null) {
+                memberNode.addAnnotation("hidden");
+            }
+            return memberNode;
+        }
         if (isClass && method.isAnnotationPresent(ZenMethod.class)) {
             String name = method.getAnnotation(ZenMethod.class).value();
             if (name.isEmpty()) {
@@ -64,18 +103,23 @@ public class ZenMemberNode implements IZenDumpable {
         }
         ZenMemberNode zenMemberNode = new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
         if (method.isVarArgs()) {
-            zenMemberNode.setComment("$varargs");
+            zenMemberNode.addAnnotation("$varargs");
         }
         return zenMemberNode;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void addAnnotation(String head) {
+        this.annotationNode.add(head);
+    }
+
+    public void addAnnotation(String head, String value) {
+        this.annotationNode.add(head, value);
     }
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        if (returnType.isExisted()) {
+        if (returnType == null || returnType.isExisted()) {
+            annotationNode.toZenScript(sb);
             if (isStatic) {
                 sb.append("static ");
             }
@@ -89,11 +133,11 @@ public class ZenMemberNode implements IZenDumpable {
             }
             sb.append(")")
                     .append(" as ")
-                    .append(returnType.get().getName())
+                    .append(returnTypeNameSupplier.get())
                     .append(" {")
                     .push()
                     .append("//")
-                    .append(comment)
+                    .append("...")
                     .pop()
                     .append("}");
         }

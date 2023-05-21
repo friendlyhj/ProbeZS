@@ -1,18 +1,10 @@
 package youyihj.probezs.tree;
 
-import stanhebben.zenscript.annotations.ZenCaster;
-import stanhebben.zenscript.annotations.ZenGetter;
-import stanhebben.zenscript.annotations.ZenProperty;
-import stanhebben.zenscript.annotations.ZenSetter;
+import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.util.IndentStringBuilder;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -26,7 +18,6 @@ public class ZenClassNode implements IZenDumpable {
     protected final List<ZenMemberNode> members = new ArrayList<>();
     protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
     private ZenLambdaTypeNode lambdaTypeNode;
-    protected final List<LazyZenClassNode> casterClasses = new ArrayList<>();
 
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
@@ -65,6 +56,22 @@ public class ZenClassNode implements IZenDumpable {
                     properties.put(name, propertyNode);
                 }
             }
+            if (clazz.isAnnotationPresent(IterableSimple.class)) {
+                ZenMemberNode iteratorMember = new ZenMemberNode("iterator", "[" + clazz.getAnnotation(IterableSimple.class).value() + "]", Collections.emptyList(), false);
+                iteratorMember.addAnnotation("operator", "ITERABLE");
+                iteratorMember.addAnnotation("hidden");
+            }
+            if (clazz.isAnnotationPresent(IterableList.class)) {
+                ZenMemberNode iteratorMember = new ZenMemberNode("iterator", "[" + clazz.getAnnotation(IterableList.class).value() + "]", Collections.emptyList(), false);
+                iteratorMember.addAnnotation("operator", "ITERABLE");
+                iteratorMember.addAnnotation("hidden");
+            }
+            if (clazz.isAnnotationPresent(IterableMap.class)) {
+                IterableMap iterableMap = clazz.getAnnotation(IterableMap.class);
+                ZenMemberNode iteratorMember = new ZenMemberNode("iterator", String.format("%s[%s]", iterableMap.value(), iterableMap.key()), Collections.emptyList(), false);
+                iteratorMember.addAnnotation("operator", "ITERABLEMAP");
+                iteratorMember.addAnnotation("hidden");
+            }
         }
         for (Method method : clazz.getDeclaredMethods()) {
             if (!Modifier.isPublic(method.getModifiers())) continue;
@@ -86,9 +93,6 @@ public class ZenClassNode implements IZenDumpable {
                 ZenPropertyNode propertyNode = properties.computeIfAbsent(name, it -> new ZenPropertyNode(type, it));
                 propertyNode.setHasSetter(true);
             }
-            if (method.isAnnotationPresent(ZenCaster.class)) {
-                casterClasses.add(tree.createLazyClassNode(method.getGenericReturnType()));
-            }
             ZenMemberNode memberNode = ZenMemberNode.read(method, tree, isClass);
             if (memberNode != null) {
                 members.add(memberNode);
@@ -104,10 +108,6 @@ public class ZenClassNode implements IZenDumpable {
                 .map(ZenClassNode::getName)
                 .filter(((Predicate<String>) "Object"::equals).negate())
                 .collect(Collectors.joining(", "));
-        sb.append("zenClass ");
-        sb.append(name);
-        sb.append(" {");
-        sb.push();
         if (!extendInformation.isEmpty()) {
             sb.append("//$extends: ").append(extendInformation).nextLine();
         }
@@ -116,14 +116,10 @@ public class ZenClassNode implements IZenDumpable {
             lambdaTypeNode.toZenScript(sb);
             sb.nextLine();
         }
-        String casterInformation = casterClasses.stream()
-                .filter(LazyZenClassNode::isExisted)
-                .map(LazyZenClassNode::get)
-                .map(ZenClassNode::getName)
-                .collect(Collectors.joining(", "));
-        if (!casterInformation.isEmpty()) {
-            sb.append("//$caster: ").append(casterInformation).nextLine();
-        }
+        sb.append("zenClass ");
+        sb.append(name);
+        sb.append(" {");
+        sb.push();
         for (ZenPropertyNode propertyNode : properties.values()) {
             propertyNode.toZenScript(sb);
             sb.nextLine();
