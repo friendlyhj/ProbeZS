@@ -60,17 +60,20 @@ public class ZenClassNode implements IZenDumpable {
                 ZenMemberNode iteratorMember = new ZenMemberNode("iterator", "[" + clazz.getAnnotation(IterableSimple.class).value() + "]", Collections.emptyList(), false);
                 iteratorMember.addAnnotation("operator", "ITERABLE");
                 iteratorMember.addAnnotation("hidden");
+                members.add(iteratorMember);
             }
             if (clazz.isAnnotationPresent(IterableList.class)) {
                 ZenMemberNode iteratorMember = new ZenMemberNode("iterator", "[" + clazz.getAnnotation(IterableList.class).value() + "]", Collections.emptyList(), false);
                 iteratorMember.addAnnotation("operator", "ITERABLE");
                 iteratorMember.addAnnotation("hidden");
+                members.add(iteratorMember);
             }
             if (clazz.isAnnotationPresent(IterableMap.class)) {
                 IterableMap iterableMap = clazz.getAnnotation(IterableMap.class);
                 ZenMemberNode iteratorMember = new ZenMemberNode("iterator", String.format("%s[%s]", iterableMap.value(), iterableMap.key()), Collections.emptyList(), false);
                 iteratorMember.addAnnotation("operator", "ITERABLEMAP");
                 iteratorMember.addAnnotation("hidden");
+                members.add(iteratorMember);
             }
         }
         for (Method method : clazz.getDeclaredMethods()) {
