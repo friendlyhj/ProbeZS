@@ -18,12 +18,12 @@ import java.util.List;
 public class ZenStringNode extends ZenClassNode {
     public ZenStringNode(ZenClassTree tree) {
         super("string", tree);
-        casterClasses.add(tree.createLazyClassNode(boolean.class));
-        casterClasses.add(tree.createLazyClassNode(byte.class));
-        casterClasses.add(tree.createLazyClassNode(short.class));
-        casterClasses.add(tree.createLazyClassNode(long.class));
-        casterClasses.add(tree.createLazyClassNode(float.class));
-        casterClasses.add(tree.createLazyClassNode(double.class));
+//        casterClasses.add(tree.createLazyClassNode(boolean.class));
+//        casterClasses.add(tree.createLazyClassNode(byte.class));
+//        casterClasses.add(tree.createLazyClassNode(short.class));
+//        casterClasses.add(tree.createLazyClassNode(long.class));
+//        casterClasses.add(tree.createLazyClassNode(float.class));
+//        casterClasses.add(tree.createLazyClassNode(double.class));
         readJavaMethods(tree);
     }
 
