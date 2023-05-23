@@ -43,7 +43,7 @@ public class ZenStringNode extends ZenClassNode {
                     }
                     ZenMemberNode zenMemberNode = new ZenMemberNode(method.getName(), tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, false);
                     if (method.isVarArgs()) {
-                        zenMemberNode.addAnnotation("$varargs");
+                        zenMemberNode.addAnnotation("varargs");
                     }
                     members.add(zenMemberNode);
                 }

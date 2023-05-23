@@ -103,7 +103,7 @@ public class ZenMemberNode implements IZenDumpable {
         }
         ZenMemberNode zenMemberNode = new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
         if (method.isVarArgs()) {
-            zenMemberNode.addAnnotation("$varargs");
+            zenMemberNode.addAnnotation("varargs");
         }
         return zenMemberNode;
     }
