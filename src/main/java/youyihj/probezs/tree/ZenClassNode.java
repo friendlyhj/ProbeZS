@@ -110,12 +110,12 @@ public class ZenClassNode implements IZenDumpable {
                 .map(LazyZenClassNode::get)
                 .map(ZenClassNode::getName)
                 .filter(((Predicate<String>) "Object"::equals).negate())
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(" "));
         if (!extendInformation.isEmpty()) {
-            sb.append("//$extends: ").append(extendInformation).nextLine();
+            sb.append("#extends ").append(extendInformation).nextLine();
         }
         if (lambdaTypeNode != null) {
-            sb.append("//$function: ");
+            sb.append("#function ");
             lambdaTypeNode.toZenScript(sb);
             sb.nextLine();
         }

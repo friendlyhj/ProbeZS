@@ -1,8 +1,11 @@
 package youyihj.probezs;
 
 import crafttweaker.zenscript.GlobalRegistry;
+import crafttweaker.zenscript.IBracketHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import stanhebben.zenscript.util.Pair;
+import youyihj.probezs.bracket.ZenBracketTree;
 import youyihj.probezs.tree.ZenClassTree;
 
 /**
@@ -19,7 +22,12 @@ public class ProbeZS {
     public void onPostInit(FMLPostInitializationEvent event) {
         ZenClassTree root = ZenClassTree.getRoot();
         root.readGlobals(GlobalRegistry.getGlobals());
+        ZenBracketTree bracketTree = new ZenBracketTree(root);
+        for (Pair<Integer, IBracketHandler> entry : GlobalRegistry.getPrioritizedBracketHandlers()) {
+            bracketTree.addHandler(entry.getValue());
+        }
         root.fresh();
         root.output();
+//        bracketTree.output();
     }
 }
