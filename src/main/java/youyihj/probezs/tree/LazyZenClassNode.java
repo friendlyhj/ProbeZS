@@ -20,7 +20,7 @@ public class LazyZenClassNode {
 
     public ZenClassNode get() {
         if (init) {
-            return zenClass;
+            return existed ? zenClass : classTree.getAnyClass();
         }
         throw new IllegalStateException();
     }
@@ -35,6 +35,6 @@ public class LazyZenClassNode {
     void fresh() {
         init = true;
         zenClass = classTree.getZenClassNode(type);
-        existed = zenClass != classTree.getAnyClass();
+        existed = zenClass != null;
     }
 }

@@ -119,27 +119,29 @@ public class ZenMemberNode implements IZenDumpable {
     @Override
     public void toZenScript(IndentStringBuilder sb) {
         if (returnType == null || returnType.isExisted()) {
-            annotationNode.toZenScript(sb);
-            if (isStatic) {
-                sb.append("static ");
-            }
-            sb.append("function ").append(name).append("(");
-            Iterator<ZenParameterNode> iterator = parameters.iterator();
-            while (iterator.hasNext()) {
-                iterator.next().toZenScript(sb);
-                if (iterator.hasNext()) {
-                    sb.append(", ");
+            if (parameters.stream().map(ZenParameterNode::getType).allMatch(LazyZenClassNode::isExisted)) {
+                annotationNode.toZenScript(sb);
+                if (isStatic) {
+                    sb.append("static ");
                 }
+                sb.append("function ").append(name).append("(");
+                Iterator<ZenParameterNode> iterator = parameters.iterator();
+                while (iterator.hasNext()) {
+                    iterator.next().toZenScript(sb);
+                    if (iterator.hasNext()) {
+                        sb.append(", ");
+                    }
+                }
+                sb.append(")")
+                        .append(" as ")
+                        .append(returnTypeNameSupplier.get())
+                        .append(" {")
+                        .push()
+                        .append("//")
+                        .append("...")
+                        .pop()
+                        .append("}");
             }
-            sb.append(")")
-                    .append(" as ")
-                    .append(returnTypeNameSupplier.get())
-                    .append(" {")
-                    .push()
-                    .append("//")
-                    .append("...")
-                    .pop()
-                    .append("}");
         }
     }
 }

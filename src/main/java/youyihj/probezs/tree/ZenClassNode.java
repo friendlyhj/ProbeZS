@@ -109,7 +109,7 @@ public class ZenClassNode implements IZenDumpable {
                 .filter(LazyZenClassNode::isExisted)
                 .map(LazyZenClassNode::get)
                 .map(ZenClassNode::getName)
-                .filter(((Predicate<String>) "Object"::equals).negate())
+                .filter(Predicate.isEqual("any").negate())
                 .collect(Collectors.joining(" "));
         if (!extendInformation.isEmpty()) {
             sb.append("#extends ").append(extendInformation).nextLine();

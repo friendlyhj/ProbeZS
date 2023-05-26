@@ -91,7 +91,17 @@ public class ZenClassTree {
             if (type instanceof Class) {
                 Class<?> clazz = (Class<?>) type;
                 if (!clazz.isArray()) {
-                    return javaMap.getOrDefault(((Class<?>) type), anyClass);
+                    return javaMap.computeIfAbsent(((Class<?>) type), it -> {
+                        for (Class<?> anInterface : it.getInterfaces()) {
+                            ZenClassNode classNode = javaMap.get(anInterface);
+                            if (classNode != null) return classNode;
+                        }
+                        for (Class<?> superClass = it.getSuperclass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
+                            ZenClassNode classNode = javaMap.get(superClass);
+                            if (classNode != null) return classNode;
+                        }
+                        return null;
+                    });
                 } else {
                     return new ZenClassNode(getZenClassNode(clazz.getComponentType()).getName() + "[]", this);
                 }
@@ -111,7 +121,7 @@ public class ZenClassTree {
             }
         } catch (Exception ignored) {
         }
-        return anyClass;
+        return null;
     }
 
     public ZenClassNode getAnyClass() {
@@ -199,6 +209,6 @@ public class ZenClassTree {
         registerPrimitiveClass(Double.class, doubleNode);
         javaMap.put(void.class, voidNode);
         registerPrimitiveClass(String.class, stringNode);
-        javaMap.put(Object.class, new ZenClassNode("Object", this));
+        javaMap.put(Object.class, anyClass);
     }
 }
