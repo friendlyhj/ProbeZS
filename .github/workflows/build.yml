@@ -61,7 +61,7 @@ jobs:
           name: mappings
           path: probezs-mappings
       - name: Commit Updates
-        uses: EndBug/add-and-commit@v7
+        uses: EndBug/add-and-commit@v9
         with:
           branch: main
           author_name: friendlyhj
