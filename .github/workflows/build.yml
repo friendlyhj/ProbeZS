@@ -63,7 +63,6 @@ jobs:
       - name: Commit Updates
         uses: EndBug/add-and-commit@v9
         with:
-          branch: main
           author_name: friendlyhj
           author_email: youyi580@qq.com
           message: Update ProbeZS Parameter Name Mappings
