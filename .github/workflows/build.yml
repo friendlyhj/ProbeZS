@@ -55,13 +55,12 @@ jobs:
         with:
           repository: friendlyhj/friendlyhj.github.io
           token: ${{ secrets.PAGE_TOKEN }}
-      - name: Download the Build Artifact
+      - name: Download Parameter Name Mappings
         uses: actions/download-artifact@v3
         with:
           name: mappings
-      - name: Move Mappings to Pages Repository
-        run: mv -f $GITHUB_WORKSPACE/generated/ $GITHUB_WORKSPACE/probezs-mappings/
-      - name: Commit
+          path: probezs-mappings
+      - name: Commit Updates
         uses: EndBug/add-and-commit@v7
         with:
           branch: main
