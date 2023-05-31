@@ -21,7 +21,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Generate Parameter Name Mappings
-        run: ./gradlew generateParameterNameMappings
+        run: |
+          ./gradlew setupDecompWorkspace
+          ./gradlew generateParameterNameMappings
       - name: Upload Parameter Name Mappings
         uses: actions/upload-artifact@v3
         with:
