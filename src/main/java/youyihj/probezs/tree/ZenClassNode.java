@@ -51,6 +51,7 @@ public class ZenClassNode implements IZenDumpable {
                         name = field.getName();
                     }
                     ZenPropertyNode propertyNode = new ZenPropertyNode(type, name);
+                    propertyNode.setStatic(Modifier.isStatic(field.getModifiers()));
                     propertyNode.setHasGetter(true);
                     propertyNode.setHasSetter(!Modifier.isFinal(field.getModifiers()));
                     properties.put(name, propertyNode);

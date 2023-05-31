@@ -12,6 +12,8 @@ public class ZenPropertyNode implements IZenDumpable {
     private boolean hasGetter;
     private boolean hasSetter;
 
+    private boolean isStatic;
+
     public ZenPropertyNode(LazyZenClassNode type, String name) {
         this.type = type;
         this.name = name;
@@ -33,10 +35,18 @@ public class ZenPropertyNode implements IZenDumpable {
         this.hasSetter = hasSetter;
     }
 
+    public boolean isStatic() {
+        return isStatic;
+    }
+
+    public void setStatic(boolean aStatic) {
+        isStatic = aStatic;
+    }
+
     @Override
     public void toZenScript(IndentStringBuilder sb) {
         if (type.isExisted()) {
-            String declareKeyword = isHasSetter() ? "var" : "val";
+            String declareKeyword = isStatic ? "static" : isHasSetter() ? "var" : "val";
             sb.append(declareKeyword);
             sb.append(" ").append(name).append(" as ").append(type.get().getName()).append(";");
         }
