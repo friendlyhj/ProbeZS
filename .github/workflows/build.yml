@@ -63,7 +63,7 @@ jobs:
         with:
           name: mappings
       - name: Move Mappings to Pages Repository
-        run: cp -f $GITHUB_WORKSPACE/generated/* $GITHUB_WORKSPACE/probezs-mappings
+        run: mv -f $GITHUB_WORKSPACE/generated/ $GITHUB_WORKSPACE/probezs-mappings
       - name: Commit
         uses: EndBug/add-and-commit@v7
         with:
