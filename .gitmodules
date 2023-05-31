@@ -1,0 +1,4 @@
+[submodule "ModSources/crafttweaker"]
+	path = ModSources/crafttweaker
+	url = https://github.com/CraftTweaker/CraftTweaker.git
+	branch = 1.12

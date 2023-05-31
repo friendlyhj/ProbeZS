@@ -1,8 +1,11 @@
 package youyihj.probezs.tree;
 
+import youyihj.probezs.docs.ParameterNameMappings;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -24,17 +27,27 @@ public class ZenGlobalMethodNode implements IZenDumpable {
 
     public static ZenGlobalMethodNode read(String name, Method method, ZenClassTree tree) {
         LazyZenClassNode returnType = tree.createLazyClassNode(method.getGenericReturnType());
-        List<ZenParameterNode> parameterNodes = Arrays.stream(method.getParameters())
-                .map(it -> ZenParameterNode.read(it, tree))
-                .collect(Collectors.toList());
+
+        Parameter[] parameters = method.getParameters();
+        List<String> parameterNames = ParameterNameMappings.find(method);
+        List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
+        if (parameterNames != null && parameterNames.size() == parameters.length) {
+            for (int i = 0; i < method.getParameterCount(); i++) {
+                parameterNodes.add(ZenParameterNode.read(parameterNames.get(i), parameters[i], tree));
+            }
+        } else {
+            for (int i = 0; i < method.getParameterCount(); i++) {
+                parameterNodes.add(ZenParameterNode.read(parameters[i], tree));
+            }
+        }
         return new ZenGlobalMethodNode(name, returnType, parameterNodes);
     }
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
         sb.append("global ")
-                .append(name)
-                .append(" as function(");
+            .append(name)
+            .append(" as function(");
         Iterator<ZenParameterNode> iterator = parameters.iterator();
         while (iterator.hasNext()) {
             sb.append(iterator.next().getType().get().getName());
@@ -43,8 +56,8 @@ public class ZenGlobalMethodNode implements IZenDumpable {
             }
         }
         sb.append(")")
-                .append(returnType.get().getName())
-                .append(" = function(");
+            .append(returnType.get().getName())
+            .append(" = function(");
         iterator = parameters.iterator();
         while (iterator.hasNext()) {
             iterator.next().toZenScript(sb);
@@ -53,12 +66,12 @@ public class ZenGlobalMethodNode implements IZenDumpable {
             }
         }
         sb.append(")")
-                .append(" as ")
-                .append(returnType.get().getName())
-                .append(" {")
-                .push()
-                .append("// ...")
-                .pop()
-                .append("};");
+            .append(" as ")
+            .append(returnType.get().getName())
+            .append(" {")
+            .push()
+            .append("// ...")
+            .pop()
+            .append("};");
     }
 }
