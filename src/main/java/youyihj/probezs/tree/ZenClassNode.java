@@ -17,7 +17,8 @@ public class ZenClassNode implements IZenDumpable {
     protected final List<LazyZenClassNode> extendClasses = new ArrayList<>();
     protected final List<ZenMemberNode> members = new ArrayList<>();
     protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
-    private ZenLambdaTypeNode lambdaTypeNode;
+    private Method lambdaMethod;
+    private boolean hasAnnotatedLambdaMethod;
 
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
@@ -37,7 +38,7 @@ public class ZenClassNode implements IZenDumpable {
         for (Class<?> anInterface : clazz.getInterfaces()) {
             extendClasses.add(tree.createLazyClassNode(anInterface));
         }
-        lambdaTypeNode = ZenLambdaTypeNode.read(clazz, tree);
+        lambdaMethod = findLambdaMethod(clazz);
     }
 
     public void readMembers(Class<?> clazz, boolean isClass) {
@@ -100,7 +101,17 @@ public class ZenClassNode implements IZenDumpable {
             ZenMemberNode memberNode = ZenMemberNode.read(method, tree, isClass);
             if (memberNode != null) {
                 members.add(memberNode);
+                if (isClass && Objects.equals(method, lambdaMethod)) {
+                    memberNode.addAnnotation("lambda");
+                    hasAnnotatedLambdaMethod = true;
+                }
             }
+        }
+        if (isClass && lambdaMethod != null && !hasAnnotatedLambdaMethod) {
+            ZenMemberNode lambdaNode = ZenMemberNode.readInternal(lambdaMethod, tree, lambdaMethod.getName(), false, false);
+            lambdaNode.addAnnotation("lambda");
+            lambdaNode.addAnnotation("hidden");
+            members.add(lambdaNode);
         }
     }
 
@@ -114,11 +125,6 @@ public class ZenClassNode implements IZenDumpable {
                 .collect(Collectors.joining(" "));
         if (!extendInformation.isEmpty()) {
             sb.append("#extends ").append(extendInformation).nextLine();
-        }
-        if (lambdaTypeNode != null) {
-            sb.append("#function ");
-            lambdaTypeNode.toZenScript(sb);
-            sb.nextLine();
         }
         sb.append("zenClass ");
         sb.append(name);
@@ -134,5 +140,21 @@ public class ZenClassNode implements IZenDumpable {
         }
         sb.pop();
         sb.append("}");
+    }
+
+    private Method findLambdaMethod(Class<?> clazz) {
+        Method lambdaMethod = null;
+        if (clazz.isInterface()) {
+            for (Method method : clazz.getMethods()) {
+                int modifiers = method.getModifiers();
+                if (Modifier.isPublic(modifiers) && Modifier.isAbstract(modifiers)) {
+                    if (lambdaMethod != null) {
+                        return null;
+                    }
+                    lambdaMethod = method;
+                }
+            }
+        }
+        return lambdaMethod;
     }
 }

@@ -94,7 +94,7 @@ public class ZenMemberNode implements IZenDumpable {
         return null;
     }
 
-    private static ZenMemberNode readInternal(Method method, ZenClassTree tree, String name, boolean isStatic, boolean expansion) {
+    public static ZenMemberNode readInternal(Method method, ZenClassTree tree, String name, boolean isStatic, boolean expansion) {
 
         int startIndex = expansion ? 1 : 0;
         Parameter[] parameters = method.getParameters();
