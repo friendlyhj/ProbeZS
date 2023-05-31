@@ -46,9 +46,9 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ steps.version.outputs.version }}-${{ steps.time.outputs.NOW }}
-          tag_name: ${{ steps.version.outputs.version }}-${{ steps.time.outputs.NOW }}
-          files: ./build/libs/ProbeZS-${{ steps.version.outputs.version }}.jar
+          name: Release ${{ steps.version.outputs.VERSION }}-${{ steps.time.outputs.NOW }}
+          tag_name: ${{ steps.version.outputs.VERSION }}-${{ steps.time.outputs.NOW }}
+          files: ./build/libs/ProbeZS-${{ steps.version.outputs.VERSION }}.jar
   deploy:
     runs-on: ubuntu-latest
     needs: build
