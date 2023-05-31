@@ -22,6 +22,9 @@ public class ZenParameterNode implements IZenDumpable {
     public static ZenParameterNode read(Parameter parameter, ZenClassTree tree) {
         return new ZenParameterNode(parameter.getName(), tree.createLazyClassNode(parameter.getParameterizedType()), parameter.getAnnotation(Optional.class));
     }
+    public static ZenParameterNode read(String name, Parameter parameter, ZenClassTree tree) {
+        return new ZenParameterNode(name, tree.createLazyClassNode(parameter.getParameterizedType()), parameter.getAnnotation(Optional.class));
+    }
 
     public String getName() {
         return name;

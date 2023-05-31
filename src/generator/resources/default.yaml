@@ -1,0 +1,185 @@
+java.lang.Math:
+  - name: min
+    paramNames:
+      - a
+      - b
+    paramsSignature: int,int
+  - name: max
+    paramNames:
+      - a
+      - b
+    paramsSignature: int,int
+  - name: pow
+    paramNames:
+    - a
+    - b
+    paramsSignature: double,double
+java.lang.String:
+  - name: equals
+    paramsSignature: java.lang.Object
+    paramNames:
+      - anotherString
+  - name: getChars
+    paramsSignature: int,int,char[],int
+    paramNames:
+      - srcBegin
+      - srcEnd
+      - dst
+      - dstBegin
+  - name: compareTo
+    paramsSignature: java.lang.String
+    paramNames:
+      - anotherString
+  - name: indexOf
+    paramsSignature: int
+    paramNames:
+      - ch
+  - name: indexOf
+    paramsSignature: java.lang.String
+    paramNames:
+      - str
+  - name: indexOf
+    paramsSignature: java.lang.String,int
+    paramNames:
+      - str
+      - fromIndex
+  - name: indexOf
+    paramsSignature: int,int
+    paramNames:
+      - ch
+      - fromIndex
+  - name: charAt
+    paramsSignature: int
+    paramNames:
+      - index
+  - name: codePointAt
+    paramsSignature: int
+    paramNames:
+      - index
+  - name: codePointBefore
+    paramsSignature: int
+    paramNames:
+      - index
+  - name: codePointCount
+    paramsSignature: int,int
+    paramNames:
+      - beginIndex
+      - endIndex
+  - name: offsetByCodePoints
+    paramsSignature: int,int
+    paramNames:
+      - index
+      - codePointOffset
+  - name: regionMatches
+    paramsSignature: boolean,int,java.lang.String,int,int
+    paramNames:
+      - ignoreCase
+      - toffset
+      - other
+      - ooffset
+      - len
+  - name: regionMatches
+    paramsSignature: int,java.lang.String,int,int
+    paramNames:
+      - toffset
+      - other
+      - ooffset
+      - len
+  - name: startsWith
+    paramsSignature: java.lang.String,int
+    paramNames:
+      - prefix
+      - toffset
+  - name: startsWith
+    paramsSignature: java.lang.String
+    paramNames:
+      - prefix
+  - name: lastIndexOf
+    paramsSignature: java.lang.String
+    paramNames:
+      - str
+  - name: lastIndexOf
+    paramsSignature: java.lang.String,int
+    paramNames:
+      - str
+      - fromIndex
+  - name: lastIndexOf
+    paramsSignature: int,int
+    paramNames:
+      - ch
+      - fromIndex
+  - name: lastIndexOf
+    paramsSignature: int
+    paramNames:
+      - ch
+  - name: substring
+    paramsSignature: int,int
+    paramNames:
+      - beginIndex
+      - endIndex
+  - name: substring
+    paramsSignature: int
+    paramNames:
+      - beginIndex
+  - name: replace
+    paramsSignature: char,char
+    paramNames:
+      - oldChar
+      - newChar
+  - name: replace
+    paramsSignature: java.lang.CharSequence,java.lang.CharSequence
+    paramNames:
+      - target
+      - replacement
+  - name: matches
+    paramsSignature: java.lang.String
+    paramNames:
+      - regex
+  - name: replaceFirst
+    paramsSignature: java.lang.String,java.lang.String
+    paramNames:
+      - regex
+      - replacement
+  - name: replaceAll
+    paramsSignature: java.lang.String,java.lang.String
+    paramNames:
+      - regex
+      - replacement
+  - name: split
+    paramsSignature: java.lang.String
+    paramNames:
+      - regex
+  - name: split
+    paramsSignature: java.lang.String,int
+    paramNames:
+      - regex
+      - limit
+  - name: repeat
+    paramsSignature: int
+    paramNames:
+      - count
+  - name: equalsIgnoreCase
+    paramsSignature: java.lang.String
+    paramNames:
+      - anotherString
+  - name: compareToIgnoreCase
+    paramsSignature: java.lang.String
+    paramNames:
+      - anotherString
+  - name: endsWith
+    paramsSignature: java.lang.String
+    paramNames:
+      - suffix
+  - name: subSequence
+    paramsSignature: int,int
+    paramNames:
+      - beginIndex
+      - endIndex
+  - name: concat
+    paramsSignature: java.lang.String
+    paramNames:
+      - str
+  - name: contains
+    paramsSignature: java.lang.CharSequence
+    paramNames:
+      - s
