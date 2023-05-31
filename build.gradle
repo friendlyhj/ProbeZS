@@ -223,8 +223,8 @@ sourceSets {
     }
 }
 
-task generateParameterNameMappings(type: JavaExec) {
-    main = 'youyihj.probezs.generator.MethodParameterNamesGenerator'
+tasks.register('generateParameterNameMappings', JavaExec) {
+    mainClass = 'youyihj.probezs.generator.MethodParameterNamesGenerator'
     classpath = sourceSets.generator.runtimeClasspath
 
     // Configuration specific to the code generator
