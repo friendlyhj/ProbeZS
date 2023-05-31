@@ -40,11 +40,12 @@ jobs:
           file: gradle.properties
       - name: Get Current Time
         id: time
-        run: echo "NOW=$(date + '%Y%m%dT%H%M%S')" >> "$GITHUB_OUTPUT"
+        run: echo "NOW=$(date +'%Y%m%dT%H%M%S')" >> "$GITHUB_OUTPUT"
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ steps.version.outputs.version }}-${{ steps.time.outputs.NOW }}
+          tag_name: ${{ steps.version.outputs.version }}-${{ steps.time.outputs.NOW }}
           files: ./build/libs/ProbeZS-${{ steps.version.outputs.version }}.jar
   deploy:
     runs-on: ubuntu-latest
