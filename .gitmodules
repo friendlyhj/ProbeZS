@@ -2,3 +2,6 @@
 	path = ModSources/crafttweaker
 	url = https://github.com/CraftTweaker/CraftTweaker.git
 	branch = 1.12
+[submodule "ModSources/ZenUtils"]
+	path = ModSources/ZenUtils
+	url = https://github.com/friendlyhj/ZenUtils.git
