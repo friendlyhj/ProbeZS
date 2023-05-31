@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: run action
         id: run_action
-        uses: PaulRitter/github-action-create-commit-parent-submodule@v1
+        uses: PaulRitter/github-action-create-commit-parent-submodule@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           parent_repository: friendlyhj/ProbeZS
