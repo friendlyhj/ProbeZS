@@ -7,7 +7,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout ProbeZS Repository
         uses: actions/checkout@v3
@@ -34,7 +36,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
       - name: Get gradle version
-        uses: thecodemonkey/action-get-gradle-version@master
+        uses: EmberCM/action-get-gradle-version@master
         id: version
         with:
           file: gradle.properties
