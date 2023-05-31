@@ -30,7 +30,7 @@ public class ZenBracketNode implements IZenDumpable {
     @Override
     public void toZenScript(IndentStringBuilder sb) {
         if (!type.isExisted()) return;
-        sb.append("#brackets: ").append(regex).nextLine();
+        sb.append("#brackets ").append(regex).nextLine();
         sb.append("val ").append("bh").append(String.valueOf(id)).append(" as ")
                 .append(type.get().getName()).append("[] = ");
         if (content.isEmpty()) {
