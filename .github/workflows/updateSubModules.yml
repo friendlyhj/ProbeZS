@@ -1,0 +1,19 @@
+name: Submodule Updates
+
+on:
+  schedule:
+    - cron: '0 8 * * 2,4,6,0'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Submodule update
+    runs-on: ubuntu-latest
+    steps:
+      - name: run action
+        id: run_action
+        uses: PaulRitter/github-action-create-commit-parent-submodule@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          parent_repository: friendlyhj/ProbeZS
+          parent_branch: master

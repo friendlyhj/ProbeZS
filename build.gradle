@@ -11,7 +11,7 @@ plugins {
     id("com.matthewprenger.cursegradle") version "1.4.0"
 }
 
-version = project.mod_version
+version = project.property("version")
 group = project.maven_group
 archivesBaseName = project.archives_base_name
 
