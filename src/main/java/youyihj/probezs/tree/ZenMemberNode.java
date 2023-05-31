@@ -4,7 +4,6 @@ import stanhebben.zenscript.annotations.ZenCaster;
 import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
 import stanhebben.zenscript.annotations.ZenOperator;
-import youyihj.probezs.docs.ParameterNameMappings;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Method;
@@ -99,16 +98,9 @@ public class ZenMemberNode implements IZenDumpable {
 
         int startIndex = expansion ? 1 : 0;
         Parameter[] parameters = method.getParameters();
-        List<String> parameterNames = ParameterNameMappings.find(method);
         List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
-        if (parameterNames != null && parameterNames.size() == parameters.length) {
-            for (int i = startIndex; i < method.getParameterCount(); i++) {
-                parameterNodes.add(ZenParameterNode.read(parameterNames.get(i), parameters[i], tree));
-            }
-        } else {
-            for (int i = startIndex; i < method.getParameterCount(); i++) {
-                parameterNodes.add(ZenParameterNode.read(parameters[i], tree));
-            }
+        for (int i = startIndex; i < method.getParameterCount(); i++) {
+            parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));
         }
         ZenMemberNode zenMemberNode = new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
         if (method.isVarArgs()) {
@@ -142,14 +134,14 @@ public class ZenMemberNode implements IZenDumpable {
                     }
                 }
                 sb.append(")")
-                    .append(" as ")
-                    .append(returnTypeNameSupplier.get())
-                    .append(" {")
-                    .push()
-                    .append("//")
-                    .append("...")
-                    .pop()
-                    .append("}");
+                        .append(" as ")
+                        .append(returnTypeNameSupplier.get())
+                        .append(" {")
+                        .push()
+                        .append("//")
+                        .append("...")
+                        .pop()
+                        .append("}");
             }
         }
     }

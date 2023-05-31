@@ -1,6 +1,5 @@
 package youyihj.probezs.tree.primitive;
 
-import youyihj.probezs.docs.ParameterNameMappings;
 import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.ZenMemberNode;
@@ -35,20 +34,13 @@ public class ZenStringNode extends ZenClassNode {
                 if (Modifier.isPublic(method.getModifiers()) && !Modifier.isStatic(method.getModifiers())) {
                     List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
                     Parameter[] parameters = method.getParameters();
-                    List<String> parameterNames = ParameterNameMappings.find(method);
                     if (convertType(method.getGenericReturnType()) == null) continue;
                     for (int i = 0; i < method.getParameterCount(); i++) {
                         Parameter parameter = parameters[i];
                         Type convertType = convertType(parameter.getParameterizedType());
                         if (convertType == null) continue readMethod;
-                        String name = parameter.getName();
-                        if (parameterNames != null) {
-                            name = parameterNames.get(i);
-                        }
-                        parameterNodes.add(new ZenParameterNode(name, tree.createLazyClassNode(convertType), null));
+                        parameterNodes.add(ZenParameterNode.read(method, i, parameter, tree));
                     }
-
-
                     ZenMemberNode zenMemberNode = new ZenMemberNode(method.getName(), tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, false);
                     if (method.isVarArgs()) {
                         zenMemberNode.addAnnotation("varargs");

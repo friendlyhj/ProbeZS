@@ -1,23 +1,29 @@
 package youyihj.probezs.docs;
 
-import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
+import youyihj.probezs.ProbeZS;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 public class ParameterNameMappings {
     private static Map<String, List<Map<String, Object>>> nameMappings;
 
     public static void load(String path) {
-        try (InputStream inputStream = ParameterNameMappings.class.getClassLoader().getResourceAsStream(path)) {
-            Yaml yaml = new Yaml();
-            nameMappings = yaml.loadAs(inputStream, Map.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        Yaml yaml = new Yaml();
+        if (ProbeZS.mappings.isEmpty()) {
+            try (InputStream inputStream = ParameterNameMappings.class.getClassLoader().getResourceAsStream(path)) {
+                nameMappings = yaml.loadAs(inputStream, Map.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            nameMappings = yaml.loadAs(ProbeZS.mappings, Map.class);
         }
     }
 
