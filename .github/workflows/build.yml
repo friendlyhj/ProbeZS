@@ -20,12 +20,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 8
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Setup Decomp Workspace
+        run: ./gradlew setupDecompWorkspace
       - name: Generate Parameter Name Mappings
-        run: |
-          ./gradlew setupDecompWorkspace
-          ./gradlew generateParameterNameMappings
+        run: ./gradlew generateParameterNameMappings
       - name: Upload Parameter Name Mappings
         uses: actions/upload-artifact@v3
         with:
@@ -46,9 +46,9 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ steps.version.outputs.VERSION }}-${{ steps.time.outputs.NOW }}
-          tag_name: ${{ steps.version.outputs.VERSION }}-${{ steps.time.outputs.NOW }}
-          files: ./build/libs/ProbeZS-${{ steps.version.outputs.VERSION }}.jar
+          name: Release ${{ env.VERSION }}-${{ steps.time.outputs.NOW }}
+          tag_name: ${{ env.VERSION }}-${{ steps.time.outputs.NOW }}
+          files: ./build/libs/ProbeZS-${{ env.VERSION }}.jar
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -63,7 +63,7 @@ jobs:
         with:
           name: mappings
       - name: Move Mappings to Pages Repository
-        run: mv -f $GITHUB_WORKSPACE/generated/ $GITHUB_WORKSPACE/probezs-mappings
+        run: mv -f $GITHUB_WORKSPACE/generated/ $GITHUB_WORKSPACE/probezs-mappings/
       - name: Commit
         uses: EndBug/add-and-commit@v7
         with:
