@@ -20,6 +20,6 @@ jobs:
       - name: Commit
         uses: EndBug/add-and-commit@v9
         with:
-          author_name: friendlyhj
-          author_email: youyi580@qq.com
+          author_name: github-actions
+          author_email: github-actions@github.com
           message: Update Submodules

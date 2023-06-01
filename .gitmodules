@@ -5,3 +5,6 @@
 [submodule "ModSources/ZenUtils"]
 	path = ModSources/ZenUtils
 	url = https://github.com/friendlyhj/ZenUtils.git
+[submodule "ModSources/ModTweaker"]
+	path = ModSources/ModTweaker
+	url = https://github.com/jaredlll08/ModTweaker.git
