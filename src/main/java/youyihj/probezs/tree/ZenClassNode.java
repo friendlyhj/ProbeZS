@@ -126,6 +126,9 @@ public class ZenClassNode implements IZenDumpable {
         if (!extendInformation.isEmpty()) {
             sb.append("#extends ").append(extendInformation).nextLine();
         }
+//        if (lambdaMethod != null) {
+//            sb.append("#functionalInterface").nextLine();
+//        }
         sb.append("zenClass ");
         sb.append(name);
         sb.append(" {");
