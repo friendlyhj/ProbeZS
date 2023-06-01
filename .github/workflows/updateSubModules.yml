@@ -10,10 +10,16 @@ jobs:
     name: Submodule update
     runs-on: ubuntu-latest
     steps:
-      - name: run action
-        id: run_action
-        uses: PaulRitter/github-action-create-commit-parent-submodule@main
+      - name: Checkout ProbeZS Repository
+        uses: actions/checkout@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          parent_repository: friendlyhj/ProbeZS
-          parent_branch: master
+          submodules: recursive
+          token: ${{ secrets.PAGE_TOKEN }}
+      - name: Update Submodules
+        run: git submodule update --remote
+      - name: Commit
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: friendlyhj
+          author_email: youyi580@qq.com
+          message: Update Submodules
