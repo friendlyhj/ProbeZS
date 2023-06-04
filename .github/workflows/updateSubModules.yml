@@ -15,8 +15,9 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.PAGE_TOKEN }}
+          fetch-depth: 0
       - name: Update Submodules
-        run: git submodule update
+        run: git submodule update --remote
       - name: Commit
         uses: EndBug/add-and-commit@v9
         with:
