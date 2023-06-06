@@ -8,3 +8,7 @@
 [submodule "ModSources/ModTweaker"]
 	path = ModSources/ModTweaker
 	url = https://github.com/jaredlll08/ModTweaker.git
+[submodule "ModSources/ContentTweaker"]
+	path = ModSources/ContentTweaker
+	url = https://github.com/CraftTweaker/ContentTweaker.git
+	branch = develop/1.12
