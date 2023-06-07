@@ -22,7 +22,7 @@ public class IndentStringBuilder {
     }
 
     public IndentStringBuilder nextLine() {
-        sb.append("\n");
+        sb.append(System.lineSeparator());
         int spaceCount = indentSpaceCount * indentLevel;
         for (int i = 0; i < spaceCount; i++) {
             sb.append(' ');
