@@ -14,12 +14,10 @@ import java.util.List;
 public class ZenBracketNode implements IZenDumpable {
     private final List<String> content = new ArrayList<>();
     private final LazyZenClassNode type;
-    private final String regex;
     private final int id;
 
-    public ZenBracketNode(LazyZenClassNode type, String regex, int id) {
+    public ZenBracketNode(LazyZenClassNode type, int id) {
         this.type = type;
-        this.regex = regex;
         this.id = id;
     }
 
@@ -27,11 +25,18 @@ public class ZenBracketNode implements IZenDumpable {
         this.content.addAll(content);
     }
 
+    public void addContent(String content) {
+        this.content.add(content);
+    }
+
+    public String getName() {
+        return "bh" + id;
+    }
+
     @Override
     public void toZenScript(IndentStringBuilder sb) {
         if (!type.isExisted()) return;
-        sb.append("#brackets ").append(regex).nextLine();
-        sb.append("val ").append("bh").append(String.valueOf(id)).append(" as ")
+        sb.append("val ").append(getName()).append(" as ")
                 .append(type.get().getName()).append("[] = ");
         if (content.isEmpty()) {
             sb.append("[];");
@@ -39,10 +44,20 @@ public class ZenBracketNode implements IZenDumpable {
             sb.append("[");
             sb.push();
             Iterator<String> iterator = content.iterator();
+            int lineElement = 0;
             String first = iterator.next();
             sb.append("<").append(first).append(">");
+            lineElement++;
             while (iterator.hasNext()) {
-                sb.append(",").nextLine().append(iterator.next());
+                sb.append(",");
+                if (lineElement == 5) {
+                    sb.nextLine();
+                    lineElement = 0;
+                } else {
+                    sb.append(" ");
+                }
+                sb.append("<").append(iterator.next()).append(">");
+                lineElement++;
             }
             sb.pop();
             sb.append("];");
