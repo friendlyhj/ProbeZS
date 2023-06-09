@@ -22,5 +22,5 @@ jobs:
         uses: EndBug/add-and-commit@v9
         with:
           author_name: github-actions
-          author_email: github-actions@github.com
+          author_email: 41898282+github-actions[bot]@users.noreply.github.com
           message: Update Submodules
