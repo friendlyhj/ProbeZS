@@ -12,6 +12,8 @@ import java.util.List;
  * @author youyihj
  */
 public class ZenBracketNode implements IZenDumpable {
+    public static final int ELEMENTS_ONE_LINE = 5;
+
     private final List<String> content = new ArrayList<>();
     private final LazyZenClassNode type;
     private final int id;
@@ -50,7 +52,7 @@ public class ZenBracketNode implements IZenDumpable {
             lineElement++;
             while (iterator.hasNext()) {
                 sb.append(",");
-                if (lineElement == 5) {
+                if (lineElement == ELEMENTS_ONE_LINE) {
                     sb.nextLine();
                     lineElement = 0;
                 } else {

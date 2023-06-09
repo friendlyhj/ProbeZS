@@ -6,6 +6,7 @@ import crafttweaker.api.creativetabs.ICreativeTab;
 import crafttweaker.api.damage.IDamageSource;
 import crafttweaker.api.enchantments.IEnchantmentDefinition;
 import crafttweaker.api.entity.IEntityDefinition;
+import crafttweaker.api.item.IItemStack;
 import crafttweaker.api.liquid.ILiquidStack;
 import crafttweaker.api.minecraft.CraftTweakerMC;
 import crafttweaker.api.oredict.IOreDictEntry;
@@ -23,6 +24,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import stanhebben.zenscript.util.Pair;
 import youyihj.probezs.bracket.BlockBracketNode;
+import youyihj.probezs.bracket.ItemBracketNode;
 import youyihj.probezs.bracket.ZenBracketTree;
 import youyihj.probezs.tree.ZenClassTree;
 
@@ -77,6 +79,7 @@ public class ProbeZS {
 
     private ZenBracketTree dumpBracketHandlers(ZenClassTree classTree) {
         ZenBracketTree bracketTree = new ZenBracketTree(classTree);
+        bracketTree.addNode(IItemStack.class, new ItemBracketNode(classTree));
         bracketTree.addNode(IBlockState.class, new BlockBracketNode(classTree));
         for (Pair<Integer, IBracketHandler> entry : GlobalRegistry.getPrioritizedBracketHandlers()) {
             bracketTree.addHandler(entry.getValue());
