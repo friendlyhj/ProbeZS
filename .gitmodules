@@ -12,3 +12,6 @@
 	path = ModSources/ContentTweaker
 	url = https://github.com/CraftTweaker/ContentTweaker.git
 	branch = develop/1.12
+[submodule "ModSources/CompatSkills"]
+	path = ModSources/CompatSkills
+	url = https://github.com/Coders-After-Dark/CompatSkills.git

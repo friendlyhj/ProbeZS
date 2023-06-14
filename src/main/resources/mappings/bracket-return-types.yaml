@@ -1,1 +1,3 @@
 crafttweaker.mc1120.brackets.BracketHandlerBiome: crafttweaker.api.world.IBiome
+codersafterdark.compatskills.common.compats.reskillable.brackethandlers.BracketHandlerSkill: codersafterdark.compatskills.common.compats.reskillable.playerexpansion.wrapper.CTSkill
+codersafterdark.compatskills.common.compats.reskillable.brackethandlers.BracketHandlerUnlockable: codersafterdark.compatskills.common.compats.reskillable.playerexpansion.wrapper.CTUnlockable
