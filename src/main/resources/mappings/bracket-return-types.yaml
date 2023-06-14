@@ -1,3 +1,7 @@
 crafttweaker.mc1120.brackets.BracketHandlerBiome: crafttweaker.api.world.IBiome
 codersafterdark.compatskills.common.compats.reskillable.brackethandlers.BracketHandlerSkill: codersafterdark.compatskills.common.compats.reskillable.playerexpansion.wrapper.CTSkill
 codersafterdark.compatskills.common.compats.reskillable.brackethandlers.BracketHandlerUnlockable: codersafterdark.compatskills.common.compats.reskillable.playerexpansion.wrapper.CTUnlockable
+gregtech.integration.crafttweaker.material.MaterialBracketHandler: gregtech.api.unification.material.Material
+gregtech.integration.crafttweaker.recipe.MetaItemBracketHandler: crafttweaker.api.item.IItemStack
+gregtech.integration.crafttweaker.recipe.MetaTileEntityBracketHandler: crafttweaker.api.item.IItemStack
+gregtech.integration.crafttweaker.recipe.RecipeMapBracketHandler: gregtech.api.recipes.RecipeMap
