@@ -3,6 +3,7 @@ package youyihj.probezs.tree;
 import stanhebben.zenscript.annotations.Optional;
 import youyihj.probezs.docs.ParameterNameMappings;
 import youyihj.probezs.util.IndentStringBuilder;
+import youyihj.probezs.util.ZenKeywords;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -35,7 +36,11 @@ public class ZenParameterNode implements IZenDumpable {
     }
 
     public String getName() {
-        return name.get();
+        String name = this.name.get();
+        if (ZenKeywords.is(name)) {
+            return "_" + name;
+        }
+        return name;
     }
 
     public LazyZenClassNode getType() {
