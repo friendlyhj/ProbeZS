@@ -34,7 +34,7 @@ public class ItemBracketNode extends ZenBracketNode {
         Iterator<Map.Entry<IItemStack, String>> iterator = items.entrySet().iterator();
         int lineElement = 0;
         Map.Entry<IItemStack, String> first = iterator.next();
-        sb.append(first.getKey().toCommandString()).append(" : \"").append(first.getValue()).append("\"");
+        sb.append(first.getKey().toCommandString()).append(": \"").append(first.getValue()).append("\"");
         lineElement++;
         while (iterator.hasNext()) {
             sb.append(",");
