@@ -64,15 +64,17 @@ jobs:
           author_name: friendlyhj
           author_email: youyi580@qq.com
           message: Update ProbeZS Parameter Name Mappings
-      - name: Download ProbeZS JAR
-        uses: actions/download-artifact@v3
-        with:
-          name: jar
+      - name: Checkout ProbeZS Repository
+        uses: actions/checkout@v3
       - name: Get gradle version
         uses: EmberCM/action-get-gradle-version@master
         id: version
         with:
           file: gradle.properties
+      - name: Download ProbeZS JAR
+        uses: actions/download-artifact@v3
+        with:
+          name: jar
       - name: Get Current Time
         id: time
         run: echo "NOW=$(date +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
