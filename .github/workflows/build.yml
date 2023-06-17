@@ -79,7 +79,7 @@ jobs:
         id: time
         run: echo "NOW=$(date +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
       - name: Release
-        if: steps.commit.outputs.committed || github.event.head_commit.message != 'Update Submodules'
+        if: steps.commit.outputs.committed == 'true' || github.event.head_commit.message != 'Update Submodules'
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ env.VERSION }}-${{ steps.time.outputs.NOW }}
