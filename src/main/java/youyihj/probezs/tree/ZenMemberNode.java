@@ -4,7 +4,6 @@ import stanhebben.zenscript.annotations.ZenCaster;
 import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
 import stanhebben.zenscript.annotations.ZenOperator;
-import youyihj.probezs.ProbeZS;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Method;
@@ -140,10 +139,6 @@ public class ZenMemberNode implements IZenDumpable, IHasImportMembers {
         for (ZenParameterNode parameter : parameters) {
             parameter.fillImportMembers(members);
         }
-        try {
-            members.addAll(returnTypeResultSupplier.get().getTypeVariables());
-        } catch (Exception e) {
-            ProbeZS.logger.error("it");
-        }
+        members.addAll(returnTypeResultSupplier.get().getTypeVariables());
     }
 }
