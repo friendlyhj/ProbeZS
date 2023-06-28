@@ -4,9 +4,10 @@ import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.IndentStringBuilder;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -156,7 +157,6 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                 .filter(LazyZenClassNode::isExisted)
                 .map(LazyZenClassNode::get)
                 .map(LazyZenClassNode.Result::getQualifiedName)
-                .filter(Predicate.isEqual("any").negate())
                 .collect(Collectors.joining(" "));
         if (!extendInformation.isEmpty()) {
             sb.append("#extends ").append(extendInformation).nextLine();
