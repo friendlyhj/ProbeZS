@@ -27,7 +27,8 @@ import java.util.*;
  */
 public class ZenGlobalMemberTree {
     private final ZenClassTree tree;
-    private final List<IZenDumpable> globals = new ArrayList<>();
+    private final Set<ZenGlobalFieldNode> fields = new TreeSet<>();
+    private final Set<ZenGlobalMethodNode> members = new TreeSet<>();
 
     public ZenGlobalMemberTree(ZenClassTree tree) {
         this.tree = tree;
@@ -39,17 +40,17 @@ public class ZenGlobalMemberTree {
                 SymbolJavaStaticField javaStaticField = (SymbolJavaStaticField) symbol;
                 Field field = CraftTweakerHacks.getPrivateObject(javaStaticField, "field");
                 tree.putGlobalInternalClass(field.getType());
-                globals.add(new ZenGlobalFieldNode(name, tree.createLazyClassNode(field.getGenericType())));
+                fields.add(new ZenGlobalFieldNode(name, tree.createLazyClassNode(field.getGenericType())));
             } else if (symbol instanceof SymbolJavaStaticGetter) {
                 SymbolJavaStaticGetter javaStaticGetter = (SymbolJavaStaticGetter) symbol;
                 IJavaMethod method = CraftTweakerHacks.getPrivateObject(javaStaticGetter, "method");
                 tree.putGlobalInternalClass(method.getReturnType().toJavaClass());
-                globals.add(new ZenGlobalFieldNode(name, tree.createLazyClassNode(method.getReturnType().toJavaClass())));
+                fields.add(new ZenGlobalFieldNode(name, tree.createLazyClassNode(method.getReturnType().toJavaClass())));
             } else if (symbol instanceof SymbolJavaStaticMethod) {
                 SymbolJavaStaticMethod javaStaticMethod = (SymbolJavaStaticMethod) symbol;
                 IJavaMethod javaMethod = CraftTweakerHacks.getPrivateObject( javaStaticMethod, "method");
                 if (javaMethod instanceof JavaMethod) {
-                    globals.add(ZenGlobalMethodNode.read(name, ((JavaMethod) javaMethod).getMethod(), tree));
+                    members.add(ZenGlobalMethodNode.read(name, ((JavaMethod) javaMethod).getMethod(), tree));
                 }
             }
         });
@@ -58,7 +59,7 @@ public class ZenGlobalMemberTree {
     public void output() {
         Set<ZenClassNode> imports = new TreeSet<>();
         IndentStringBuilder sb = new IndentStringBuilder();
-        for (IZenDumpable global : globals) {
+        for (IZenDumpable global : fields) {
             if (global instanceof IHasImportMembers) {
                 ((IHasImportMembers) global).fillImportMembers(imports);
             }
@@ -69,8 +70,13 @@ public class ZenGlobalMemberTree {
             }
         }
         sb.nextLine();
-        for (IZenDumpable global : globals) {
-            global.toZenScript(sb);
+        for (IZenDumpable field : fields) {
+            field.toZenScript(sb);
+            sb.nextLine();
+        }
+        sb.nextLine();
+        for (ZenGlobalMethodNode member : members) {
+            member.toZenScript(sb);
             sb.nextLine();
         }
         try {

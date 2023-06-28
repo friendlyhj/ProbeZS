@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * @author youyihj
  */
-public class ZenGlobalFieldNode implements IZenDumpable, IHasImportMembers {
+public class ZenGlobalFieldNode implements IZenDumpable, IHasImportMembers, Comparable<ZenGlobalFieldNode> {
     private final String name;
     private final LazyZenClassNode type;
 
@@ -22,13 +22,16 @@ public class ZenGlobalFieldNode implements IZenDumpable, IHasImportMembers {
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-//        if (type.isExisted()) {
-            sb.append("global ").append(name).append(" as ").append(type.get().getQualifiedName()).append(" = null;");
-//        }
+        sb.append("static ").append(name).append(" as ").append(type.get().getQualifiedName()).append(";");
     }
 
     @Override
     public void fillImportMembers(Set<ZenClassNode> members) {
         members.addAll(type.get().getTypeVariables());
+    }
+
+    @Override
+    public int compareTo(ZenGlobalFieldNode o) {
+        return name.compareTo(o.name);
     }
 }

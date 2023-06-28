@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * @author youyihj
  */
-public class ZenGlobalMethodNode implements IZenDumpable, IHasImportMembers {
+public class ZenGlobalMethodNode implements IZenDumpable, IHasImportMembers, Comparable<ZenGlobalMethodNode> {
     private final String name;
     private final LazyZenClassNode returnType;
     private final List<ZenParameterNode> parameters;
@@ -37,34 +37,22 @@ public class ZenGlobalMethodNode implements IZenDumpable, IHasImportMembers {
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        sb.append("global ")
+        sb.append("function ")
                 .append(name)
-                .append(" as function(");
+                .append("(");
+
         Iterator<ZenParameterNode> iterator = parameters.iterator();
-        while (iterator.hasNext()) {
-            sb.append(iterator.next().getType().get().getQualifiedName());
-            if (iterator.hasNext()) {
-                sb.append(", ");
-            }
-        }
-        sb.append(")")
-                .append(returnType.get().getQualifiedName())
-                .append(" = function(");
-        iterator = parameters.iterator();
         while (iterator.hasNext()) {
             iterator.next().toZenScript(sb);
             if (iterator.hasNext()) {
                 sb.append(", ");
             }
         }
+
         sb.append(")")
                 .append(" as ")
                 .append(returnType.get().getQualifiedName())
-                .append(" {")
-                .push()
-                .append("// ...")
-                .pop()
-                .append("};");
+                .append(";");
     }
 
     @Override
@@ -73,5 +61,10 @@ public class ZenGlobalMethodNode implements IZenDumpable, IHasImportMembers {
         for (ZenParameterNode parameter : parameters) {
             parameter.fillImportMembers(members);
         }
+    }
+
+    @Override
+    public int compareTo(ZenGlobalMethodNode o) {
+        return name.compareTo(o.name);
     }
 }
