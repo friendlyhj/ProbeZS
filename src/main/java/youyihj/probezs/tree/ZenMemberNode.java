@@ -130,12 +130,7 @@ public class ZenMemberNode implements IZenDumpable, IHasImportMembers {
                 sb.append(")")
                         .append(" as ")
                         .append(returnTypeResultSupplier.get().getQualifiedName())
-                        .append(" {")
-                        .push()
-                        .append("//")
-                        .append("...")
-                        .pop()
-                        .append("}");
+                        .append(";");
             }
         }
     }

@@ -172,8 +172,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             propertyNode.toZenScript(sb);
             sb.nextLine();
         }
+        sb.nextLine();
         for (ZenMemberNode member : members) {
-            sb.interLine();
+            sb.nextLine();
             member.toZenScript(sb);
         }
         sb.pop();
