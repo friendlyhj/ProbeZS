@@ -29,7 +29,7 @@ public class ItemBracketNode extends ZenBracketNode {
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        sb.append("val items as string[crafttweaker.item.IItemStack] = {");
+        sb.append("val items as string[IItemStack] = {");
         sb.push();
         Iterator<Map.Entry<IItemStack, String>> iterator = items.entrySet().iterator();
         int lineElement = 0;

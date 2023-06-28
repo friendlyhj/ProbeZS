@@ -1,17 +1,20 @@
 package youyihj.probezs.bracket;
 
+import youyihj.probezs.tree.IHasImportMembers;
 import youyihj.probezs.tree.IZenDumpable;
 import youyihj.probezs.tree.LazyZenClassNode;
+import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author youyihj
  */
-public class ZenBracketNode implements IZenDumpable {
+public class ZenBracketNode implements IZenDumpable, IHasImportMembers {
     public static final int ELEMENTS_ONE_LINE = 5;
 
     private final List<String> content = new ArrayList<>();
@@ -64,5 +67,10 @@ public class ZenBracketNode implements IZenDumpable {
             sb.pop();
             sb.append("];");
         }
+    }
+
+    @Override
+    public void fillImportMembers(Set<ZenClassNode> members) {
+        members.addAll(type.get().getTypeVariables());
     }
 }

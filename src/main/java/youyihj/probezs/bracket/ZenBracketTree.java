@@ -3,7 +3,9 @@ package youyihj.probezs.bracket;
 import crafttweaker.zenscript.IBracketHandler;
 import org.apache.commons.io.FileUtils;
 import youyihj.probezs.docs.BracketReturnTypes;
+import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
+import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.io.File;
@@ -43,13 +45,22 @@ public class ZenBracketTree {
 
     public void output() {
         IndentStringBuilder builder = new IndentStringBuilder();
-        builder.append("#norun").interLine();
+        Set<ZenClassNode> imports = new TreeSet<>();
+        nodes.values().forEach(it -> {
+            it.fillImportMembers(imports);
+        });
+        for (ZenClassNode anImport : imports) {
+            if (!(anImport instanceof IPrimitiveType)) {
+                builder.append("import ").append(anImport.getName()).append(";").nextLine();
+            }
+        }
+        builder.nextLine();
         nodes.values().forEach(it -> {
             it.toZenScript(builder);
             builder.interLine();
         });
         try {
-            FileUtils.write(new File("scripts" + File.separator + "generated" + File.separator + ".brackets.zs"), builder.toString(), StandardCharsets.UTF_8);
+            FileUtils.write(new File("scripts" + File.separator + "generated" + File.separator + "brackets.dzs"), builder.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
         }
