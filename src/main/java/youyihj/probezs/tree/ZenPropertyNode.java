@@ -2,10 +2,12 @@ package youyihj.probezs.tree;
 
 import youyihj.probezs.util.IndentStringBuilder;
 
+import java.util.Set;
+
 /**
  * @author youyihj
  */
-public class ZenPropertyNode implements IZenDumpable {
+public class ZenPropertyNode implements IZenDumpable, IHasImportMembers {
     private final LazyZenClassNode type;
     private final String name;
 
@@ -48,7 +50,12 @@ public class ZenPropertyNode implements IZenDumpable {
         if (type.isExisted()) {
             String declareKeyword = isStatic ? "static" : isHasSetter() ? "var" : "val";
             sb.append(declareKeyword);
-            sb.append(" ").append(name).append(" as ").append(type.get().getName()).append(";");
+            sb.append(" ").append(name).append(" as ").append(type.get().getQualifiedName()).append(";");
         }
+    }
+
+    @Override
+    public void fillImportMembers(Set<ZenClassNode> members) {
+        members.addAll(type.get().getTypeVariables());
     }
 }

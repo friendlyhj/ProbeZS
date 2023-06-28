@@ -8,12 +8,13 @@ import youyihj.probezs.util.ZenKeywords;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * @author youyihj
  */
-public class ZenParameterNode implements IZenDumpable {
+public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
     private final Supplier<String> name;
     private final LazyZenClassNode type;
     private final Optional optional;
@@ -49,7 +50,7 @@ public class ZenParameterNode implements IZenDumpable {
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        String typeName = type.isExisted() ? type.get().getName() : "unknown";
+        String typeName = type.isExisted() ? type.get().getQualifiedName() : "unknown";
         sb.append(getName()).append(" as ").append(typeName);
         if (optional != null) {
             sb.append(" = ");
@@ -88,5 +89,10 @@ public class ZenParameterNode implements IZenDumpable {
                     break;
             }
         }
+    }
+
+    @Override
+    public void fillImportMembers(Set<ZenClassNode> members) {
+        members.addAll(type.get().getTypeVariables());
     }
 }

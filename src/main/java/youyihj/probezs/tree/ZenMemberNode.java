@@ -4,6 +4,7 @@ import stanhebben.zenscript.annotations.ZenCaster;
 import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
 import stanhebben.zenscript.annotations.ZenOperator;
+import youyihj.probezs.ProbeZS;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Method;
@@ -12,33 +13,26 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * @author youyihj
  */
-public class ZenMemberNode implements IZenDumpable {
+public class ZenMemberNode implements IZenDumpable, IHasImportMembers {
     private final String name;
     private final LazyZenClassNode returnType;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
     private final ZenAnnotationNode annotationNode = new ZenAnnotationNode();
-    private final Supplier<String> returnTypeNameSupplier;
+    private final Supplier<LazyZenClassNode.Result> returnTypeResultSupplier;
 
-    public ZenMemberNode(String name, LazyZenClassNode returnType, List<ZenParameterNode> parameters, boolean isStatic) {
-        this.name = name;
-        this.returnType = returnType;
-        this.parameters = parameters;
-        this.isStatic = isStatic;
-        this.returnTypeNameSupplier = () -> returnType.get().getName();
-    }
-
-    public ZenMemberNode(String name, String returnType, List<ZenParameterNode> parameters, boolean isStatic) {
+    public ZenMemberNode(String name, Supplier<LazyZenClassNode.Result> returnType, List<ZenParameterNode> parameters, boolean isStatic) {
         this.name = name;
         this.returnType = null;
         this.parameters = parameters;
         this.isStatic = isStatic;
-        this.returnTypeNameSupplier = () -> returnType;
+        this.returnTypeResultSupplier = returnType;
     }
 
     public static ZenMemberNode read(Method method, ZenClassTree tree, boolean isClass) {
@@ -135,7 +129,7 @@ public class ZenMemberNode implements IZenDumpable {
                 }
                 sb.append(")")
                         .append(" as ")
-                        .append(returnTypeNameSupplier.get())
+                        .append(returnTypeResultSupplier.get().getQualifiedName())
                         .append(" {")
                         .push()
                         .append("//")
@@ -143,6 +137,18 @@ public class ZenMemberNode implements IZenDumpable {
                         .pop()
                         .append("}");
             }
+        }
+    }
+
+    @Override
+    public void fillImportMembers(Set<ZenClassNode> members) {
+        for (ZenParameterNode parameter : parameters) {
+            parameter.fillImportMembers(members);
+        }
+        try {
+            members.addAll(returnTypeResultSupplier.get().getTypeVariables());
+        } catch (Exception e) {
+            ProbeZS.logger.error("it");
         }
     }
 }

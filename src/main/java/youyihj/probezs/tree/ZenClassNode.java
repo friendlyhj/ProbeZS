@@ -1,19 +1,26 @@
 package youyihj.probezs.tree;
 
 import stanhebben.zenscript.annotations.*;
+import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * @author youyihj
  */
-public class ZenClassNode implements IZenDumpable {
+public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable<ZenClassNode> {
+    private static final Pattern QUALIFIED_NAME_REGEX = Pattern.compile("(\\w+\\.)*(\\w+)");
+
     private final String name;
     private final ZenClassTree tree;
+    private final String qualifiedName;
+
     protected final List<LazyZenClassNode> extendClasses = new ArrayList<>();
     protected final List<ZenMemberNode> members = new ArrayList<>();
     protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
@@ -23,6 +30,7 @@ public class ZenClassNode implements IZenDumpable {
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
         this.tree = tree;
+        this.qualifiedName = processQualifiedName(name);
     }
 
     public String getName() {
@@ -31,6 +39,10 @@ public class ZenClassNode implements IZenDumpable {
 
     public ZenClassTree getTree() {
         return tree;
+    }
+
+    public String getQualifiedName() {
+        return qualifiedName;
     }
 
     public void readExtendClasses(Class<?> clazz) {
@@ -59,20 +71,29 @@ public class ZenClassNode implements IZenDumpable {
                 }
             }
             if (clazz.isAnnotationPresent(IterableSimple.class)) {
-                ZenMemberNode iteratorMember = new ZenMemberNode("iterator", "[" + clazz.getAnnotation(IterableSimple.class).value() + "]", Collections.emptyList(), false);
+                String value = clazz.getAnnotation(IterableSimple.class).value();
+                ZenMemberNode iteratorMember =
+                        new ZenMemberNode("iterator", () -> LazyZenClassNode.Result.compound("[" + processQualifiedName(value) + "]", tree.getClasses().get(value)), Collections.emptyList(), false);
                 iteratorMember.addAnnotation("operator", "ITERABLE");
                 iteratorMember.addAnnotation("hidden");
                 members.add(iteratorMember);
             }
             if (clazz.isAnnotationPresent(IterableList.class)) {
-                ZenMemberNode iteratorMember = new ZenMemberNode("iterator", "[" + clazz.getAnnotation(IterableList.class).value() + "]", Collections.emptyList(), false);
+                String value = clazz.getAnnotation(IterableList.class).value();
+                ZenMemberNode iteratorMember =
+                        new ZenMemberNode("iterator", () -> LazyZenClassNode.Result.compound("[" + value + "]", tree.getClasses().get(value)), Collections.emptyList(), false);
                 iteratorMember.addAnnotation("operator", "ITERABLE");
                 iteratorMember.addAnnotation("hidden");
                 members.add(iteratorMember);
             }
             if (clazz.isAnnotationPresent(IterableMap.class)) {
                 IterableMap iterableMap = clazz.getAnnotation(IterableMap.class);
-                ZenMemberNode iteratorMember = new ZenMemberNode("iterator", String.format("%s[%s]", iterableMap.value(), iterableMap.key()), Collections.emptyList(), false);
+                String key = iterableMap.key();
+                String value = iterableMap.value();
+                ZenMemberNode iteratorMember =
+                        new ZenMemberNode("iterator",
+                                () -> LazyZenClassNode.Result.compound(String.format("%s[%s]", processQualifiedName(value), processQualifiedName(key)), tree.getClasses().get(key), tree.getClasses().get(value)),
+                                Collections.emptyList(), false);
                 iteratorMember.addAnnotation("operator", "ITERABLEMAP");
                 iteratorMember.addAnnotation("hidden");
                 members.add(iteratorMember);
@@ -117,10 +138,24 @@ public class ZenClassNode implements IZenDumpable {
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
+        Set<ZenClassNode> imports = new TreeSet<>();
+        this.fillImportMembers(imports);
+        for (ZenPropertyNode property : properties.values()) {
+            property.fillImportMembers(imports);
+        }
+        for (ZenMemberNode member : members) {
+            member.fillImportMembers(imports);
+        }
+        for (ZenClassNode anImport : imports) {
+            if (!(anImport instanceof IPrimitiveType)) {
+                sb.append("import ").append(anImport.getName()).append(";").nextLine();
+            }
+        }
+        sb.nextLine();
         String extendInformation = extendClasses.stream()
                 .filter(LazyZenClassNode::isExisted)
                 .map(LazyZenClassNode::get)
-                .map(ZenClassNode::getName)
+                .map(LazyZenClassNode.Result::getQualifiedName)
                 .filter(Predicate.isEqual("any").negate())
                 .collect(Collectors.joining(" "));
         if (!extendInformation.isEmpty()) {
@@ -130,7 +165,7 @@ public class ZenClassNode implements IZenDumpable {
 //            sb.append("#functionalInterface").nextLine();
 //        }
         sb.append("zenClass ");
-        sb.append(name);
+        sb.append(getQualifiedName());
         sb.append(" {");
         sb.push();
         for (ZenPropertyNode propertyNode : properties.values()) {
@@ -143,6 +178,13 @@ public class ZenClassNode implements IZenDumpable {
         }
         sb.pop();
         sb.append("}");
+    }
+
+    @Override
+    public void fillImportMembers(Set<ZenClassNode> members) {
+        for (LazyZenClassNode extendClass : extendClasses) {
+            members.addAll(extendClass.get().getTypeVariables());
+        }
     }
 
     private Method findLambdaMethod(Class<?> clazz) {
@@ -160,4 +202,32 @@ public class ZenClassNode implements IZenDumpable {
         }
         return lambdaMethod;
     }
+
+    private static String processQualifiedName(String name) {
+        Matcher matcher = QUALIFIED_NAME_REGEX.matcher(name);
+        if (matcher.find()) {
+            return matcher.group(2);
+        } else {
+            return name;
+        }
+    }
+
+    @Override
+    public int compareTo(ZenClassNode o) {
+        return name.compareTo(o.name);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ZenClassNode classNode = (ZenClassNode) o;
+        return Objects.equals(name, classNode.name) && Objects.equals(tree, classNode.tree);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, tree);
+    }
+
 }

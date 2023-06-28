@@ -6,7 +6,7 @@ import youyihj.probezs.tree.ZenClassTree;
 /**
  * @author youyihj
  */
-public class ZenByteNode extends ZenClassNode {
+public class ZenByteNode extends ZenClassNode implements IPrimitiveType {
     public ZenByteNode(ZenClassTree tree) {
         super("byte", tree);
 //        casterClasses.add(tree.createLazyClassNode(short.class));

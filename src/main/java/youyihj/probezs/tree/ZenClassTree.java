@@ -1,7 +1,9 @@
 package youyihj.probezs.tree;
 
-import crafttweaker.util.IEventHandler;
-import crafttweaker.zenscript.expand.*;
+import crafttweaker.zenscript.expand.ExpandAnyArray;
+import crafttweaker.zenscript.expand.ExpandAnyDict;
+import crafttweaker.zenscript.expand.ExpandByteArray;
+import crafttweaker.zenscript.expand.ExpandIntArray;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.commons.io.FileUtils;
 import stanhebben.zenscript.annotations.ZenClass;
@@ -12,15 +14,17 @@ import stanhebben.zenscript.symbols.SymbolJavaStaticGetter;
 import stanhebben.zenscript.symbols.SymbolJavaStaticMethod;
 import stanhebben.zenscript.type.natives.IJavaMethod;
 import stanhebben.zenscript.type.natives.JavaMethod;
+import youyihj.probezs.ProbeZS;
 import youyihj.probezs.tree.primitive.*;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 /**
@@ -35,7 +39,7 @@ public class ZenClassTree {
     private final List<IZenDumpable> globals = new ArrayList<>();
 
     private final Set<Class<?>> blackList = new HashSet<>();
-    private final ZenClassNode anyClass = new ZenClassNode("any", this);
+    private final ZenClassNode anyClass = new ZenAnyNode(this);
 
     public static ZenClassTree getRoot() {
         if (root == null) {
@@ -86,65 +90,44 @@ public class ZenClassTree {
         blackList.addAll(Arrays.asList(classes));
     }
 
-    public ZenClassNode getZenClassNode(Type type) {
-        try {
-            if (type instanceof Class) {
-                Class<?> clazz = (Class<?>) type;
-                if (!clazz.isArray()) {
-                    return javaMap.computeIfAbsent(((Class<?>) type), it -> {
-                        for (Class<?> anInterface : it.getInterfaces()) {
-                            ZenClassNode classNode = javaMap.get(anInterface);
-                            if (classNode != null) return classNode;
-                        }
-                        for (Class<?> superClass = it.getSuperclass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
-                            ZenClassNode classNode = javaMap.get(superClass);
-                            if (classNode != null) return classNode;
-                        }
-                        return null;
-                    });
-                } else {
-                    return new ZenClassNode(getZenClassNode(clazz.getComponentType()).getName() + "[]", this);
-                }
-            } else if (type instanceof ParameterizedType) {
-                ParameterizedType parameterizedType = (ParameterizedType) type;
-                Type[] arguments = parameterizedType.getActualTypeArguments();
-                if (parameterizedType.getRawType() == List.class) {
-                    return new ZenClassNode("[" + getZenClassNode(arguments[0]).getName() + "]", this);
-                }
-                if (parameterizedType.getRawType() == IEventHandler.class) {
-                    return new ZenClassNode("function(" + getZenClassNode(arguments[0]).getName() + ")void", this);
-                }
-                if (parameterizedType.getRawType() == Map.class) {
-                    return new ZenClassNode(getZenClassNode(arguments[1]).getName() + "[" + getZenClassNode(arguments[0]).getName() + "]", this);
-                }
-                return getZenClassNode(parameterizedType.getRawType());
-            }
-        } catch (Exception ignored) {
-        }
-        return null;
-    }
-
     public ZenClassNode getAnyClass() {
         return anyClass;
     }
 
+    public Map<Class<?>, ZenClassNode> getJavaMap() {
+        return javaMap;
+    }
+
+    public Map<String, ZenClassNode> getClasses() {
+        return classes;
+    }
+
     public void output() {
-        IndentStringBuilder builder = new IndentStringBuilder();
-        builder.append("#norun");
-        builder.interLine();
-        for (IZenDumpable global : globals) {
-            global.toZenScript(builder);
-            builder.nextLine();
-        }
-        builder.nextLine();
-        for (ZenClassNode classNode : classes.values()) {
-            classNode.toZenScript(builder);
-            builder.interLine();
-        }
+        //TODO: globals
         try {
-            FileUtils.write(new File("scripts" + File.separator + ".d.zs"), builder.toString(), StandardCharsets.UTF_8);
+            Files.walkFileTree(Paths.get("scripts"), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (file.toString().endsWith(".dzs")) {
+                        Files.delete(file);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         } catch (IOException e) {
-            e.printStackTrace();
+            ProbeZS.logger.error("Failed to delete previous dzs", e);
+        }
+        for (ZenClassNode classNode : classes.values()) {
+            IndentStringBuilder builder = new IndentStringBuilder();
+            classNode.toZenScript(builder);
+            try {
+                FileUtils.write(
+                        new File("scripts" + File.separator + "generated" + File.separator + classNode.getName().replace('.', File.separatorChar) + ".dzs"),
+                        builder.toString(), StandardCharsets.UTF_8
+                );
+            } catch (IOException e) {
+                ProbeZS.logger.error("Failed to output: {}" + classNode.getName(), e);
+            }
         }
     }
 
@@ -192,7 +175,7 @@ public class ZenClassTree {
         ZenClassNode floatNode = new ZenFloatNode(this);
         ZenClassNode doubleNode = new ZenDoubleNode(this);
         ZenClassNode stringNode = new ZenStringNode(this);
-        ZenClassNode voidNode = new ZenClassNode("void", this);
+        ZenClassNode voidNode = new ZenVoidNode(this);
         registerPrimitiveClass(int.class, intNode);
         registerPrimitiveClass(Integer.class, intNode);
         registerPrimitiveClass(long.class, longNode);

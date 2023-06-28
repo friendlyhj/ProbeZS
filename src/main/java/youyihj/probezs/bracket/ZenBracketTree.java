@@ -49,7 +49,7 @@ public class ZenBracketTree {
             builder.interLine();
         });
         try {
-            FileUtils.write(new File("scripts" + File.separator + ".brackets.zs"), builder.toString(), StandardCharsets.UTF_8);
+            FileUtils.write(new File("scripts" + File.separator + "generated" + File.separator + ".brackets.zs"), builder.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -23,6 +23,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import org.apache.logging.log4j.Logger;
 import stanhebben.zenscript.util.Pair;
 import youyihj.probezs.bracket.BlockBracketNode;
 import youyihj.probezs.bracket.IngredientAnyBracketNode;
@@ -49,11 +50,13 @@ public class ProbeZS {
     public static final String VERSION = "1.6.2";
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
+    public static Logger logger;
 
     public static String mappings = "";
 
     @Mod.EventHandler
     public void onPreInit(FMLPreInitializationEvent event) {
+        logger = event.getModLog();
         new Thread(() -> {
             try {
                 URL url = new URL("https://friendlyhj.github.io/probezs-mappings/method-parameter-names.yaml");

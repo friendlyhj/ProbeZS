@@ -17,7 +17,7 @@ public class ZenGlobalFieldNode implements IZenDumpable {
     @Override
     public void toZenScript(IndentStringBuilder sb) {
 //        if (type.isExisted()) {
-            sb.append("global ").append(name).append(" as ").append(type.get().getName()).append(" = null;");
+            sb.append("global ").append(name).append(" as ").append(type.get().getQualifiedName()).append(" = null;");
 //        }
     }
 }

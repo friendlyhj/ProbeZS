@@ -40,13 +40,13 @@ public class ZenGlobalMethodNode implements IZenDumpable {
                 .append(" as function(");
         Iterator<ZenParameterNode> iterator = parameters.iterator();
         while (iterator.hasNext()) {
-            sb.append(iterator.next().getType().get().getName());
+            sb.append(iterator.next().getType().get().getQualifiedName());
             if (iterator.hasNext()) {
                 sb.append(", ");
             }
         }
         sb.append(")")
-                .append(returnType.get().getName())
+                .append(returnType.get().getQualifiedName())
                 .append(" = function(");
         iterator = parameters.iterator();
         while (iterator.hasNext()) {
@@ -57,7 +57,7 @@ public class ZenGlobalMethodNode implements IZenDumpable {
         }
         sb.append(")")
                 .append(" as ")
-                .append(returnType.get().getName())
+                .append(returnType.get().getQualifiedName())
                 .append(" {")
                 .push()
                 .append("// ...")

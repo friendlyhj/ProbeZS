@@ -39,7 +39,7 @@ public class ZenBracketNode implements IZenDumpable {
     public void toZenScript(IndentStringBuilder sb) {
         if (!type.isExisted()) return;
         sb.append("val ").append(getName()).append(" as ")
-                .append(type.get().getName()).append("[] = ");
+                .append(type.get().getQualifiedName()).append("[] = ");
         if (content.isEmpty()) {
             sb.append("[];");
         } else {

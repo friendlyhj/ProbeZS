@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * @author youyihj
  */
-public class ZenStringNode extends ZenClassNode {
+public class ZenStringNode extends ZenClassNode implements IPrimitiveType {
     public ZenStringNode(ZenClassTree tree) {
         super("string", tree);
 //        casterClasses.add(tree.createLazyClassNode(boolean.class));
