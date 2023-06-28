@@ -75,7 +75,7 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
                 Type[] arguments = parameterizedType.getActualTypeArguments();
                 if (parameterizedType.getRawType() == List.class) {
                     Result baseClass = getResult(arguments[0]);
-                    return Result.compound(baseClass.getQualifiedName() + "[]", baseClass.getTypeVariableArray());
+                    return Result.compound("[" + baseClass.getQualifiedName() + "]", baseClass.getTypeVariableArray());
                 }
                 if (parameterizedType.getRawType() == IEventHandler.class) {
                     Result baseClass = getResult(arguments[0]);
