@@ -45,7 +45,7 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
     void fresh() {
         init = true;
         result = getResult(type);
-        existed = result.getTypeVariableArray()[0] != classTree.getAnyClass();
+        existed = !result.getQualifiedName().equals("any");
     }
 
     private Result getResult(Type type) {

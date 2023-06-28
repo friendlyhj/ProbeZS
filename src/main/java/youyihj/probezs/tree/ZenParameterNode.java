@@ -50,7 +50,7 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        String typeName = type.isExisted() ? type.get().getQualifiedName() : "unknown";
+        String typeName = type.get().getQualifiedName();
         sb.append(getName()).append(" as ").append(typeName);
         if (optional != null) {
             sb.append(" = ");
