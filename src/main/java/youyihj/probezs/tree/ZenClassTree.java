@@ -15,8 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 /**
@@ -94,19 +92,6 @@ public class ZenClassTree {
     }
 
     public void output() {
-        try {
-            Files.walkFileTree(Paths.get("scripts"), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (file.toString().endsWith(".dzs")) {
-                        Files.delete(file);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            ProbeZS.logger.error("Failed to delete previous dzs", e);
-        }
         for (ZenClassNode classNode : classes.values()) {
             IndentStringBuilder builder = new IndentStringBuilder();
             classNode.toZenScript(builder);

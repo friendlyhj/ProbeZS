@@ -38,6 +38,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -75,6 +77,19 @@ public class ProbeZS {
 
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
+        try {
+            Files.walkFileTree(Paths.get("scripts"), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (file.toString().endsWith(".dzs")) {
+                        Files.delete(file);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            ProbeZS.logger.error("Failed to delete previous dzs", e);
+        }
         ZenClassTree root = ZenClassTree.getRoot();
         ZenBracketTree bracketTree = dumpBracketHandlers(root);
         ZenGlobalMemberTree globalMemberTree = dumpGlobalMembers(root);
