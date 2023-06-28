@@ -30,6 +30,7 @@ import youyihj.probezs.bracket.IngredientAnyBracketNode;
 import youyihj.probezs.bracket.ItemBracketNode;
 import youyihj.probezs.bracket.ZenBracketTree;
 import youyihj.probezs.tree.ZenClassTree;
+import youyihj.probezs.tree.global.ZenGlobalMemberTree;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -75,11 +76,18 @@ public class ProbeZS {
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
         ZenClassTree root = ZenClassTree.getRoot();
-        root.readGlobals(GlobalRegistry.getGlobals());
         ZenBracketTree bracketTree = dumpBracketHandlers(root);
+        ZenGlobalMemberTree globalMemberTree = dumpGlobalMembers(root);
         root.fresh();
         root.output();
+        globalMemberTree.output();
         bracketTree.output();
+    }
+
+    private ZenGlobalMemberTree dumpGlobalMembers(ZenClassTree classTree) {
+        ZenGlobalMemberTree globalMemberTree = new ZenGlobalMemberTree(classTree);
+        globalMemberTree.readGlobals(GlobalRegistry.getGlobals());
+        return globalMemberTree;
     }
 
     private ZenBracketTree dumpBracketHandlers(ZenClassTree classTree) {

@@ -4,23 +4,15 @@ import crafttweaker.zenscript.expand.ExpandAnyArray;
 import crafttweaker.zenscript.expand.ExpandAnyDict;
 import crafttweaker.zenscript.expand.ExpandByteArray;
 import crafttweaker.zenscript.expand.ExpandIntArray;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.commons.io.FileUtils;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenExpansion;
-import stanhebben.zenscript.symbols.IZenSymbol;
-import stanhebben.zenscript.symbols.SymbolJavaStaticField;
-import stanhebben.zenscript.symbols.SymbolJavaStaticGetter;
-import stanhebben.zenscript.symbols.SymbolJavaStaticMethod;
-import stanhebben.zenscript.type.natives.IJavaMethod;
-import stanhebben.zenscript.type.natives.JavaMethod;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.tree.primitive.*;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -36,7 +28,6 @@ public class ZenClassTree {
     private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();
     private final Map<Class<?>, ZenClassNode> javaMap = new HashMap<>();
     private final List<LazyZenClassNode> lazyZenClassNodes = new ArrayList<>();
-    private final List<IZenDumpable> globals = new ArrayList<>();
 
     private final Set<Class<?>> blackList = new HashSet<>();
     private final ZenClassNode anyClass = new ZenAnyNode(this);
@@ -103,7 +94,6 @@ public class ZenClassTree {
     }
 
     public void output() {
-        //TODO: globals
         try {
             Files.walkFileTree(Paths.get("scripts"), new SimpleFileVisitor<Path>() {
                 @Override
@@ -131,29 +121,7 @@ public class ZenClassTree {
         }
     }
 
-    public void readGlobals(Map<String, IZenSymbol> globalMap) {
-        globalMap.forEach((name, symbol) -> {
-            if (symbol instanceof SymbolJavaStaticField) {
-                SymbolJavaStaticField javaStaticField = (SymbolJavaStaticField) symbol;
-                Field field = ObfuscationReflectionHelper.getPrivateValue(SymbolJavaStaticField.class, javaStaticField, "field");
-                putGlobalInternalClass(field.getType());
-                globals.add(new ZenGlobalFieldNode(name, createLazyClassNode(field.getGenericType())));
-            } else if (symbol instanceof SymbolJavaStaticGetter) {
-                SymbolJavaStaticGetter javaStaticGetter = (SymbolJavaStaticGetter) symbol;
-                IJavaMethod method = ObfuscationReflectionHelper.getPrivateValue(SymbolJavaStaticGetter.class, javaStaticGetter, "method");
-                putGlobalInternalClass(method.getReturnType().toJavaClass());
-                globals.add(new ZenGlobalFieldNode(name, createLazyClassNode(method.getReturnType().toJavaClass())));
-            } else if (symbol instanceof SymbolJavaStaticMethod) {
-                SymbolJavaStaticMethod javaStaticMethod = (SymbolJavaStaticMethod) symbol;
-                IJavaMethod javaMethod = ObfuscationReflectionHelper.getPrivateValue(SymbolJavaStaticMethod.class, javaStaticMethod, "method");
-                if (javaMethod instanceof JavaMethod) {
-                    globals.add(ZenGlobalMethodNode.read(name, ((JavaMethod) javaMethod).getMethod(), this));
-                }
-            }
-        });
-    }
-
-    private void putGlobalInternalClass(Class<?> clazz) {
+    public void putGlobalInternalClass(Class<?> clazz) {
         if (!javaMap.containsKey(clazz)) {
             ZenClassNode classNode = classes.computeIfAbsent(clazz.getName(), it -> new ZenClassNode(it, this));
             javaMap.put(clazz, classNode);

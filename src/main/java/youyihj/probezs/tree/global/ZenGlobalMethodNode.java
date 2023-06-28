@@ -1,5 +1,6 @@
-package youyihj.probezs.tree;
+package youyihj.probezs.tree.global;
 
+import youyihj.probezs.tree.*;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Method;
@@ -7,11 +8,12 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author youyihj
  */
-public class ZenGlobalMethodNode implements IZenDumpable {
+public class ZenGlobalMethodNode implements IZenDumpable, IHasImportMembers {
     private final String name;
     private final LazyZenClassNode returnType;
     private final List<ZenParameterNode> parameters;
@@ -63,5 +65,13 @@ public class ZenGlobalMethodNode implements IZenDumpable {
                 .append("// ...")
                 .pop()
                 .append("};");
+    }
+
+    @Override
+    public void fillImportMembers(Set<ZenClassNode> members) {
+        members.addAll(returnType.get().getTypeVariables());
+        for (ZenParameterNode parameter : parameters) {
+            parameter.fillImportMembers(members);
+        }
     }
 }
