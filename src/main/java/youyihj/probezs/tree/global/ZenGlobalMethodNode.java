@@ -37,7 +37,7 @@ public class ZenGlobalMethodNode implements IZenDumpable, IHasImportMembers, Com
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        sb.append("function ")
+        sb.append("global function ")
                 .append(name)
                 .append("(");
 

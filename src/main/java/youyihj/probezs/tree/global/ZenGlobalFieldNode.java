@@ -22,7 +22,7 @@ public class ZenGlobalFieldNode implements IZenDumpable, IHasImportMembers, Comp
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        sb.append("static ").append(name).append(" as ").append(type.get().getQualifiedName()).append(";");
+        sb.append("global ").append(name).append(" as ").append(type.get().getQualifiedName()).append(";");
     }
 
     @Override
