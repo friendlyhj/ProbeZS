@@ -135,7 +135,7 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
     public static class MissingResult extends Result {
 
         private MissingResult(ZenClassTree tree) {
-            super("missing", tree.getAnyClass());
+            super("any", tree.getAnyClass());
         }
     }
 }
