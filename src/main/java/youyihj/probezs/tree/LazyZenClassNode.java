@@ -45,7 +45,7 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
     void fresh() {
         init = true;
         result = getResult(type);
-        existed = !result.getQualifiedName().equals("any");
+        existed = !(result instanceof MissingResult);
     }
 
     private Result getResult(Type type) {
@@ -62,13 +62,17 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
                             ZenClassNode classNode = javaMap.get(anInterface);
                             if (classNode != null) return classNode;
                         }
-                        for (Class<?> superClass = it.getSuperclass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
-                            ZenClassNode classNode = javaMap.get(superClass);
-                            if (classNode != null) return classNode;
+                        if (!it.isInterface()) {
+                            for (Class<?> superClass = it.getSuperclass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
+                                ZenClassNode classNode = javaMap.get(superClass);
+                                if (classNode != null) return classNode;
+                            }
                         }
                         return null;
                     });
-                    return nativeClass == null ? Result.single(classTree.getAnyClass()) : Result.single(nativeClass);
+                    if (nativeClass != null) {
+                        return Result.single(nativeClass);
+                    }
                 }
             } else if (type instanceof ParameterizedType) {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
@@ -88,10 +92,9 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
                 }
                 return getResult(parameterizedType.getRawType());
             }
-        } catch (Exception e) {
-            ProbeZS.logger.error("Failed to reflect {} to zenscript type", type.getTypeName(), e);
+        } catch (Exception ignored) {
         }
-        return Result.single(classTree.getAnyClass());
+        return Result.missing(classTree, type);
     }
 
     public static class Result {
@@ -111,6 +114,11 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
             return new Result(classNode.getQualifiedName(), classNode);
         }
 
+        public static Result missing(ZenClassTree tree, Type originType) {
+            ProbeZS.logger.warn("Failed to reflect {} to zenscript type", originType.getTypeName());
+            return new MissingResult(tree);
+        }
+
         public String getQualifiedName() {
             return qualifiedName;
         }
@@ -121,6 +129,13 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
 
         public List<ZenClassNode> getTypeVariables() {
             return Arrays.asList(typeVariables);
+        }
+    }
+
+    public static class MissingResult extends Result {
+
+        private MissingResult(ZenClassTree tree) {
+            super("missing", tree.getAnyClass());
         }
     }
 }

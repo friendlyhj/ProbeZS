@@ -66,7 +66,7 @@ public class ZenClassTree {
     }
 
     public LazyZenClassNode createLazyClassNode(Type type) {
-        LazyZenClassNode lazyZenClassNode = new LazyZenClassNode(type, this);
+        LazyZenClassNode lazyZenClassNode = new LazyZenClassNode(Objects.requireNonNull(type), this);
         lazyZenClassNodes.add(lazyZenClassNode);
         return lazyZenClassNode;
     }
@@ -145,6 +145,7 @@ public class ZenClassTree {
         registerPrimitiveClass(Double.class, doubleNode);
         javaMap.put(void.class, voidNode);
         registerPrimitiveClass(String.class, stringNode);
+        registerPrimitiveClass(CharSequence.class, stringNode);
         javaMap.put(Object.class, anyClass);
     }
 }

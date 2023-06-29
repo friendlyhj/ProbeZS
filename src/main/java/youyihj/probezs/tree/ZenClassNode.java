@@ -49,7 +49,10 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     public void readExtendClasses(Class<?> clazz) {
-        extendClasses.add(tree.createLazyClassNode(clazz.getSuperclass()));
+        Class<?> superclass = clazz.getSuperclass();
+        if (superclass != null && superclass != Object.class) {
+            extendClasses.add(tree.createLazyClassNode(superclass));
+        }
         for (Class<?> anInterface : clazz.getInterfaces()) {
             extendClasses.add(tree.createLazyClassNode(anInterface));
         }
