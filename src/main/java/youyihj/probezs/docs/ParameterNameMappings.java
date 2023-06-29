@@ -5,7 +5,7 @@ import youyihj.probezs.ProbeZS;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +27,7 @@ public class ParameterNameMappings {
         }
     }
 
-    public static List<String> find(Method method) {
+    public static List<String> find(Executable method) {
         if (nameMappings == null) {
             load("mappings/method-parameter-names.yaml");
         }

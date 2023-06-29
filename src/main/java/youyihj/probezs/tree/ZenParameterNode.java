@@ -5,7 +5,7 @@ import youyihj.probezs.docs.ParameterNameMappings;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenKeywords;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +25,7 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
         this.optional = optional;
     }
 
-    public static ZenParameterNode read(Method method, int index, Parameter parameter, ZenClassTree tree) {
+    public static ZenParameterNode read(Executable method, int index, Parameter parameter, ZenClassTree tree) {
         Supplier<String> name = () -> {
             List<String> list = ParameterNameMappings.find(method);
             if (list != null && index < list.size()) {

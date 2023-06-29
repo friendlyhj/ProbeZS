@@ -10,7 +10,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -18,9 +17,8 @@ import java.util.function.Supplier;
 /**
  * @author youyihj
  */
-public class ZenMemberNode implements IZenDumpable, IHasImportMembers {
+public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers {
     private final String name;
-    private final LazyZenClassNode returnType;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
     private final ZenAnnotationNode annotationNode = new ZenAnnotationNode();
@@ -28,7 +26,6 @@ public class ZenMemberNode implements IZenDumpable, IHasImportMembers {
 
     public ZenMemberNode(String name, Supplier<LazyZenClassNode.Result> returnType, List<ZenParameterNode> parameters, boolean isStatic) {
         this.name = name;
-        this.returnType = null;
         this.parameters = parameters;
         this.isStatic = isStatic;
         this.returnTypeResultSupplier = returnType;
@@ -112,25 +109,13 @@ public class ZenMemberNode implements IZenDumpable, IHasImportMembers {
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        if (returnType == null || returnType.isExisted()) {
-            if (parameters.stream().map(ZenParameterNode::getType).allMatch(LazyZenClassNode::isExisted)) {
-                annotationNode.toZenScript(sb);
-                if (isStatic) {
-                    sb.append("static ");
-                }
-                sb.append("function ").append(name).append("(");
-                Iterator<ZenParameterNode> iterator = parameters.iterator();
-                while (iterator.hasNext()) {
-                    iterator.next().toZenScript(sb);
-                    if (iterator.hasNext()) {
-                        sb.append(", ");
-                    }
-                }
-                sb.append(")")
-                        .append(" as ")
-                        .append(returnTypeResultSupplier.get().getQualifiedName())
-                        .append(";");
+        if (parameters.stream().map(ZenParameterNode::getType).allMatch(LazyZenClassNode::isExisted)) {
+            annotationNode.toZenScript(sb);
+            if (isStatic) {
+                sb.append("static ");
             }
+            sb.append("function ");
+            partialDump(sb, name, parameters, returnTypeResultSupplier.get());
         }
     }
 

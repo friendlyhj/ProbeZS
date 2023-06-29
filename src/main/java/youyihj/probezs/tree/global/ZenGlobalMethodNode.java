@@ -6,14 +6,13 @@ import youyihj.probezs.util.IndentStringBuilder;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 /**
  * @author youyihj
  */
-public class ZenGlobalMethodNode implements IZenDumpable, IHasImportMembers, Comparable<ZenGlobalMethodNode> {
+public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers, Comparable<ZenGlobalMethodNode> {
     private final String name;
     private final LazyZenClassNode returnType;
     private final List<ZenParameterNode> parameters;
@@ -37,22 +36,8 @@ public class ZenGlobalMethodNode implements IZenDumpable, IHasImportMembers, Com
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        sb.append("global function ")
-                .append(name)
-                .append("(");
-
-        Iterator<ZenParameterNode> iterator = parameters.iterator();
-        while (iterator.hasNext()) {
-            iterator.next().toZenScript(sb);
-            if (iterator.hasNext()) {
-                sb.append(", ");
-            }
-        }
-
-        sb.append(")")
-                .append(" as ")
-                .append(returnType.get().getQualifiedName())
-                .append(";");
+        sb.append("global function ");
+        partialDump(sb, name, parameters, returnType.get());
     }
 
     @Override

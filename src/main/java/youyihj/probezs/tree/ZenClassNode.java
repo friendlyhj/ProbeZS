@@ -4,6 +4,7 @@ import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.IndentStringBuilder;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -24,6 +25,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     protected final List<LazyZenClassNode> extendClasses = new ArrayList<>();
     protected final List<ZenMemberNode> members = new ArrayList<>();
+    protected final List<ZenConstructorNode> constructors = new ArrayList<>();
     protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
     private Method lambdaMethod;
     private boolean hasAnnotatedLambdaMethod;
@@ -69,6 +71,12 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                     propertyNode.setHasGetter(true);
                     propertyNode.setHasSetter(!Modifier.isFinal(field.getModifiers()));
                     properties.put(name, propertyNode);
+                }
+            }
+            for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+                if (!Modifier.isPublic(constructor.getModifiers())) continue;
+                if (constructor.isAnnotationPresent(ZenConstructor.class)) {
+                    constructors.add(ZenConstructorNode.read(constructor, tree));
                 }
             }
             if (clazz.isAnnotationPresent(IterableSimple.class)) {
@@ -147,6 +155,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (ZenMemberNode member : members) {
             member.fillImportMembers(imports);
         }
+        for (ZenConstructorNode constructor : constructors) {
+            constructor.fillImportMembers(imports);
+        }
         for (ZenClassNode anImport : imports) {
             if (!(anImport instanceof IPrimitiveType)) {
                 sb.append("import ").append(anImport.getName()).append(";").nextLine();
@@ -172,6 +183,11 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             propertyNode.toZenScript(sb);
             sb.nextLine();
         }
+        for (ZenConstructorNode constructor : constructors) {
+            sb.interLine();
+            constructor.toZenScript(sb);
+        }
+
         for (ZenMemberNode member : members) {
             sb.interLine();
             member.toZenScript(sb);
