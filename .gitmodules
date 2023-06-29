@@ -18,3 +18,6 @@
 [submodule "ModSources/GregTech"]
 	path = ModSources/GregTech
 	url = https://github.com/GregTechCEu/GregTech.git
+[submodule "ModSources/Multiblocked"]
+	path = ModSources/Multiblocked
+	url = https://github.com/CleanroomMC/Multiblocked.git
