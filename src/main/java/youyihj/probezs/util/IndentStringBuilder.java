@@ -8,6 +8,8 @@ public class IndentStringBuilder {
     private final int indentSpaceCount;
     private final StringBuilder sb = new StringBuilder();
 
+    private boolean emptyLine = true;
+
     public IndentStringBuilder() {
         this(4);
     }
@@ -18,6 +20,7 @@ public class IndentStringBuilder {
 
     public IndentStringBuilder append(String s) {
         sb.append(s);
+        emptyLine = false;
         return this;
     }
 
@@ -27,11 +30,16 @@ public class IndentStringBuilder {
         for (int i = 0; i < spaceCount; i++) {
             sb.append(' ');
         }
+        emptyLine = true;
         return this;
     }
 
     public IndentStringBuilder interLine() {
-        return nextLine().nextLine();
+        if (emptyLine) {
+            return nextLine();
+        } else {
+            return nextLine().nextLine();
+        }
     }
 
     public IndentStringBuilder push() {
