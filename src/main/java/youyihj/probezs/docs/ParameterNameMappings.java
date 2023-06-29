@@ -5,6 +5,7 @@ import youyihj.probezs.ProbeZS;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class ParameterNameMappings {
         if (datas == null) {
             return null;
         }
-        String name = method.getName();
+        String name = method instanceof Constructor ? "<init>" : method.getName();
         StringJoiner joiner = new StringJoiner(",");
         for (Class<?> parameterType : method.getParameterTypes()) {
             joiner.add(parameterType.getCanonicalName());

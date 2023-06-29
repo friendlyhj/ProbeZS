@@ -40,9 +40,9 @@ public class MethodParameterNamesGenerator {
         launcher.buildModel();
         CtModel model = launcher.getModel();
 
-        Filter<CtMethod<?>> filter = new CompositeFilter<>(
+        Filter<CtExecutable<?>> filter = new CompositeFilter<>(
             FilteringOperator.INTERSECTION,
-            new TypeFilter<>(CtMethod.class),
+            new TypeFilter<>(CtExecutable.class),
             new CompositeFilter<>(
                 FilteringOperator.UNION,
                 new AnnotationFilter<>(ZenMethod.class),
@@ -52,7 +52,7 @@ public class MethodParameterNamesGenerator {
                 new AnnotationFilter<>(ZenConstructor.class)
             )
         );
-        List<CtMethod<?>> methods = new ArrayList<>(model.getElements(filter));
+        List<CtExecutable<?>> methods = new ArrayList<>(model.getElements(filter));
 
         // add globals
         addExtras(model, methods);
@@ -84,7 +84,7 @@ public class MethodParameterNamesGenerator {
     }
 
 
-    private static void addExtras(CtModel model, List<CtMethod<?>> methods) {
+    private static void addExtras(CtModel model, List<CtExecutable<?>> methods) {
         // functional interface
         model.getElements(new CompositeFilter<>(
                 FilteringOperator.INTERSECTION,
@@ -119,11 +119,11 @@ public class MethodParameterNamesGenerator {
     }
 
 
-    private static Map<String, List<Map<String, Object>>> generateSource(List<CtMethod<?>> methods) {
+    private static Map<String, List<Map<String, Object>>> generateSource(List<CtExecutable<?>> methods) {
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
         // Process each method
-        for (CtMethod<?> method : methods) {
-            String clazzName = method.getDeclaringType().getQualifiedName();
+        for (CtExecutable<?> method : methods) {
+            String clazzName = ((CtTypeMember) method).getDeclaringType().getQualifiedName();
             String methodName = method.getSimpleName();
             List<String> parameterNames = new ArrayList<>();
             List<String> parameterSignatures = new ArrayList<>();
