@@ -7,6 +7,7 @@ import crafttweaker.zenscript.expand.ExpandIntArray;
 import org.apache.commons.io.FileUtils;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenExpansion;
+import stanhebben.zenscript.value.IntRange;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.tree.primitive.*;
 import youyihj.probezs.util.IndentStringBuilder;
@@ -44,7 +45,7 @@ public class ZenClassTree {
     }
 
     public ZenClassTree() {
-        registerPrimitiveClass();
+        registerPrimitiveClasses();
     }
 
     public void putClass(Class<?> clazz) {
@@ -119,7 +120,7 @@ public class ZenClassTree {
         javaMap.put(javaClass, node);
     }
 
-    private void registerPrimitiveClass() {
+    private void registerPrimitiveClasses() {
         ZenClassNode intNode = new ZenIntNode(this);
         ZenClassNode longNode = new ZenLongNode(this);
         ZenClassNode byteNode = new ZenByteNode(this);
@@ -146,6 +147,7 @@ public class ZenClassTree {
         javaMap.put(void.class, voidNode);
         registerPrimitiveClass(String.class, stringNode);
         registerPrimitiveClass(CharSequence.class, stringNode);
+        registerPrimitiveClass(IntRange.class, new ZenIntRangeNode(this));
         javaMap.put(Object.class, anyClass);
     }
 }
