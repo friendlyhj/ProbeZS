@@ -161,6 +161,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (ZenConstructorNode constructor : constructors) {
             constructor.fillImportMembers(imports);
         }
+        imports.remove(this);
         for (ZenClassNode anImport : imports) {
             if (!(anImport instanceof IPrimitiveType)) {
                 sb.append("import ").append(anImport.getName()).append(";").nextLine();
