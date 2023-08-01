@@ -86,7 +86,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                 String value = clazz.getAnnotation(IterableSimple.class).value();
                 ZenMemberNode iteratorMember =
                         new ZenMemberNode("iterator", () -> LazyZenClassNode.Result.compound("[" + processQualifiedName(value) + "]", tree.getClasses().get(value)), Collections.emptyList(), false);
-                iteratorMember.addAnnotation("operator", "ITERABLE");
+                iteratorMember.addAnnotation("foreach");
                 iteratorMember.addAnnotation("hidden");
                 members.add(iteratorMember);
             }
@@ -94,7 +94,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                 String value = clazz.getAnnotation(IterableList.class).value();
                 ZenMemberNode iteratorMember =
                         new ZenMemberNode("iterator", () -> LazyZenClassNode.Result.compound("[" + value + "]", tree.getClasses().get(value)), Collections.emptyList(), false);
-                iteratorMember.addAnnotation("operator", "ITERABLE");
+                iteratorMember.addAnnotation("foreach");
                 iteratorMember.addAnnotation("hidden");
                 members.add(iteratorMember);
             }
@@ -106,7 +106,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                         new ZenMemberNode("iterator",
                                 () -> LazyZenClassNode.Result.compound(String.format("%s[%s]", processQualifiedName(value), processQualifiedName(key)), tree.getClasses().get(key), tree.getClasses().get(value)),
                                 Collections.emptyList(), false);
-                iteratorMember.addAnnotation("operator", "ITERABLEMAP");
+                iteratorMember.addAnnotation("operator", "foreachMap");
                 iteratorMember.addAnnotation("hidden");
                 members.add(iteratorMember);
             }

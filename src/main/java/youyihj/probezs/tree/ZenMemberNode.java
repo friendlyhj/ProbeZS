@@ -5,6 +5,7 @@ import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
 import stanhebben.zenscript.annotations.ZenOperator;
 import youyihj.probezs.util.IndentStringBuilder;
+import youyihj.probezs.util.ZenOperators;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -52,7 +53,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
                 name = zenMethod.value();
             }
             ZenMemberNode memberNode = readInternal(method, tree, name, false, !isClass);
-            memberNode.addAnnotation("operator", method.getAnnotation(ZenOperator.class).value().name());
+            memberNode.addAnnotation("operator", ZenOperators.getZenScriptFormat(method.getAnnotation(ZenOperator.class).value()));
             if (zenMethod == null) {
                 memberNode.addAnnotation("hidden");
             }
