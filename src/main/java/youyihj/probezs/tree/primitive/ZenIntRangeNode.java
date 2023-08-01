@@ -20,7 +20,7 @@ public class ZenIntRangeNode extends ZenClassNode {
         properties.put("to", new ZenPropertyNode(tree.createLazyClassNode(int.class), "to"));
         ZenMemberNode iteratorMember = new ZenMemberNode(
                 "iterator", tree.createLazyClassNode(new TypeToken<List<Integer>>() {}.getType()), Collections.emptyList(), false);
-        iteratorMember.addAnnotation("operator", "ITERABLE");
+        iteratorMember.addAnnotation("foreach");
         iteratorMember.addAnnotation("hidden");
         members.add(iteratorMember);
     }
