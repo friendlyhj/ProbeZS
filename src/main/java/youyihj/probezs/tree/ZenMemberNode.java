@@ -1,10 +1,7 @@
 package youyihj.probezs.tree;
 
 import com.google.gson.annotations.SerializedName;
-import stanhebben.zenscript.annotations.ZenCaster;
-import stanhebben.zenscript.annotations.ZenMethod;
-import stanhebben.zenscript.annotations.ZenMethodStatic;
-import stanhebben.zenscript.annotations.ZenOperator;
+import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenOperators;
 
@@ -50,17 +47,13 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
             return memberNode;
         }
         if (method.isAnnotationPresent(ZenOperator.class)) {
-            ZenMethod zenMethod = method.getAnnotation(ZenMethod.class);
-            String name = method.getName();
-            if (zenMethod != null && !zenMethod.value().isEmpty()) {
-                name = zenMethod.value();
-            }
-            ZenMemberNode memberNode = readInternal(method, tree, name, false, !isClass);
-            memberNode.addAnnotation("operator", ZenOperators.getZenScriptFormat(method.getAnnotation(ZenOperator.class).value()));
-            if (zenMethod == null) {
-                memberNode.addAnnotation("hidden");
-            }
-            return memberNode;
+            return readOperator(method, tree, method.getAnnotation(ZenOperator.class).value(), isClass);
+        }
+        if (method.isAnnotationPresent(ZenMemberSetter.class)) {
+            return readOperator(method, tree, OperatorType.MEMBERSETTER, isClass);
+        }
+        if (method.isAnnotationPresent(ZenMemberGetter.class)) {
+            return readOperator(method, tree, OperatorType.MEMBERGETTER, isClass);
         }
         if (isClass && method.isAnnotationPresent(ZenMethod.class)) {
             String name = method.getAnnotation(ZenMethod.class).value();
@@ -101,6 +94,20 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
             zenMemberNode.addAnnotation("varargs");
         }
         return zenMemberNode;
+    }
+
+    private static ZenMemberNode readOperator(Method method, ZenClassTree tree, OperatorType operatorType, boolean isClass) {
+        ZenMethod zenMethod = method.getAnnotation(ZenMethod.class);
+        String name = method.getName();
+        if (zenMethod != null && !zenMethod.value().isEmpty()) {
+            name = zenMethod.value();
+        }
+        ZenMemberNode memberNode = readInternal(method, tree, name, false, !isClass);
+        memberNode.addAnnotation("operator", ZenOperators.getZenScriptFormat(operatorType));
+        if (zenMethod == null) {
+            memberNode.addAnnotation("hidden");
+        }
+        return memberNode;
     }
 
     public void addAnnotation(String head) {
