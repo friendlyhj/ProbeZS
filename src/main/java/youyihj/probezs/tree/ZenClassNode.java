@@ -175,9 +175,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     public void toZenScript(IndentStringBuilder sb) {
         Set<ZenClassNode> imports = getImportMembers();
         for (ZenClassNode anImport : imports) {
-            if (!(anImport instanceof IPrimitiveType)) {
-                sb.append("import ").append(anImport.getName()).append(";").nextLine();
-            }
+            sb.append("import ").append(anImport.getName()).append(";").nextLine();
         }
         sb.nextLine();
         String extendInformation = extendClasses.stream()
@@ -273,10 +271,14 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                 imports.add(importMember.getName());
             }
             json.add("imports", imports);
-            json.add("extends", context.serialize(src.extendClasses, new TypeToken<List<LazyZenClassNode>>() {}.getType()));
-            json.add("properties", context.serialize(src.properties.values(), new TypeToken<Collection<ZenPropertyNode>>() {}.getType()));
-            json.add("constructors", context.serialize(src.constructors, new TypeToken<List<ZenConstructorNode>>() {}.getType()));
-            json.add("members", context.serialize(src.members, new TypeToken<List<ZenMemberNode>>() {}.getType()));
+            json.add("extends", context.serialize(src.extendClasses, new TypeToken<List<LazyZenClassNode>>() {
+            }.getType()));
+            json.add("properties", context.serialize(src.properties.values(), new TypeToken<Collection<ZenPropertyNode>>() {
+            }.getType()));
+            json.add("constructors", context.serialize(src.constructors, new TypeToken<List<ZenConstructorNode>>() {
+            }.getType()));
+            json.add("members", context.serialize(src.members, new TypeToken<List<ZenMemberNode>>() {
+            }.getType()));
             return json;
         }
     }
