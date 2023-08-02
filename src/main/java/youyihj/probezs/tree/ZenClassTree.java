@@ -27,7 +27,7 @@ import java.util.function.Supplier;
  */
 public class ZenClassTree {
     private static ZenClassTree root;
-    private static final Gson GSON = new GsonBuilder()
+    public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(new TypeToken<Supplier<LazyZenClassNode.Result>>() {}.getType(), new LazyZenClassNode.Serializer())
             .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.Serializer())
