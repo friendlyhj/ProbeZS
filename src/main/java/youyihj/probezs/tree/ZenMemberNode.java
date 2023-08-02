@@ -39,7 +39,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
             if (zenMethod != null && !zenMethod.value().isEmpty()) {
                 name = zenMethod.value();
             }
-            ZenMemberNode memberNode = readInternal(method, tree, name, false, !isClass);
+            ZenMemberNode memberNode = readDirectly(method, tree, name, false, !isClass);
             memberNode.addAnnotation("caster");
             if (zenMethod == null) {
                 memberNode.addAnnotation("hidden");
@@ -60,7 +60,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
             if (name.isEmpty()) {
                 name = method.getName();
             }
-            return readInternal(method, tree, name, Modifier.isStatic(method.getModifiers()), false);
+            return readDirectly(method, tree, name, Modifier.isStatic(method.getModifiers()), false);
         }
         if (!isClass) {
             if (method.isAnnotationPresent(ZenMethod.class)) {
@@ -68,20 +68,20 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
                 if (name.isEmpty()) {
                     name = method.getName();
                 }
-                return readInternal(method, tree, name, false, true);
+                return readDirectly(method, tree, name, false, true);
             }
             if (method.isAnnotationPresent(ZenMethodStatic.class)) {
                 String name = method.getAnnotation(ZenMethodStatic.class).value();
                 if (name.isEmpty()) {
                     name = method.getName();
                 }
-                return readInternal(method, tree, name, true, false);
+                return readDirectly(method, tree, name, true, false);
             }
         }
         return null;
     }
 
-    public static ZenMemberNode readInternal(Method method, ZenClassTree tree, String name, boolean isStatic, boolean expansion) {
+    public static ZenMemberNode readDirectly(Method method, ZenClassTree tree, String name, boolean isStatic, boolean expansion) {
 
         int startIndex = expansion ? 1 : 0;
         Parameter[] parameters = method.getParameters();
@@ -102,7 +102,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
         if (zenMethod != null && !zenMethod.value().isEmpty()) {
             name = zenMethod.value();
         }
-        ZenMemberNode memberNode = readInternal(method, tree, name, false, !isClass);
+        ZenMemberNode memberNode = readDirectly(method, tree, name, false, !isClass);
         memberNode.addAnnotation("operator", ZenOperators.getZenScriptFormat(operatorType));
         if (zenMethod == null) {
             memberNode.addAnnotation("hidden");

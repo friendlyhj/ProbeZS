@@ -140,7 +140,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             }
         }
         if (isClass && lambdaMethod != null && !hasAnnotatedLambdaMethod) {
-            ZenMemberNode lambdaNode = ZenMemberNode.readInternal(lambdaMethod, tree, lambdaMethod.getName(), false, false);
+            ZenMemberNode lambdaNode = ZenMemberNode.readDirectly(lambdaMethod, tree, lambdaMethod.getName(), false, false);
             lambdaNode.addAnnotation("lambda");
             lambdaNode.addAnnotation("hidden");
             members.add(lambdaNode);
