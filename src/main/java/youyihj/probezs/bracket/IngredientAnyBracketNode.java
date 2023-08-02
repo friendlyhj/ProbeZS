@@ -8,12 +8,7 @@ import youyihj.probezs.tree.ZenClassTree;
  */
 public class IngredientAnyBracketNode extends ZenBracketNode {
     public IngredientAnyBracketNode(ZenClassTree tree) {
-        super(tree.createLazyClassNode(IIngredient.class), 0);
+        super(tree.createLazyClassNode(IIngredient.class));
         addContent("*");
-    }
-
-    @Override
-    public String getName() {
-        return "ingredientAny";
     }
 }

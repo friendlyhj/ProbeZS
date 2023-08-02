@@ -1,29 +1,21 @@
 package youyihj.probezs.bracket;
 
-import youyihj.probezs.tree.IHasImportMembers;
-import youyihj.probezs.tree.IZenDumpable;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import youyihj.probezs.tree.LazyZenClassNode;
-import youyihj.probezs.tree.ZenClassNode;
-import youyihj.probezs.util.IndentStringBuilder;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author youyihj
  */
-public class ZenBracketNode implements IZenDumpable, IHasImportMembers {
-    public static final int ELEMENTS_ONE_LINE = 5;
-
+public class ZenBracketNode {
     private final List<String> content = new ArrayList<>();
     private final LazyZenClassNode type;
-    private final int id;
 
-    public ZenBracketNode(LazyZenClassNode type, int id) {
+    public ZenBracketNode(LazyZenClassNode type) {
         this.type = type;
-        this.id = id;
     }
 
     public void addContent(List<String> content) {
@@ -34,43 +26,18 @@ public class ZenBracketNode implements IZenDumpable, IHasImportMembers {
         this.content.add(content);
     }
 
-    public String getName() {
-        return "bh" + id;
+    public final JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", type.get().getTypeVariables().get(0).getName());
+        JsonArray contentsJson = new JsonArray();
+        fillJsonContents(contentsJson);
+        json.add("contents", contentsJson);
+        return json;
     }
 
-    @Override
-    public void toZenScript(IndentStringBuilder sb) {
-        if (!type.isExisted()) return;
-        sb.append("val ").append(getName()).append(" as ")
-                .append(type.get().getQualifiedName()).append("[] = ");
-        if (content.isEmpty()) {
-            sb.append("[];");
-        } else {
-            sb.append("[");
-            sb.push();
-            Iterator<String> iterator = content.iterator();
-            int lineElement = 0;
-            String first = iterator.next();
-            sb.append("<").append(first).append(">");
-            lineElement++;
-            while (iterator.hasNext()) {
-                sb.append(",");
-                if (lineElement == ELEMENTS_ONE_LINE) {
-                    sb.nextLine();
-                    lineElement = 0;
-                } else {
-                    sb.append(" ");
-                }
-                sb.append("<").append(iterator.next()).append(">");
-                lineElement++;
-            }
-            sb.pop();
-            sb.append("];");
+    public void fillJsonContents(JsonArray jsonArray) {
+        for (String s : this.content) {
+            jsonArray.add(s);
         }
-    }
-
-    @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
-        members.addAll(type.get().getTypeVariables());
     }
 }

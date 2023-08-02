@@ -1,17 +1,18 @@
 package youyihj.probezs.bracket;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import crafttweaker.zenscript.IBracketHandler;
 import org.apache.commons.io.FileUtils;
 import youyihj.probezs.docs.BracketReturnTypes;
-import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
-import youyihj.probezs.tree.primitive.IPrimitiveType;
-import youyihj.probezs.util.IndentStringBuilder;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,8 +20,11 @@ import java.util.stream.Stream;
  * @author youyihj
  */
 public class ZenBracketTree {
+    private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .create();
+
     private final Map<Class<?>, ZenBracketNode> nodes = new LinkedHashMap<>();
-    private int nextNodeId;
     private final ZenClassTree tree;
 
     public ZenBracketTree(ZenClassTree tree) {
@@ -28,9 +32,9 @@ public class ZenBracketTree {
     }
 
     public void addHandler(IBracketHandler bracketHandler) {
-         Class<?> returnedClass = BracketReturnTypes.find(bracketHandler);
+        Class<?> returnedClass = BracketReturnTypes.find(bracketHandler);
         if (returnedClass != null && !nodes.containsKey(returnedClass)) {
-            ZenBracketNode bracketNode = new ZenBracketNode(tree.createLazyClassNode(returnedClass), nextNodeId++);
+            ZenBracketNode bracketNode = new ZenBracketNode(tree.createLazyClassNode(returnedClass));
             nodes.put(returnedClass, bracketNode);
         }
     }
@@ -44,23 +48,12 @@ public class ZenBracketTree {
     }
 
     public void output() {
-        IndentStringBuilder builder = new IndentStringBuilder();
-        Set<ZenClassNode> imports = new TreeSet<>();
-        nodes.values().forEach(it -> {
-            it.fillImportMembers(imports);
-        });
-        for (ZenClassNode anImport : imports) {
-            if (!(anImport instanceof IPrimitiveType)) {
-                builder.append("import ").append(anImport.getName()).append(";").nextLine();
-            }
+        JsonArray brackets = new JsonArray();
+        for (ZenBracketNode value : nodes.values()) {
+            brackets.add(value.toJson());
         }
-        builder.nextLine();
-        nodes.values().forEach(it -> {
-            it.toZenScript(builder);
-            builder.interLine();
-        });
         try {
-            FileUtils.write(new File("scripts" + File.separator + "generated" + File.separator + "brackets.dzs"), builder.toString(), StandardCharsets.UTF_8);
+            FileUtils.write(new File("scripts" + File.separator + "generated" + File.separator + "brackets.json"), GSON.toJson(brackets), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
         }

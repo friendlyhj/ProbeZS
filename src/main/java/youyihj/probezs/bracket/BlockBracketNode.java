@@ -2,6 +2,8 @@ package youyihj.probezs.bracket;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
@@ -16,8 +18,32 @@ import java.util.StringJoiner;
  */
 public class BlockBracketNode extends ZenBracketNode {
     public BlockBracketNode(ZenClassTree tree) {
-        super(tree.createLazyClassNode(crafttweaker.api.block.IBlockState.class), 0);
+        super(tree.createLazyClassNode(crafttweaker.api.block.IBlockState.class));
         readBlocks();
+    }
+
+    @Override
+    public void fillJsonContents(JsonArray jsonArray) {
+        fillJsonContents0(jsonArray);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Comparable<T>> void fillJsonContents0(JsonArray jsonArray) {
+        for (Block block : ForgeRegistries.BLOCKS) {
+            JsonObject element = new JsonObject();
+            element.addProperty("id", "blockstate:" + block.getRegistryName());
+            JsonObject properties = new JsonObject();
+            for (IProperty<?> property : block.getBlockState().getProperties()) {
+                IProperty<T> propertyT = ((IProperty<T>) property);
+                JsonArray values = new JsonArray();
+                for (T allowedValue : propertyT.getAllowedValues()) {
+                    values.add(propertyT.getName(allowedValue));
+                }
+                properties.add(property.getName(), values);
+            }
+            element.add("properties", properties);
+            jsonArray.add(element);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -41,10 +67,5 @@ public class BlockBracketNode extends ZenBracketNode {
                 }
             }
         }
-    }
-
-    @Override
-    public String getName() {
-        return "blocks";
     }
 }
