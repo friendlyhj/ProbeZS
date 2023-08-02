@@ -1,5 +1,8 @@
 package youyihj.probezs.tree;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import crafttweaker.zenscript.expand.ExpandAnyArray;
 import crafttweaker.zenscript.expand.ExpandAnyDict;
 import crafttweaker.zenscript.expand.ExpandByteArray;
@@ -17,12 +20,21 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * @author youyihj
  */
 public class ZenClassTree {
     private static ZenClassTree root;
+    private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(new TypeToken<Supplier<LazyZenClassNode.Result>>() {}.getType(), new LazyZenClassNode.Serializer())
+            .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.Serializer())
+            .registerTypeAdapter(ZenAnnotationNode.class, new ZenAnnotationNode.Serializer())
+            .registerTypeAdapter(ZenClassNode.class, new ZenClassNode.Serializer())
+            .registerTypeAdapter(ZenParameterNode.class, new ZenParameterNode.Serializer())
+            .create();
 
     private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();
     private final Map<Class<?>, ZenClassNode> javaMap = new HashMap<>();
@@ -94,13 +106,12 @@ public class ZenClassTree {
 
     public void output() {
         for (ZenClassNode classNode : classes.values()) {
+            String filePathWithoutExtension = "scripts" + File.separator + "generated" + File.separator + classNode.getName().replace('.', File.separatorChar);
             IndentStringBuilder builder = new IndentStringBuilder();
             classNode.toZenScript(builder);
             try {
-                FileUtils.write(
-                        new File("scripts" + File.separator + "generated" + File.separator + classNode.getName().replace('.', File.separatorChar) + ".dzs"),
-                        builder.toString(), StandardCharsets.UTF_8
-                );
+                FileUtils.write(new File(filePathWithoutExtension + ".dzs"), builder.toString(), StandardCharsets.UTF_8);
+                FileUtils.write(new File(filePathWithoutExtension + ".json"), GSON.toJson(classNode, ZenClassNode.class), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 ProbeZS.logger.error("Failed to output: {}" + classNode.getName(), e);
             }

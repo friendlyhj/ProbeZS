@@ -1,5 +1,9 @@
 package youyihj.probezs.tree;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import crafttweaker.util.IEventHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import youyihj.probezs.ProbeZS;
@@ -136,6 +140,14 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
 
         private MissingResult(ZenClassTree tree) {
             super("any", tree.getAnyClass());
+        }
+    }
+
+    public static class Serializer implements JsonSerializer<Supplier<Result>> {
+
+        @Override
+        public JsonElement serialize(Supplier<Result> src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.get().qualifiedName);
         }
     }
 }

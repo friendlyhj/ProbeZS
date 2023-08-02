@@ -1,5 +1,6 @@
 package youyihj.probezs.tree;
 
+import com.google.gson.*;
 import stanhebben.zenscript.annotations.Optional;
 import youyihj.probezs.docs.ParameterNameMappings;
 import youyihj.probezs.util.IndentStringBuilder;
@@ -7,6 +8,7 @@ import youyihj.probezs.util.ZenKeywords;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -46,6 +48,10 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
 
     public LazyZenClassNode getType() {
         return type;
+    }
+
+    public Optional getOptional() {
+        return optional;
     }
 
     @Override
@@ -94,5 +100,55 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
     @Override
     public void fillImportMembers(Set<ZenClassNode> members) {
         members.addAll(type.get().getTypeVariables());
+    }
+
+    public static class Serializer implements JsonSerializer<ZenParameterNode> {
+
+        @Override
+        public JsonElement serialize(ZenParameterNode src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject json = new JsonObject();
+            json.addProperty("name", src.getName());
+            json.add("type", context.serialize(src.getType()));
+            Optional optional = src.getOptional();
+            if (optional != null) {
+                String typeName = src.getType().get().getQualifiedName();
+                switch (typeName) {
+                    case "int":
+                    case "short":
+                    case "long":
+                    case "byte":
+                        json.addProperty("optional", optional.valueLong());
+                        break;
+                    case "bool":
+                        json.addProperty("optional", optional.valueBoolean());
+                        break;
+                    case "float":
+                    case "double":
+                        json.addProperty("optional", optional.valueDouble());
+                        break;
+                    case "string":
+                        if (optional.value().isEmpty()) {
+                            json.add("optional", JsonNull.INSTANCE);
+                        } else {
+                            json.addProperty("optional", optional.value());
+                        }
+                        break;
+                    default:
+                        if (optional.methodClass() == Optional.class) {
+                            json.add("optional", JsonNull.INSTANCE);
+                        } else {
+                            String sb = optional.methodClass().getName() +
+                                    "." +
+                                    optional.methodName() +
+                                    "(" +
+                                    "\"" + optional.value() + "\"" +
+                                    ")";
+                            json.addProperty("optional", sb);
+                        }
+                        break;
+                }
+            }
+            return json;
+        }
     }
 }

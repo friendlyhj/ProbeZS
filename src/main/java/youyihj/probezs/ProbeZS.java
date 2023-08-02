@@ -81,7 +81,7 @@ public class ProbeZS {
             Files.walkFileTree(Paths.get("scripts"), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (file.toString().endsWith(".dzs")) {
+                    if (file.toString().endsWith(".dzs") || file.toString().endsWith(".json")) {
                         Files.delete(file);
                     }
                     return FileVisitResult.CONTINUE;

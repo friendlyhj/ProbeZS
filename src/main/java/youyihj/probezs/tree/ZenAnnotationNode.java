@@ -1,8 +1,11 @@
 package youyihj.probezs.tree;
 
 import com.google.common.collect.Lists;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import youyihj.probezs.util.IndentStringBuilder;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -12,7 +15,7 @@ import java.util.Map;
  * @author youyihj
  */
 public class ZenAnnotationNode implements IZenDumpable {
-    private final HashMap<String, List<String>> values = new HashMap<>();
+    private final Map<String, List<String>> values = new HashMap<>();
 
     public void add(String head, String value) {
         values.computeIfAbsent(head, it -> Lists.newArrayList(value));
@@ -40,6 +43,27 @@ public class ZenAnnotationNode implements IZenDumpable {
                 }
                 sb.nextLine();
             }
+        }
+    }
+
+    public static class Serializer implements JsonSerializer<ZenAnnotationNode> {
+
+        @Override
+        public JsonElement serialize(ZenAnnotationNode src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonArray annotations = new JsonArray();
+            src.values.forEach((head, values) -> {
+                JsonObject element = new JsonObject();
+                element.addProperty("head", head);
+                if (!(values.size() == 1 && values.get(0).isEmpty())) {
+                    if (values.size() == 1) {
+                        element.addProperty("value", values.get(0));
+                    } else {
+                        element.add("value", context.serialize(values, new TypeToken<List<String>>() {}.getType()));
+                    }
+                }
+                annotations.add(element);
+            });
+            return annotations;
         }
     }
 }

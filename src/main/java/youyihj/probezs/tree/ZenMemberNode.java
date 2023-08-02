@@ -1,5 +1,6 @@
 package youyihj.probezs.tree;
 
+import com.google.gson.annotations.SerializedName;
 import stanhebben.zenscript.annotations.ZenCaster;
 import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
@@ -23,6 +24,8 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
     private final ZenAnnotationNode annotationNode = new ZenAnnotationNode();
+
+    @SerializedName("returnType")
     private final Supplier<LazyZenClassNode.Result> returnTypeResultSupplier;
 
     public ZenMemberNode(String name, Supplier<LazyZenClassNode.Result> returnType, List<ZenParameterNode> parameters, boolean isStatic) {

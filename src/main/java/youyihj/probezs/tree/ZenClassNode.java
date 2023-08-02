@@ -1,13 +1,12 @@
 package youyihj.probezs.tree;
 
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.IndentStringBuilder;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -148,9 +147,17 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    @Override
-    public void toZenScript(IndentStringBuilder sb) {
-        Set<ZenClassNode> imports = new TreeSet<>();
+    public Set<ZenClassNode> getImportMembers() {
+        Set<ZenClassNode> imports = new TreeSet<ZenClassNode>() {
+            @Override
+            public boolean add(ZenClassNode node) {
+                if (node instanceof IPrimitiveType || node == ZenClassNode.this) {
+                    return false;
+                } else {
+                    return super.add(node);
+                }
+            }
+        };
         this.fillImportMembers(imports);
         for (ZenPropertyNode property : properties.values()) {
             property.fillImportMembers(imports);
@@ -161,7 +168,12 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (ZenConstructorNode constructor : constructors) {
             constructor.fillImportMembers(imports);
         }
-        imports.remove(this);
+        return imports;
+    }
+
+    @Override
+    public void toZenScript(IndentStringBuilder sb) {
+        Set<ZenClassNode> imports = getImportMembers();
         for (ZenClassNode anImport : imports) {
             if (!(anImport instanceof IPrimitiveType)) {
                 sb.append("import ").append(anImport.getName()).append(";").nextLine();
@@ -248,6 +260,25 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     @Override
     public int hashCode() {
         return Objects.hash(name, tree);
+    }
+
+    public static class Serializer implements JsonSerializer<ZenClassNode> {
+
+        @Override
+        public JsonElement serialize(ZenClassNode src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject json = new JsonObject();
+            json.addProperty("name", src.getQualifiedName());
+            JsonArray imports = new JsonArray();
+            for (ZenClassNode importMember : src.getImportMembers()) {
+                imports.add(importMember.getName());
+            }
+            json.add("imports", imports);
+            json.add("extends", context.serialize(src.extendClasses, new TypeToken<List<LazyZenClassNode>>() {}.getType()));
+            json.add("properties", context.serialize(src.properties.values(), new TypeToken<Collection<ZenPropertyNode>>() {}.getType()));
+            json.add("constructors", context.serialize(src.constructors, new TypeToken<List<ZenConstructorNode>>() {}.getType()));
+            json.add("members", context.serialize(src.members, new TypeToken<List<ZenMemberNode>>() {}.getType()));
+            return json;
+        }
     }
 
 }
