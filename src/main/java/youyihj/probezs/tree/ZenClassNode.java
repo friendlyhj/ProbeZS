@@ -122,7 +122,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                 propertyNode.setHasGetter(true);
             }
             if (method.isAnnotationPresent(ZenSetter.class)) {
-                LazyZenClassNode type = tree.createLazyClassNode(method.getGenericReturnType());
+                LazyZenClassNode type = tree.createLazyClassNode(method.getGenericParameterTypes()[isClass ? 0 : 1]);
                 String name = method.getAnnotation(ZenSetter.class).value();
                 if (name.isEmpty()) {
                     name = method.getName();
