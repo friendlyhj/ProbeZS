@@ -20,6 +20,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     private final String name;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
+    @SerializedName("annotations")
     private final ZenAnnotationNode annotationNode = new ZenAnnotationNode();
 
     @SerializedName("returnType")
