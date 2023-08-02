@@ -147,7 +147,7 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
 
         @Override
         public JsonElement serialize(Supplier<Result> src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(src.get().qualifiedName);
+            return new JsonPrimitive(src.get().getQualifiedName());
         }
     }
 }
