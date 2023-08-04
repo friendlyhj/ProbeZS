@@ -25,10 +25,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import org.apache.logging.log4j.Logger;
 import stanhebben.zenscript.util.Pair;
-import youyihj.probezs.bracket.BlockBracketNode;
-import youyihj.probezs.bracket.IngredientAnyBracketNode;
-import youyihj.probezs.bracket.ItemBracketNode;
-import youyihj.probezs.bracket.ZenBracketTree;
+import youyihj.probezs.bracket.*;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.global.ZenGlobalMemberTree;
 
