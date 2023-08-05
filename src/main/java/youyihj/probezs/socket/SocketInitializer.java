@@ -16,7 +16,7 @@ public class SocketInitializer extends ChannelInitializer<SocketChannel> {
     protected void initChannel(SocketChannel ch) {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast("httpServerCodec", new HttpServerCodec());
-        pipeline.addLast("httpObjectAggregator", new HttpObjectAggregator(8192));
+        pipeline.addLast("httpObjectAggregator", new HttpObjectAggregator(16384));
         pipeline.addLast("websocketCompression", new WebSocketServerCompressionHandler());
         pipeline.addLast("websocketProtocol", new WebSocketServerProtocolHandler("/probezs", null,true));
         pipeline.addLast("bracketHandler", new BracketCheckHandler());
