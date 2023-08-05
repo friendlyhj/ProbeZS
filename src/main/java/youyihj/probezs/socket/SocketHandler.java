@@ -3,6 +3,7 @@ package youyihj.probezs.socket;
 import crafttweaker.CraftTweakerAPI;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -34,10 +35,20 @@ public class SocketHandler {
             bossGroup = new NioEventLoopGroup(1);
             workerGroup = new NioEventLoopGroup();
 
+            ChannelHandler childHandler = null;
+            switch (ProbeZSConfig.socketProtocol) {
+                case WEBSOCKET:
+                    childHandler = new SocketInitializer();
+                    break;
+                case RPC:
+                    childHandler = new RpcSocketInitializer();
+                    break;
+            }
+
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(new SocketInitializer())
+                    .childHandler(childHandler)
                     .option(ChannelOption.SO_BACKLOG, 512)
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childOption(ChannelOption.SO_KEEPALIVE, true);

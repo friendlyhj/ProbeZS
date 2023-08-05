@@ -25,8 +25,10 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import org.apache.logging.log4j.Logger;
 import stanhebben.zenscript.util.Pair;
-import youyihj.probezs.bracket.*;
-import youyihj.probezs.socket.RpcHandler;
+import youyihj.probezs.bracket.BlockBracketNode;
+import youyihj.probezs.bracket.IngredientAnyBracketNode;
+import youyihj.probezs.bracket.ItemBracketNode;
+import youyihj.probezs.bracket.ZenBracketTree;
 import youyihj.probezs.socket.SocketHandler;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.global.ZenGlobalMemberTree;
@@ -96,13 +98,8 @@ public class ProbeZS {
         root.output();
         globalMemberTree.output();
         bracketTree.output();
-        switch (ProbeZSConfig.socketProtocol) {
-            case WEBSOCKET:
-                SocketHandler.enable();
-                break;
-            case RPC:
-                RpcHandler.enable();
-                break;
+        if (ProbeZSConfig.socketProtocol != ProbeZSConfig.SocketProtocol.NONE) {
+            SocketHandler.enable();
         }
     }
 

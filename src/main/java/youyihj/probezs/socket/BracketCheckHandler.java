@@ -1,7 +1,6 @@
 package youyihj.probezs.socket;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
@@ -11,8 +10,8 @@ import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import youyihj.probezs.bracket.BracketHandlerCaller;
 import youyihj.probezs.api.BracketHandlerResult;
+import youyihj.probezs.bracket.BracketHandlerCaller;
 
 import java.util.Map;
 
@@ -37,14 +36,14 @@ public class BracketCheckHandler extends SimpleChannelInboundHandler<WebSocketFr
         }
     }
 
-    private JsonElement outputJson(BracketHandlerResult result) {
+    public static JsonObject outputJson(BracketHandlerResult result) {
         JsonObject jsonObject = new JsonObject();
         if (result == null || result.getType() == null) {
             jsonObject.addProperty("type", "null");
             jsonObject.add("extra", new JsonObject());
         } else {
             jsonObject.addProperty("type", result.getType());
-            jsonObject.add("extra", GSON.toJsonTree(result.getExtras(), new TypeToken<Map<String, String>>(){}.getType()));
+            jsonObject.add("extras", GSON.toJsonTree(result.getExtras(), new TypeToken<Map<String, String>>(){}.getType()));
         }
         return jsonObject;
     }
