@@ -14,8 +14,8 @@ public class SerializableBracketHandlerCaller implements IBracketHandlerCaller {
     }
 
     @Override
-    public BracketHandlerResult call(String content) {
-        BracketHandlerResult result = caller.call(content);
+    public BracketHandlerResult call(String content, boolean requireExtras) {
+        BracketHandlerResult result = caller.call(content, requireExtras);
         return new BracketHandlerResult(result.getType(), result.getExtras());
     }
 }

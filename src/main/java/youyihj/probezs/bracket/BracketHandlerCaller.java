@@ -1,6 +1,12 @@
 package youyihj.probezs.bracket;
 
+import crafttweaker.api.item.IItemStack;
+import crafttweaker.api.minecraft.CraftTweakerMC;
 import crafttweaker.zenscript.GlobalRegistry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.item.ItemStack;
+import org.lwjgl.opengl.GL11;
 import org.objectweb.asm.*;
 import stanhebben.zenscript.ZenTokener;
 import stanhebben.zenscript.compiler.EnvironmentClass;
@@ -17,14 +23,16 @@ import stanhebben.zenscript.util.ZenPosition;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.api.BracketHandlerResult;
 import youyihj.probezs.api.IBracketHandlerCaller;
+import youyihj.probezs.render.RenderHelper;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -62,17 +70,22 @@ public class BracketHandlerCaller implements IBracketHandlerCaller {
     }
 
     @Override
-    public BracketHandlerResult call(String content) {
+    public BracketHandlerResult call(String content, boolean requiresExtras) {
         String className = "bh$" + content.replaceAll("\\W", "_");
         IPartialExpression expression = getZenExpression(content);
+        ZenBracketHandlerResult result;
         if (expression == null) {
             return null;
         }
         if (expression instanceof ExpressionCallStatic) {
-            return getCached(((ExpressionCallStatic) expression), className);
+            result = getCached(((ExpressionCallStatic) expression), className);
         } else {
-            return getDirectly(expression, className);
+            result = getDirectly(expression, className);
         }
+        if (requiresExtras) {
+            writeExtras(result);
+        }
+        return result;
     }
 
     private static IPartialExpression getZenExpression(String content) {
@@ -237,6 +250,39 @@ public class BracketHandlerCaller implements IBracketHandlerCaller {
         methodOutput.end();
         classWriter.visitEnd();
         return classWriter.toByteArray();
+    }
+
+    private static void writeExtras(ZenBracketHandlerResult result) {
+        Object object = result.getObject();
+        Map<String, String> extras = result.getExtras();
+        if (object instanceof IItemStack) {
+            writeItemInfo(CraftTweakerMC.getItemStack((IItemStack) object), extras);
+        }
+    }
+
+    private static void writeItemInfo(ItemStack item, Map<String, String> extras) {
+        extras.put("name", item.getDisplayName());
+        try {
+            String iconBase64 = Minecraft.getMinecraft().addScheduledTask(() -> {
+                RenderHelper.setupRenderState(32);
+                GlStateManager.pushMatrix();
+                GlStateManager.clearColor(0, 0, 0, 0);
+                GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+                Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(item, 0, 0);
+                GlStateManager.popMatrix();
+                BufferedImage img = RenderHelper.createFlipped(RenderHelper.readPixels(32, 32));
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                try {
+                    ImageIO.write(img, "PNG", out);
+                } catch (IOException ignored) {
+                }
+                return Base64.getEncoder().encodeToString(out.toByteArray());
+            }).get(3, TimeUnit.SECONDS);
+            extras.put("icon", iconBase64);
+        } catch (Exception e) {
+            ProbeZS.logger.error(e);
+        }
+
     }
 
     @SuppressWarnings("unchecked")
