@@ -20,7 +20,7 @@ public class SocketHandler {
     private NioEventLoopGroup workerGroup;
 
     public SocketHandler() {
-        new Thread(this::handleServerSocket).start();
+        new Thread(this::handleServerSocket, "ProbeZS-Server-Websocket").start();
     }
 
     public static void enable() {

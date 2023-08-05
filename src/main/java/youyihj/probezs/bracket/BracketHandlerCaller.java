@@ -11,11 +11,12 @@ import stanhebben.zenscript.expression.*;
 import stanhebben.zenscript.expression.partial.IPartialExpression;
 import stanhebben.zenscript.parser.Token;
 import stanhebben.zenscript.symbols.IZenSymbol;
-import stanhebben.zenscript.type.ZenType;
 import stanhebben.zenscript.type.natives.JavaMethod;
 import stanhebben.zenscript.util.MethodOutput;
 import stanhebben.zenscript.util.ZenPosition;
 import youyihj.probezs.ProbeZS;
+import youyihj.probezs.api.BracketHandlerResult;
+import youyihj.probezs.api.IBracketHandlerCaller;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -31,7 +32,9 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * @author youyihj
  */
-public class BracketHandlerCaller {
+public class BracketHandlerCaller implements IBracketHandlerCaller {
+    public static final BracketHandlerCaller INSTANCE = new BracketHandlerCaller();
+
     private static final IEnvironmentGlobal ENVIRONMENT_GLOBAL = GlobalRegistry.makeGlobalEnvironment(new HashMap<>());
     private static final ZenPosition POSITION = new ZenPosition(null, 1, 0, "BracketHandlerCaller.java");
     private static final Map<Method, Class<?>> CACHED_SUPPLIER_CLASSES = new HashMap<>();
@@ -58,7 +61,8 @@ public class BracketHandlerCaller {
         }
     }
 
-    public static Result call(String content) {
+    @Override
+    public BracketHandlerResult call(String content) {
         String className = "bh$" + content.replaceAll("\\W", "_");
         IPartialExpression expression = getZenExpression(content);
         if (expression == null) {
@@ -88,7 +92,7 @@ public class BracketHandlerCaller {
         }
     }
 
-    private static Result getCached(ExpressionCallStatic expressionCallStatic, String className) {
+    private static ZenBracketHandlerResult getCached(ExpressionCallStatic expressionCallStatic, String className) {
         Method method = ((JavaMethod) getFieldUnchecked(CALL_STATIC_METHOD_FIELD, expressionCallStatic)).getMethod();
         Expression[] expressions = getFieldUnchecked(CALL_STATIC_ARGUMENTS_FILED, expressionCallStatic);
         Class<?> clazz = CACHED_SUPPLIER_CLASSES.computeIfAbsent(method, (method1 -> {
@@ -143,13 +147,13 @@ public class BracketHandlerCaller {
         }
         try {
             Object obj = ((Supplier<?>) clazz.getConstructor(parameterTypes).newInstance(argumentsForConstructor)).get();
-            return new Result(obj, expressionCallStatic.getType());
+            return new ZenBracketHandlerResult(obj, expressionCallStatic.getType());
         } catch (ReflectiveOperationException e) {
             return getDirectly(expressionCallStatic, className);
         }
     }
 
-    private static Result getDirectly(IPartialExpression expression, String className) {
+    private static ZenBracketHandlerResult getDirectly(IPartialExpression expression, String className) {
         Class<?> supplierClass;
         try {
             supplierClass = Class.forName(className, true, InternalClassLoader.INSTANCE);
@@ -164,7 +168,7 @@ public class BracketHandlerCaller {
             return getDirectly(expression, className);
         }
         try {
-            return new Result(((Supplier<?>) supplierClass.newInstance()).get(), expression.getType());
+            return new ZenBracketHandlerResult(((Supplier<?>) supplierClass.newInstance()).get(), expression.getType());
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -241,24 +245,6 @@ public class BracketHandlerCaller {
             return (T) field.get(obj);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    public static class Result {
-        private final Object object;
-        private final ZenType type;
-
-        public Result(Object object, ZenType type) {
-            this.object = object;
-            this.type = type;
-        }
-
-        public Object getObject() {
-            return object;
-        }
-
-        public ZenType getType() {
-            return type;
         }
     }
 

@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import crafttweaker.api.item.IItemStack;
+import com.google.gson.reflect.TypeToken;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
@@ -12,6 +12,9 @@ import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import youyihj.probezs.bracket.BracketHandlerCaller;
+import youyihj.probezs.api.BracketHandlerResult;
+
+import java.util.Map;
 
 /**
  * @author youyihj
@@ -26,24 +29,21 @@ public class BracketCheckHandler extends SimpleChannelInboundHandler<WebSocketFr
             String text = ((TextWebSocketFrame) msg).text();
             JsonElement jsonElement = parser.parse(text);
             String content = jsonElement.getAsJsonObject().get("content").getAsString();
-            String json = GSON.toJson(outputJson(BracketHandlerCaller.call(content)));
+            String json = GSON.toJson(outputJson(BracketHandlerCaller.INSTANCE.call(content)));
             ctx.writeAndFlush(new TextWebSocketFrame(json));
         } else if (msg instanceof PingWebSocketFrame) {
             ctx.writeAndFlush(new PongWebSocketFrame());
         }
     }
 
-    private JsonElement outputJson(BracketHandlerCaller.Result result) {
+    private JsonElement outputJson(BracketHandlerResult result) {
         JsonObject jsonObject = new JsonObject();
-        if (result == null || result.getObject() == null) {
+        if (result == null || result.getType() == null) {
             jsonObject.addProperty("type", "null");
+            jsonObject.add("extra", new JsonObject());
         } else {
-            jsonObject.addProperty("type", result.getType().getName());
-            JsonObject extra = new JsonObject();
-            jsonObject.add("extra", extra);
-            if (result.getObject() instanceof IItemStack) {
-                extra.addProperty("name", ((IItemStack) result.getObject()).getDisplayName());
-            }
+            jsonObject.addProperty("type", result.getType());
+            jsonObject.add("extra", GSON.toJsonTree(result.getExtras(), new TypeToken<Map<String, String>>(){}.getType()));
         }
         return jsonObject;
     }

@@ -101,9 +101,22 @@ dependencies {
     implementation rfg.deobf("CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.685")
 
 
-    embed 'org.yaml:snakeyaml:2.0'
+    embed ('org.yaml:snakeyaml:2.0')
+    embed 'com.github.briandilley.jsonrpc4j:jsonrpc4j:1.6'
+    embed 'javax.servlet:javax.servlet-api:4.0.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.12.4'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
     generatorImplementation 'fr.inria.gforge.spoon:spoon-core:9.1.0'
 
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        force 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
+        force 'com.fasterxml.jackson.core:jackson-core:2.12.4'
+        force 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
+    }
 }
 
 def mixinConfigRefMap = 'mixins.' + project.archives_base_name + '.refmap.json'
@@ -177,6 +190,7 @@ jar {
         attributes(attribute_map)
     }
     // Add all embedded dependencies into the jar
+    setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     from(provider { configurations.embed.collect { it.isDirectory() ? it : zipTree(it) } })
 }
 
@@ -219,7 +233,11 @@ sourceSets {
         java {
             srcDir 'src/generator/java'
         }
-
+    }
+    api {
+        java {
+            srcDir 'src/api/java'
+        }
     }
 }
 
