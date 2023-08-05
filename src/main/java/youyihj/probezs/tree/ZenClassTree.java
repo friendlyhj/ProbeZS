@@ -12,6 +12,7 @@ import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenExpansion;
 import stanhebben.zenscript.value.IntRange;
 import youyihj.probezs.ProbeZS;
+import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.tree.primitive.*;
 import youyihj.probezs.util.IndentStringBuilder;
 
@@ -110,8 +111,12 @@ public class ZenClassTree {
             IndentStringBuilder builder = new IndentStringBuilder();
             classNode.toZenScript(builder);
             try {
-                FileUtils.write(new File(filePathWithoutExtension + ".dzs"), builder.toString(), StandardCharsets.UTF_8);
-                FileUtils.write(new File(filePathWithoutExtension + ".json"), GSON.toJson(classNode, ZenClassNode.class), StandardCharsets.UTF_8);
+                if (ProbeZSConfig.dumpDZS) {
+                    FileUtils.write(new File(filePathWithoutExtension + ".dzs"), builder.toString(), StandardCharsets.UTF_8);
+                }
+                if (ProbeZSConfig.dumpJson) {
+                    FileUtils.write(new File(filePathWithoutExtension + ".json"), GSON.toJson(classNode, ZenClassNode.class), StandardCharsets.UTF_8);
+                }
             } catch (IOException e) {
                 ProbeZS.logger.error("Failed to output: {}" + classNode.getName(), e);
             }

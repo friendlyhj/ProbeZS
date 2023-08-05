@@ -13,6 +13,7 @@ import stanhebben.zenscript.symbols.SymbolJavaStaticMethod;
 import stanhebben.zenscript.type.natives.IJavaMethod;
 import stanhebben.zenscript.type.natives.JavaMethod;
 import youyihj.probezs.ProbeZS;
+import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.tree.IZenDumpable;
 import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
@@ -82,8 +83,12 @@ public class ZenGlobalMemberTree {
     }
 
     public void output() {
-        outputDZS();
-        outputJson();
+        if (ProbeZSConfig.dumpDZS) {
+            outputDZS();
+        }
+        if (ProbeZSConfig.dumpJson) {
+            outputJson();
+        }
     }
 
     private void outputJson() {
