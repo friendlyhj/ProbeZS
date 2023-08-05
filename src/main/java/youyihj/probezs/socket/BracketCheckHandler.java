@@ -5,32 +5,31 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import crafttweaker.api.item.IItemStack;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import youyihj.probezs.bracket.BracketHandlerCaller;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author youyihj
  */
-public class BracketCheckHandler extends ChannelInboundHandlerAdapter {
+public class BracketCheckHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
     private static final Gson GSON = new Gson();
     private static final JsonParser parser = new JsonParser();
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (msg instanceof ByteBuf) {
-            String text = ((ByteBuf) msg).toString(StandardCharsets.UTF_8);
+    protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame msg) {
+        if (msg instanceof TextWebSocketFrame) {
+            String text = ((TextWebSocketFrame) msg).text();
             JsonElement jsonElement = parser.parse(text);
             String content = jsonElement.getAsJsonObject().get("content").getAsString();
-            ByteBuf response = Unpooled.buffer(0);
             String json = GSON.toJson(outputJson(BracketHandlerCaller.call(content)));
-//            ProbeZS.logger.info("Send " + json);
-            response.writeCharSequence(json, StandardCharsets.UTF_8);
-            ctx.channel().writeAndFlush(response);
+            ctx.writeAndFlush(new TextWebSocketFrame(json));
+        } else if (msg instanceof PingWebSocketFrame) {
+            ctx.writeAndFlush(new PongWebSocketFrame());
         }
     }
 
