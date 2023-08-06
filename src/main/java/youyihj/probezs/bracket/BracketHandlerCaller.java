@@ -42,6 +42,7 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class BracketHandlerCaller implements BracketHandlerService {
     public static final BracketHandlerCaller INSTANCE = new BracketHandlerCaller();
+    public static final BracketHandlerResult EMPTY_RESULT = new BracketHandlerResult("null", Collections.emptyMap());
 
     private static final IEnvironmentGlobal ENVIRONMENT_GLOBAL = GlobalRegistry.makeGlobalEnvironment(new HashMap<>());
     private static final ZenPosition POSITION = new ZenPosition(null, 1, 0, "BracketHandlerCaller.java");
@@ -75,12 +76,15 @@ public class BracketHandlerCaller implements BracketHandlerService {
         IPartialExpression expression = getZenExpression(content);
         ZenBracketHandlerResult result;
         if (expression == null) {
-            return null;
+            return EMPTY_RESULT;
         }
         if (expression instanceof ExpressionCallStatic) {
             result = getCached(((ExpressionCallStatic) expression), className);
         } else {
             result = getDirectly(expression, className);
+        }
+        if (result.getObject() == null) {
+            return EMPTY_RESULT;
         }
         if (requiresExtras) {
             writeExtras(result);

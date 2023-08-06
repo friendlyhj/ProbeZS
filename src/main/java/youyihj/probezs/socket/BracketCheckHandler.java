@@ -38,13 +38,9 @@ public class BracketCheckHandler extends SimpleChannelInboundHandler<WebSocketFr
 
     public static JsonObject outputJson(BracketHandlerResult result) {
         JsonObject jsonObject = new JsonObject();
-        if (result == null || result.getType() == null) {
-            jsonObject.addProperty("type", "null");
-            jsonObject.add("extra", new JsonObject());
-        } else {
-            jsonObject.addProperty("type", result.getType());
-            jsonObject.add("extras", GSON.toJsonTree(result.getExtras(), new TypeToken<Map<String, String>>(){}.getType()));
-        }
+        jsonObject.addProperty("type", result.getType());
+        jsonObject.add("extras", GSON.toJsonTree(result.getExtras(), new TypeToken<Map<String, String>>() {}.getType()));
         return jsonObject;
+
     }
 }
