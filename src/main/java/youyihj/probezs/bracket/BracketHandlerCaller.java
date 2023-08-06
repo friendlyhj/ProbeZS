@@ -22,7 +22,7 @@ import stanhebben.zenscript.util.MethodOutput;
 import stanhebben.zenscript.util.ZenPosition;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.api.BracketHandlerResult;
-import youyihj.probezs.api.IBracketHandlerCaller;
+import youyihj.probezs.api.BracketHandlerService;
 import youyihj.probezs.render.RenderHelper;
 
 import javax.imageio.ImageIO;
@@ -40,7 +40,7 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * @author youyihj
  */
-public class BracketHandlerCaller implements IBracketHandlerCaller {
+public class BracketHandlerCaller implements BracketHandlerService {
     public static final BracketHandlerCaller INSTANCE = new BracketHandlerCaller();
 
     private static final IEnvironmentGlobal ENVIRONMENT_GLOBAL = GlobalRegistry.makeGlobalEnvironment(new HashMap<>());
@@ -70,7 +70,7 @@ public class BracketHandlerCaller implements IBracketHandlerCaller {
     }
 
     @Override
-    public BracketHandlerResult call(String content, boolean requiresExtras) {
+    public BracketHandlerResult query(String content, boolean requiresExtras) {
         String className = "bh$" + content.replaceAll("\\W", "_");
         IPartialExpression expression = getZenExpression(content);
         ZenBracketHandlerResult result;

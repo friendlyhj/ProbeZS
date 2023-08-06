@@ -26,7 +26,7 @@ public class RpcBracketCheckSocketHandler extends SimpleChannelInboundHandler<By
             String method = request.get("method").getAsString();
             if (method.equals("call")) {
                 JsonArray params = request.get("params").getAsJsonArray();
-                BracketHandlerResult result = BracketHandlerCaller.INSTANCE.call(params.get(0).getAsString(), params.get(1).getAsBoolean());
+                BracketHandlerResult result = BracketHandlerCaller.INSTANCE.query(params.get(0).getAsString(), params.get(1).getAsBoolean());
                 JsonObject response = new JsonObject();
                 response.addProperty("jsonrpc", "2.0");
                 response.add("result", BracketCheckHandler.outputJson(result));

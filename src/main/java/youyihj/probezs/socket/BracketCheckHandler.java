@@ -29,7 +29,7 @@ public class BracketCheckHandler extends SimpleChannelInboundHandler<WebSocketFr
             JsonObject jsonObject = parser.parse(text).getAsJsonObject();
             String content = jsonObject.get("content").getAsString();
             boolean requireExtras = jsonObject.get("requireExtras").getAsBoolean();
-            String json = GSON.toJson(outputJson(BracketHandlerCaller.INSTANCE.call(content, requireExtras)));
+            String json = GSON.toJson(outputJson(BracketHandlerCaller.INSTANCE.query(content, requireExtras)));
             ctx.writeAndFlush(new TextWebSocketFrame(json));
         } else if (msg instanceof PingWebSocketFrame) {
             ctx.writeAndFlush(new PongWebSocketFrame());
