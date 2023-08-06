@@ -274,6 +274,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
                 GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
                 Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(item, 0, 0);
                 GlStateManager.popMatrix();
+                RenderHelper.tearDownRenderState();
                 BufferedImage img = RenderHelper.createFlipped(RenderHelper.readPixels(32, 32));
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 try {
