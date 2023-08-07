@@ -24,6 +24,7 @@ import youyihj.probezs.ProbeZS;
 import youyihj.probezs.api.BracketHandlerResult;
 import youyihj.probezs.api.BracketHandlerService;
 import youyihj.probezs.render.RenderHelper;
+import youyihj.probezs.render.RenderTaskDispatcher;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -267,7 +268,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
     private static void writeItemInfo(ItemStack item, Map<String, String> extras) {
         extras.put("name", item.getDisplayName());
         try {
-            String iconBase64 = Minecraft.getMinecraft().addScheduledTask(() -> {
+            String iconBase64 = RenderTaskDispatcher.submit(() -> {
                 RenderHelper.setupRenderState(32);
                 GlStateManager.pushMatrix();
                 GlStateManager.clearColor(0, 0, 0, 0);
