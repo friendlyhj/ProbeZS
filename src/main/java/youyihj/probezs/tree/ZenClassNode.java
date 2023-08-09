@@ -181,7 +181,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         String extendInformation = extendClasses.stream()
                 .filter(LazyZenClassNode::isExisted)
                 .map(LazyZenClassNode::get)
-                .map(LazyZenClassNode.Result::getQualifiedName)
+                .map(it -> it.getTypeVariables().get(0).getName())
                 .collect(Collectors.joining(" "));
         if (!extendInformation.isEmpty()) {
             sb.append("#extends ").append(extendInformation).nextLine();
