@@ -1,9 +1,9 @@
 package youyihj.probezs.socket;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
@@ -13,6 +13,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import youyihj.probezs.api.BracketHandlerResult;
 import youyihj.probezs.bracket.BracketHandlerCaller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,11 +37,12 @@ public class BracketCheckHandler extends SimpleChannelInboundHandler<WebSocketFr
         }
     }
 
-    public static JsonObject outputJson(BracketHandlerResult result) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("type", result.getType());
-        jsonObject.add("extras", GSON.toJsonTree(result.getExtras(), new TypeToken<Map<String, String>>() {}.getType()));
-        return jsonObject;
-
+    public static JsonElement outputJson(BracketHandlerResult result) {
+        Map<String, String> map = new HashMap<>();
+        if (result.getType() != null) {
+            map.put("type", result.getType());
+        }
+        map.putAll(result.getExtras());
+        return GSON.toJsonTree(map);
     }
 }

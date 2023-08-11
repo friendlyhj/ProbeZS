@@ -20,19 +20,26 @@ public class RpcBracketCheckSocketHandler extends SimpleChannelInboundHandler<By
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
-        JsonObject request = ((JsonObject) parser.parse(msg.toString(StandardCharsets.UTF_8)));
-        if (request.get("jsonrpc").getAsString().equals("2.0")) {
-            int id = request.get("id").getAsInt();
-            String method = request.get("method").getAsString();
+        // JSON-RPC over HTTP
+        String httpRequest = msg.toString(StandardCharsets.UTF_8);
+        String httpRequestBody = httpRequest.substring(httpRequest.lastIndexOf("\r\n"));
+        JsonObject jsonRequest = ((JsonObject) parser.parse(httpRequestBody));
+        if (jsonRequest.get("jsonrpc").getAsString().equals("2.0")) {
+            String id = jsonRequest.get("id").getAsString();
+            String method = jsonRequest.get("method").getAsString();
             if (method.equals("query")) {
-                JsonArray params = request.get("params").getAsJsonArray();
+                JsonArray params = jsonRequest.get("params").getAsJsonArray();
                 BracketHandlerResult result = BracketHandlerCaller.INSTANCE.query(params.get(0).getAsString(), params.get(1).getAsBoolean());
-                JsonObject response = new JsonObject();
-                response.addProperty("jsonrpc", "2.0");
-                response.add("result", BracketCheckHandler.outputJson(result));
-                response.addProperty("id", id);
+                JsonObject jsonResponse = new JsonObject();
+                jsonResponse.addProperty("jsonrpc", "2.0");
+                jsonResponse.add("result", BracketCheckHandler.outputJson(result));
+                jsonResponse.addProperty("id", id);
+                String json = jsonResponse.toString();
+                byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
                 ByteBuf buffer = Unpooled.buffer(0);
-                buffer.writeCharSequence(response.toString(), StandardCharsets.UTF_8);
+                buffer.writeCharSequence("Content-Length: " + jsonBytes.length + "\r\n", StandardCharsets.UTF_8);
+                buffer.writeCharSequence("\r\n", StandardCharsets.UTF_8);
+                buffer.writeBytes(jsonBytes);
                 ctx.channel().writeAndFlush(buffer);
             }
         }
