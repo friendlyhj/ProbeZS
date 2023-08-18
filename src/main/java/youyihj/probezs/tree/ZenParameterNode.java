@@ -20,14 +20,23 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
     private final Supplier<String> name;
     private final LazyZenClassNode type;
     private final Optional optional;
+    private final boolean varArgs;
 
-    public ZenParameterNode(Supplier<String> name, LazyZenClassNode type, Optional optional) {
+    public ZenParameterNode(Supplier<String> name, LazyZenClassNode type, Optional optional, boolean varArgs) {
         this.name = name;
         this.type = type;
         this.optional = optional;
+        this.varArgs = varArgs;
     }
 
     public static ZenParameterNode read(Executable method, int index, Parameter parameter, ZenClassTree tree) {
+        boolean varArgs = parameter.isVarArgs();
+        LazyZenClassNode returnType;
+        if (varArgs && parameter.getType().isArray()) {
+            returnType = tree.createLazyClassNode(parameter.getType().getComponentType());
+        } else {
+            returnType = tree.createLazyClassNode(parameter.getParameterizedType());
+        }
         Supplier<String> name = () -> {
             List<String> list = ParameterNameMappings.find(method);
             if (list != null && index < list.size()) {
@@ -35,13 +44,16 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
             }
             return parameter.getName();
         };
-        return new ZenParameterNode(name, tree.createLazyClassNode(parameter.getParameterizedType()), parameter.getAnnotation(Optional.class));
+        return new ZenParameterNode(name, returnType, parameter.getAnnotation(Optional.class), varArgs);
     }
 
     public String getName() {
         String name = this.name.get();
         if (ZenKeywords.is(name)) {
-            return "_" + name;
+            name = "_" + name;
+        }
+        if (varArgs) {
+            name = "..." + name;
         }
         return name;
     }

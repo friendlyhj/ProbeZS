@@ -90,11 +90,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
         for (int i = startIndex; i < method.getParameterCount(); i++) {
             parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));
         }
-        ZenMemberNode zenMemberNode = new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
-        if (method.isVarArgs()) {
-            zenMemberNode.addAnnotation("varargs");
-        }
-        return zenMemberNode;
+        return new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
     }
 
     private static ZenMemberNode readOperator(Method method, ZenClassTree tree, OperatorType operatorType, boolean isClass) {
