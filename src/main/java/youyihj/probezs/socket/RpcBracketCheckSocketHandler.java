@@ -32,7 +32,14 @@ public class RpcBracketCheckSocketHandler extends SimpleChannelInboundHandler<By
                 BracketHandlerResult result = BracketHandlerCaller.INSTANCE.query(params.get(0).getAsString(), params.get(1).getAsBoolean());
                 JsonObject jsonResponse = new JsonObject();
                 jsonResponse.addProperty("jsonrpc", "2.0");
-                jsonResponse.add("result", BracketCheckHandler.outputJson(result));
+                if (!"null".equals(result.getType())) {
+                    jsonResponse.add("result", BracketCheckHandler.outputJson(result));
+                } else {
+                    JsonObject error = new JsonObject();
+                    error.addProperty("code", -10000);
+                    error.addProperty("message", "Unknown bracket handler");
+                    jsonResponse.add("error", error);
+                }
                 jsonResponse.addProperty("id", id);
                 String json = jsonResponse.toString();
                 byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
