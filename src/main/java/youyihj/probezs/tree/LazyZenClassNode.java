@@ -7,12 +7,14 @@ import com.google.gson.JsonSerializer;
 import crafttweaker.util.IEventHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import youyihj.probezs.ProbeZS;
+import youyihj.probezs.util.CompoundType;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.function.Supplier;
 
 /**
@@ -95,6 +97,16 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
                     return Result.compound(valueClass.getQualifiedName() + "[" + keyClass.getQualifiedName() + "]", ArrayUtils.addAll(keyClass.getTypeVariableArray(), valueClass.getTypeVariableArray()));
                 }
                 return getResult(parameterizedType.getRawType());
+            } else if (type instanceof CompoundType) {
+                Type[] compoundTypes = ((CompoundType) type).getCompoundTypes();
+                StringJoiner nameJoiner = new StringJoiner(" | ");
+                ZenClassNode[] typeVariables = Arrays.stream(compoundTypes)
+                        .map(this::getResult)
+                        .peek(it -> nameJoiner.add(it.getQualifiedName()))
+                        .flatMap(it -> Arrays.stream(it.getTypeVariableArray()))
+                        .distinct()
+                        .toArray(ZenClassNode[]::new);
+                return Result.compound(nameJoiner.toString(), typeVariables);
             }
         } catch (Exception ignored) {
         }

@@ -1,14 +1,12 @@
 package youyihj.probezs.tree;
 
 import com.google.gson.annotations.SerializedName;
-import stanhebben.zenscript.annotations.*;
+import stanhebben.zenscript.annotations.ZenMethod;
+import stanhebben.zenscript.annotations.ZenMethodStatic;
 import youyihj.probezs.util.IndentStringBuilder;
-import youyihj.probezs.util.ZenOperators;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -20,8 +18,6 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     private final String name;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
-    @SerializedName("annotations")
-    private final ZenAnnotationNode annotationNode = new ZenAnnotationNode();
 
     @SerializedName("returnType")
     private final Supplier<LazyZenClassNode.Result> returnTypeResultSupplier;
@@ -34,28 +30,6 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     }
 
     public static ZenMemberNode read(Method method, ZenClassTree tree, boolean isClass) {
-        if (method.isAnnotationPresent(ZenCaster.class)) {
-            ZenMethod zenMethod = method.getAnnotation(ZenMethod.class);
-            String name = method.getName();
-            if (zenMethod != null && !zenMethod.value().isEmpty()) {
-                name = zenMethod.value();
-            }
-            ZenMemberNode memberNode = readDirectly(method, tree, name, false, !isClass);
-            memberNode.addAnnotation("caster");
-            if (zenMethod == null) {
-                memberNode.addAnnotation("hidden");
-            }
-            return memberNode;
-        }
-        if (method.isAnnotationPresent(ZenOperator.class)) {
-            return readOperator(method, tree, method.getAnnotation(ZenOperator.class).value(), isClass);
-        }
-        if (method.isAnnotationPresent(ZenMemberSetter.class)) {
-            return readOperator(method, tree, OperatorType.MEMBERSETTER, isClass);
-        }
-        if (method.isAnnotationPresent(ZenMemberGetter.class)) {
-            return readOperator(method, tree, OperatorType.MEMBERGETTER, isClass);
-        }
         if (isClass && method.isAnnotationPresent(ZenMethod.class)) {
             String name = method.getAnnotation(ZenMethod.class).value();
             if (name.isEmpty()) {
@@ -83,42 +57,18 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     }
 
     public static ZenMemberNode readDirectly(Method method, ZenClassTree tree, String name, boolean isStatic, boolean expansion) {
-
         int startIndex = expansion ? 1 : 0;
-        Parameter[] parameters = method.getParameters();
-        List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
-        for (int i = startIndex; i < method.getParameterCount(); i++) {
-            parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));
-        }
-        return new ZenMemberNode(name, tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, isStatic);
-    }
-
-    private static ZenMemberNode readOperator(Method method, ZenClassTree tree, OperatorType operatorType, boolean isClass) {
-        ZenMethod zenMethod = method.getAnnotation(ZenMethod.class);
-        String name = method.getName();
-        if (zenMethod != null && !zenMethod.value().isEmpty()) {
-            name = zenMethod.value();
-        }
-        ZenMemberNode memberNode = readDirectly(method, tree, name, false, !isClass);
-        memberNode.addAnnotation("operator", ZenOperators.getZenScriptFormat(operatorType));
-        if (zenMethod == null) {
-            memberNode.addAnnotation("hidden");
-        }
-        return memberNode;
-    }
-
-    public void addAnnotation(String head) {
-        this.annotationNode.add(head);
-    }
-
-    public void addAnnotation(String head, String value) {
-        this.annotationNode.add(head, value);
+        return new ZenMemberNode(
+                name,
+                tree.createLazyClassNode(method.getGenericReturnType()),
+                ZenParameterNode.read(method, startIndex, tree),
+                isStatic
+        );
     }
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
         if (parameters.stream().map(ZenParameterNode::getType).allMatch(LazyZenClassNode::isExisted)) {
-            annotationNode.toZenScript(sb);
             if (isStatic) {
                 sb.append("static ");
             }

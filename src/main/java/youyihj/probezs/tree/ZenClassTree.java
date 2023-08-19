@@ -32,9 +32,9 @@ public class ZenClassTree {
             .setPrettyPrinting()
             .registerTypeAdapter(new TypeToken<Supplier<LazyZenClassNode.Result>>() {}.getType(), new LazyZenClassNode.Serializer())
             .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.Serializer())
-            .registerTypeAdapter(ZenAnnotationNode.class, new ZenAnnotationNode.Serializer())
             .registerTypeAdapter(ZenClassNode.class, new ZenClassNode.Serializer())
             .registerTypeAdapter(ZenParameterNode.class, new ZenParameterNode.Serializer())
+            .registerTypeAdapter(ZenOperatorNode.As.class, new ZenOperatorNode.AsSerializer())
             .create();
 
     private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();

@@ -9,6 +9,7 @@ import youyihj.probezs.util.ZenKeywords;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -45,6 +46,15 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
             return parameter.getName();
         };
         return new ZenParameterNode(name, returnType, parameter.getAnnotation(Optional.class), varArgs);
+    }
+
+    public static List<ZenParameterNode> read(Executable method, int startIndex, ZenClassTree tree) {
+        Parameter[] parameters = method.getParameters();
+        List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
+        for (int i = startIndex; i < method.getParameterCount(); i++) {
+            parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));
+        }
+        return parameterNodes;
     }
 
     public String getName() {
