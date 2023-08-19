@@ -42,9 +42,6 @@ public class ZenStringNode extends ZenClassNode implements IPrimitiveType {
                         parameterNodes.add(ZenParameterNode.read(method, i, parameter, tree));
                     }
                     ZenMemberNode zenMemberNode = new ZenMemberNode(method.getName(), tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, false);
-                    if (method.isVarArgs()) {
-                        zenMemberNode.addAnnotation("varargs");
-                    }
                     members.add(zenMemberNode);
                 }
             }
