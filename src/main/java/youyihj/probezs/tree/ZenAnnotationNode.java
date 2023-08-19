@@ -29,7 +29,7 @@ public class ZenAnnotationNode implements IZenDumpable {
     public void toZenScript(IndentStringBuilder sb) {
         if (!values.isEmpty()) {
             for (Map.Entry<String, List<String>> entry : values.entrySet()) {
-                sb.append("#").append(entry.getKey());
+                sb.append("@").append(entry.getKey());
                 List<String> aoValues = entry.getValue();
                 if (aoValues.size() != 1 || !aoValues.get(0).isEmpty()) {
                     sb.append(" ");
