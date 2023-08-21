@@ -67,6 +67,9 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
                     }
                     // the class isn't exposed to zs, but its super class and implement interfaces may be exposed
                     Set<Class<?>> exposedParents = collectExposedParents(clazz, new HashSet<>());
+                    if (exposedParents.isEmpty()) {
+                        return Result.missing(classTree, clazz);
+                    }
                     StringJoiner nameJoiner = new StringJoiner(" & ");
                     ZenClassNode[] typeVariables = exposedParents.stream()
                             .map(this::getResult)
