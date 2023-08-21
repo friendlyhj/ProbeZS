@@ -3,6 +3,7 @@ package youyihj.probezs.util;
 /**
  * @author youyihj
  */
+@SuppressWarnings("UnusedReturnValue")
 public class IndentStringBuilder {
     private int indentLevel;
     private final int indentSpaceCount;
@@ -25,6 +26,13 @@ public class IndentStringBuilder {
     }
 
     public IndentStringBuilder nextLine() {
+        if (!emptyLine) {
+            forceNextLine();
+        }
+        return this;
+    }
+
+    public IndentStringBuilder forceNextLine() {
         sb.append(System.lineSeparator());
         int spaceCount = indentSpaceCount * indentLevel;
         for (int i = 0; i < spaceCount; i++) {
@@ -35,22 +43,18 @@ public class IndentStringBuilder {
     }
 
     public IndentStringBuilder interLine() {
-        if (emptyLine) {
-            return nextLine();
-        } else {
-            return nextLine().nextLine();
-        }
+        return nextLine().forceNextLine();
     }
 
     public IndentStringBuilder push() {
         indentLevel++;
-        nextLine();
+        forceNextLine();
         return this;
     }
 
     public IndentStringBuilder pop() {
         indentLevel--;
-        nextLine();
+        forceNextLine();
         return this;
     }
 

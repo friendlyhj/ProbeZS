@@ -112,7 +112,7 @@ public class ZenGlobalMemberTree {
         for (ZenClassNode anImport : getImportMembers()) {
             sb.append("import ").append(anImport.getName()).append(";").nextLine();
         }
-        sb.nextLine();
+        sb.interLine();
         for (IZenDumpable field : fields) {
             field.toZenScript(sb);
             sb.nextLine();

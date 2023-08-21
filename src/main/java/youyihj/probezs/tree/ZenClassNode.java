@@ -111,7 +111,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (ZenClassNode anImport : imports) {
             sb.append("import ").append(anImport.getName()).append(";").nextLine();
         }
-        sb.nextLine();
+        sb.interLine();
         String extendInformation = extendClasses.stream()
                 .filter(LazyZenClassNode::isExisted)
                 .map(LazyZenClassNode::get)
@@ -126,8 +126,8 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         sb.append(" {");
         sb.push();
         for (ZenPropertyNode propertyNode : properties.values()) {
-            propertyNode.toZenScript(sb);
             sb.nextLine();
+            propertyNode.toZenScript(sb);
         }
         for (ZenConstructorNode constructor : constructors) {
             sb.interLine();
