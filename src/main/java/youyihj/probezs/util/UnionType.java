@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 /**
  * @author youyihj
  */
-public class CompoundType implements Type {
+public class UnionType implements Type {
     private final Type[] types;
 
-    public CompoundType(Type[] types) {
+    public UnionType(Type[] types) {
         this.types = types;
     }
 
@@ -21,8 +21,8 @@ public class CompoundType implements Type {
         return types;
     }
 
-    public CompoundType append(Type type) {
-        return new CompoundType(ArrayUtils.add(types, type));
+    public UnionType append(Type type) {
+        return new UnionType(ArrayUtils.add(types, type));
     }
 
     @Override

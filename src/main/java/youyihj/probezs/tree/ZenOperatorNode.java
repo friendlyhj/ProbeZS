@@ -3,7 +3,7 @@ package youyihj.probezs.tree;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import youyihj.probezs.util.CompoundType;
+import youyihj.probezs.util.UnionType;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Type;
@@ -45,7 +45,7 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
 
     public static class As extends ZenOperatorNode {
 
-        private CompoundType compoundType;
+        private UnionType unionType;
         private final ZenClassTree tree;
 
         public As(ZenClassTree tree) {
@@ -54,12 +54,12 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
         }
 
         public void appendCastType(Type type) {
-            if (compoundType == null) {
-                compoundType = new CompoundType(new Type[] {type});
+            if (unionType == null) {
+                unionType = new UnionType(new Type[] {type});
             } else {
-                compoundType = compoundType.append(type);
+                unionType = unionType.append(type);
             }
-            returnType = tree.createLazyClassNode(compoundType);
+            returnType = tree.createLazyClassNode(unionType);
         }
     }
 
