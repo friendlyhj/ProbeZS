@@ -21,3 +21,6 @@
 [submodule "ModSources/Multiblocked"]
 	path = ModSources/Multiblocked
 	url = https://github.com/CleanroomMC/Multiblocked.git
+[submodule "ModSources/RandomTweaker"]
+	path = ModSources/RandomTweaker
+	url = https://github.com/Project-RT/RandomTweaker.git
