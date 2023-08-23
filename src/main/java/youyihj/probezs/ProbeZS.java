@@ -20,6 +20,7 @@ import crafttweaker.zenscript.GlobalRegistry;
 import crafttweaker.zenscript.IBracketHandler;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
@@ -32,6 +33,7 @@ import youyihj.probezs.bracket.ZenBracketTree;
 import youyihj.probezs.socket.SocketHandler;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.global.ZenGlobalMemberTree;
+import youyihj.probezs.util.LoadingObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,7 +43,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -55,8 +59,16 @@ public class ProbeZS {
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
+    private static final List<LoadingObject<?>> loadingObjects = new ArrayList<>();
 
-    public static String mappings = "";
+    public LoadingObject<String> mappings = LoadingObject.of(null);
+
+    @Mod.Instance
+    public static ProbeZS instance;
+
+    public static void addLoadingObject(LoadingObject<?> object) {
+        loadingObjects.add(object);
+    }
 
     @Mod.EventHandler
     public void onPreInit(FMLPreInitializationEvent event) {
@@ -68,7 +80,7 @@ public class ProbeZS {
                 urlConnection.setConnectTimeout(15000);
                 urlConnection.setReadTimeout(15000);
                 try(BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
-                    mappings = reader.lines().collect(Collectors.joining("\n"));
+                    mappings.set(reader.lines().collect(Collectors.joining("\n")));
                 }
             } catch(IOException e) {
                 e.printStackTrace();
@@ -101,6 +113,11 @@ public class ProbeZS {
         if (ProbeZSConfig.socketProtocol != ProbeZSConfig.SocketProtocol.NONE) {
             SocketHandler.enable();
         }
+    }
+
+    @Mod.EventHandler
+    public void onLoadComplete(FMLLoadCompleteEvent event) {
+        loadingObjects.forEach(LoadingObject::setAlreadyLoaded);
     }
 
     private ZenGlobalMemberTree dumpGlobalMembers(ZenClassTree classTree) {

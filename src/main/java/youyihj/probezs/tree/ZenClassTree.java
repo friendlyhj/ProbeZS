@@ -15,6 +15,7 @@ import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.tree.primitive.*;
 import youyihj.probezs.util.IndentStringBuilder;
+import youyihj.probezs.util.LoadingObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +28,7 @@ import java.util.function.Supplier;
  * @author youyihj
  */
 public class ZenClassTree {
-    private static ZenClassTree root;
+    private static LoadingObject<ZenClassTree> root;
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(new TypeToken<Supplier<LazyZenClassNode.Result>>() {}.getType(), new LazyZenClassNode.Serializer())
@@ -46,15 +47,15 @@ public class ZenClassTree {
 
     public static ZenClassTree getRoot() {
         if (root == null) {
-            root = new ZenClassTree();
-            root.addBlockList(
+            root = LoadingObject.of(new ZenClassTree());
+            root.get().addBlockList(
                     ExpandAnyDict.class,
                     ExpandAnyArray.class,
                     ExpandByteArray.class,
                     ExpandIntArray.class
             );
         }
-        return root;
+        return root.get();
     }
 
     public ZenClassTree() {

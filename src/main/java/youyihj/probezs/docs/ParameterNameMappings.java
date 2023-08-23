@@ -2,6 +2,7 @@ package youyihj.probezs.docs;
 
 import org.yaml.snakeyaml.Yaml;
 import youyihj.probezs.ProbeZS;
+import youyihj.probezs.util.LoadingObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,18 +14,18 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 public class ParameterNameMappings {
-    private static Map<String, List<Map<String, Object>>> nameMappings;
+    private static LoadingObject<Map<String, List<Map<String, Object>>>> nameMappings;
 
     public static void load(String path) {
         Yaml yaml = new Yaml();
-        if (ProbeZS.mappings.isEmpty()) {
+        if (ProbeZS.instance.mappings.get().isEmpty()) {
             try (InputStream inputStream = ParameterNameMappings.class.getClassLoader().getResourceAsStream(path)) {
-                nameMappings = yaml.loadAs(inputStream, Map.class);
+                nameMappings = LoadingObject.of(yaml.loadAs(inputStream, Map.class));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         } else {
-            nameMappings = yaml.loadAs(ProbeZS.mappings, Map.class);
+            nameMappings = LoadingObject.of(yaml.loadAs(ProbeZS.instance.mappings.get(), Map.class));
         }
     }
 
@@ -33,7 +34,7 @@ public class ParameterNameMappings {
             load("mappings/method-parameter-names.yaml");
         }
         String clazzName = method.getDeclaringClass().getCanonicalName();
-        List<Map<String, Object>> datas = nameMappings.get(clazzName);
+        List<Map<String, Object>> datas = nameMappings.get().get(clazzName);
 
         if (method.getParameterTypes().length == 0) {
             return null;
