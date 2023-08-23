@@ -45,7 +45,7 @@ public class ParameterNameMappings {
         String name = method instanceof Constructor ? "<init>" : method.getName();
         StringJoiner joiner = new StringJoiner(",");
         for (Class<?> parameterType : method.getParameterTypes()) {
-            joiner.add(parameterType.getCanonicalName());
+            joiner.add(parameterType.getTypeName());
         }
         for (Map<String, Object> data : datas) {
             if (Objects.equals(name, data.get("name")) && Objects.equals(joiner.toString(), data.get("paramsSignature"))) {
