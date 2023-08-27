@@ -24,3 +24,6 @@
 [submodule "ModSources/RandomTweaker"]
 	path = ModSources/RandomTweaker
 	url = https://github.com/Project-RT/RandomTweaker.git
+[submodule "ModSources/ModularMachinery-Community-Edition"]
+	path = ModSources/ModularMachinery-Community-Edition
+	url = https://github.com/NovaEngineering-Source/ModularMachinery-Community-Edition.git
