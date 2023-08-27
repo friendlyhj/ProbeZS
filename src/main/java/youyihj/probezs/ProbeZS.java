@@ -64,7 +64,7 @@ public class ProbeZS {
     public static Logger logger;
     private static final List<LoadingObject<?>> loadingObjects = new ArrayList<>();
 
-    public LoadingObject<String> mappings = LoadingObject.of(null);
+    public LoadingObject<String> mappings = LoadingObject.of("");
 
     @Mod.Instance
     public static ProbeZS instance;
