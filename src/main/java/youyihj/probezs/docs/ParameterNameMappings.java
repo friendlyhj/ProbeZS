@@ -2,12 +2,11 @@ package youyihj.probezs.docs;
 
 import org.yaml.snakeyaml.Yaml;
 import youyihj.probezs.ProbeZS;
+import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.util.LoadingObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,11 +28,11 @@ public class ParameterNameMappings {
         }
     }
 
-    public static List<String> find(Executable method) {
+    public static List<String> find(ExecutableData method) {
         if (nameMappings == null) {
             load("mappings/method-parameter-names.yaml");
         }
-        String clazzName = method.getDeclaringClass().getCanonicalName();
+        String clazzName = method.getDecalredClass().getCanonicalName();
         List<Map<String, Object>> datas = nameMappings.get().get(clazzName);
 
         if (method.getParameterTypes().length == 0) {
@@ -42,7 +41,7 @@ public class ParameterNameMappings {
         if (datas == null) {
             return null;
         }
-        String name = method instanceof Constructor ? "<init>" : method.getName();
+        String name = method.getName();
         StringJoiner joiner = new StringJoiner(",");
         for (Class<?> parameterType : method.getParameterTypes()) {
             joiner.add(parameterType.getTypeName());

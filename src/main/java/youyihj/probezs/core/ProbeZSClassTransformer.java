@@ -4,6 +4,7 @@ import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.ClassNode;
 import youyihj.probezs.core.asm.ASMCraftTweakerAPI;
 
 /**
@@ -18,6 +19,8 @@ public class ProbeZSClassTransformer implements IClassTransformer {
             ASMCraftTweakerAPI asm = new ASMCraftTweakerAPI(Opcodes.ASM5, classWriter);
             new ClassReader(basicClass).accept(asm, 0);
             return classWriter.toByteArray();
+        } else {
+            new ClassReader(basicClass).accept(new ClassNode(), 0);
         }
         return basicClass;
     }

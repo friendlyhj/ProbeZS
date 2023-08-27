@@ -3,11 +3,15 @@ package youyihj.probezs.tree;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import stanhebben.zenscript.annotations.*;
+import youyihj.probezs.member.ExecutableData;
+import youyihj.probezs.member.FieldData;
+import youyihj.probezs.member.MemberFactory;
 import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenOperators;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +60,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (Class<?> anInterface : clazz.getInterfaces()) {
             extendClasses.add(tree.createLazyClassNode(anInterface));
         }
-        Method lambdaMethod = findLambdaMethod(clazz);
+        ExecutableData lambdaMethod = findLambdaMethod(clazz);
         if (lambdaMethod != null) {
             members.add(ZenMemberNode.readDirectly(lambdaMethod, tree, "", false, false));
         }
@@ -68,7 +72,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             readProperties(clazz);
             readIteratorOperators(clazz);
         }
-        for (Method method : clazz.getDeclaredMethods()) {
+        for (ExecutableData method : MemberFactory.getDefault().getMethods(clazz)) {
             if (!Modifier.isPublic(method.getModifiers())) continue;
             readGetter(method);
             readSetter(method, isClass);
@@ -153,10 +157,10 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    private Method findLambdaMethod(Class<?> clazz) {
-        Method lambdaMethod = null;
+    private ExecutableData findLambdaMethod(Class<?> clazz) {
+        ExecutableData lambdaMethod = null;
         if (clazz.isInterface()) {
-            for (Method method : clazz.getMethods()) {
+            for (ExecutableData method : MemberFactory.DEFAULT.get().getMethods(clazz)) {
                 int modifiers = method.getModifiers();
                 if (Modifier.isPublic(modifiers) && Modifier.isAbstract(modifiers)) {
                     if (lambdaMethod != null) {
@@ -197,10 +201,10 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     private void readProperties(Class<?> clazz) {
-        for (Field field : clazz.getDeclaredFields()) {
+        for (FieldData field : MemberFactory.getDefault().getFields(clazz)) {
             if (!Modifier.isPublic(field.getModifiers())) continue;
             if (field.isAnnotationPresent(ZenProperty.class)) {
-                LazyZenClassNode type = tree.createLazyClassNode(field.getGenericType());
+                LazyZenClassNode type = tree.createLazyClassNode(field.getType());
                 String name = field.getAnnotation(ZenProperty.class).value();
                 if (name.isEmpty()) {
                     name = field.getName();
@@ -215,7 +219,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     private void readConstructors(Class<?> clazz) {
-        for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+        for (ExecutableData constructor : MemberFactory.getDefault().getConstructors(clazz)) {
             if (!Modifier.isPublic(constructor.getModifiers())) continue;
             if (constructor.isAnnotationPresent(ZenConstructor.class)) {
                 constructors.add(ZenConstructorNode.read(constructor, tree));
@@ -252,9 +256,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    private void readGetter(Method method) {
+    private void readGetter(ExecutableData method) {
         if (method.isAnnotationPresent(ZenGetter.class)) {
-            LazyZenClassNode type = tree.createLazyClassNode(method.getGenericReturnType());
+            LazyZenClassNode type = tree.createLazyClassNode(method.getReturnType());
             String name = method.getAnnotation(ZenGetter.class).value();
             if (name.isEmpty()) {
                 name = method.getName();
@@ -264,9 +268,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    private void readSetter(Method method, boolean isClass) {
+    private void readSetter(ExecutableData method, boolean isClass) {
         if (method.isAnnotationPresent(ZenSetter.class)) {
-            LazyZenClassNode type = tree.createLazyClassNode(method.getGenericParameterTypes()[isClass ? 0 : 1]);
+            LazyZenClassNode type = tree.createLazyClassNode(method.getParameterTypes()[isClass ? 0 : 1]);
             String name = method.getAnnotation(ZenSetter.class).value();
             if (name.isEmpty()) {
                 name = method.getName();
@@ -276,9 +280,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    private void readCaster(Method method) {
+    private void readCaster(ExecutableData method) {
         if (method.isAnnotationPresent(ZenCaster.class)) {
-            Type returnType = method.getGenericReturnType();
+            Type returnType = method.getReturnType();
             if (caster == null) {
                 caster = new ZenOperatorNode.As(tree);
                 operators.add(caster);
@@ -287,33 +291,33 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    private void readOperator(Method method, boolean isClass) {
+    private void readOperator(ExecutableData method, boolean isClass) {
         int startIndex = isClass ? 0 : 1;
         if (method.isAnnotationPresent(ZenOperator.class)) {
             OperatorType operatorType = method.getAnnotation(ZenOperator.class).value();
             operators.add(new ZenOperatorNode(
                     ZenOperators.getZenScriptFormat(operatorType),
                     ZenParameterNode.read(method, startIndex, tree),
-                    tree.createLazyClassNode(method.getGenericReturnType())
+                    tree.createLazyClassNode(method.getReturnType())
             ));
         }
         if (method.isAnnotationPresent(ZenMemberGetter.class)) {
             operators.add(new ZenOperatorNode(
                     ".",
                     ZenParameterNode.read(method, startIndex, tree),
-                    tree.createLazyClassNode(method.getGenericReturnType())
+                    tree.createLazyClassNode(method.getReturnType())
             ));
         }
         if (method.isAnnotationPresent(ZenMemberSetter.class)) {
             operators.add(new ZenOperatorNode(
                     ".=",
                     ZenParameterNode.read(method, startIndex, tree),
-                    tree.createLazyClassNode(method.getGenericReturnType())
+                    tree.createLazyClassNode(method.getReturnType())
             ));
         }
     }
 
-    private void readMethod(Method method, boolean isClass) {
+    private void readMethod(ExecutableData method, boolean isClass) {
         ZenMemberNode memberNode = ZenMemberNode.read(method, tree, isClass);
         if (memberNode != null) {
             members.add(memberNode);
