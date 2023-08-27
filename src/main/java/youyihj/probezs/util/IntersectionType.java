@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 /**
  * @author youyihj
  */
-public class UnionType implements Type {
+public class IntersectionType implements Type {
     private final Type[] types;
 
-    public UnionType(Type[] types) {
+    public IntersectionType(Type[] types) {
         this.types = types;
     }
 
@@ -21,12 +21,12 @@ public class UnionType implements Type {
         return types;
     }
 
-    public UnionType append(Type type) {
-        return new UnionType(ArrayUtils.add(types, type));
+    public IntersectionType append(Type type) {
+        return new IntersectionType(ArrayUtils.add(types, type));
     }
 
     @Override
     public String toString() {
-        return Arrays.stream(getCompoundTypes()).map(Objects::toString).collect(Collectors.joining(" | "));
+        return Arrays.stream(getCompoundTypes()).map(Objects::toString).collect(Collectors.joining(" & "));
     }
 }
