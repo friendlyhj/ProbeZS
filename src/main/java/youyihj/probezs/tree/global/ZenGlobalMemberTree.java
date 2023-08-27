@@ -14,7 +14,6 @@ import stanhebben.zenscript.type.natives.IJavaMethod;
 import stanhebben.zenscript.type.natives.JavaMethod;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
-import youyihj.probezs.member.MemberFactory;
 import youyihj.probezs.tree.IZenDumpable;
 import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
@@ -57,7 +56,7 @@ public class ZenGlobalMemberTree {
                 SymbolJavaStaticMethod javaStaticMethod = (SymbolJavaStaticMethod) symbol;
                 IJavaMethod javaMethod = CraftTweakerHacks.getPrivateObject(javaStaticMethod, "method");
                 if (javaMethod instanceof JavaMethod) {
-                    members.add(ZenGlobalMethodNode.read(name, MemberFactory.getDefault().reflect(((JavaMethod) javaMethod).getMethod()), tree));
+                    members.add(ZenGlobalMethodNode.read(name, ProbeZS.getMemberFactory().reflect(((JavaMethod) javaMethod).getMethod()), tree));
                 }
             }
         });

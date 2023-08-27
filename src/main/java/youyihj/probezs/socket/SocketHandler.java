@@ -40,7 +40,7 @@ public class SocketHandler {
                 case WEBSOCKET:
                     childHandler = new SocketInitializer();
                     break;
-                case RPC:
+                case JSONRPC:
                     childHandler = new RpcSocketInitializer();
                     break;
             }

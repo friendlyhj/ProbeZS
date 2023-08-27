@@ -5,7 +5,7 @@ import java.lang.reflect.Type;
 /**
  * @author youyihj
  */
-public interface ExecutableData extends AnnotationMember {
+public interface ExecutableData extends AnnotatedMember {
     String getName();
 
     Class<?> getDecalredClass();

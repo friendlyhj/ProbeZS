@@ -5,7 +5,7 @@ import java.lang.reflect.Type;
 /**
  * @author youyihj
  */
-public interface FieldData extends AnnotationMember {
+public interface FieldData extends AnnotatedMember {
     Class<?> getDecalredClass();
 
     String getName();

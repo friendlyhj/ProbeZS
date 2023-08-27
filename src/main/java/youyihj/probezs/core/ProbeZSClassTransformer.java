@@ -19,8 +19,11 @@ public class ProbeZSClassTransformer implements IClassTransformer {
             ASMCraftTweakerAPI asm = new ASMCraftTweakerAPI(Opcodes.ASM5, classWriter);
             new ClassReader(basicClass).accept(asm, 0);
             return classWriter.toByteArray();
-        } else {
-            new ClassReader(basicClass).accept(new ClassNode(), 0);
+        }
+        if (!name.startsWith("youyihj.probezs.")) {
+            ClassNode classNode = new ClassNode();
+            new ClassReader(basicClass).accept(classNode, 0);
+            ASMMemberCollector.MEMBER_FACTORY.putClassNode(classNode);
         }
         return basicClass;
     }

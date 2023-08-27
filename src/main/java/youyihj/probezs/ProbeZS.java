@@ -1,5 +1,6 @@
 package youyihj.probezs;
 
+import com.google.common.base.Suppliers;
 import crafttweaker.CraftTweakerAPI;
 import crafttweaker.api.block.IBlockState;
 import crafttweaker.api.creativetabs.ICreativeTab;
@@ -30,6 +31,9 @@ import youyihj.probezs.bracket.BlockBracketNode;
 import youyihj.probezs.bracket.IngredientAnyBracketNode;
 import youyihj.probezs.bracket.ItemBracketNode;
 import youyihj.probezs.bracket.ZenBracketTree;
+import youyihj.probezs.core.ASMMemberCollector;
+import youyihj.probezs.member.MemberFactory;
+import youyihj.probezs.member.reflection.ReflectionMemberFactory;
 import youyihj.probezs.socket.SocketHandler;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.global.ZenGlobalMemberTree;
@@ -47,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +66,17 @@ public class ProbeZS {
     public static Logger logger;
     private static final List<LoadingObject<?>> loadingObjects = new ArrayList<>();
 
+    private static final Supplier<MemberFactory> MEMBER_FACTORY = Suppliers.memoize(() -> {
+        switch (ProbeZSConfig.memberCollector) {
+            case REFLECTION:
+                return new ReflectionMemberFactory();
+            case ASM:
+                return ASMMemberCollector.MEMBER_FACTORY;
+            default:
+                throw new AssertionError();
+        }
+    });
+
     public LoadingObject<String> mappings = LoadingObject.of(null);
 
     @Mod.Instance
@@ -68,6 +84,10 @@ public class ProbeZS {
 
     public static void addLoadingObject(LoadingObject<?> object) {
         loadingObjects.add(object);
+    }
+
+    public static MemberFactory getMemberFactory() {
+        return MEMBER_FACTORY.get();
     }
 
     @Mod.EventHandler

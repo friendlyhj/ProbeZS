@@ -5,7 +5,7 @@ import java.lang.reflect.Type;
 /**
  * @author youyihj
  */
-public interface ParameterData extends AnnotationMember {
+public interface ParameterData extends AnnotatedMember {
     String getName();
 
     Class<?> getType();

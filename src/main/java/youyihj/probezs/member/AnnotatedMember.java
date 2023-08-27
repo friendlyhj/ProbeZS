@@ -5,7 +5,7 @@ import java.lang.annotation.Annotation;
 /**
  * @author youyihj
  */
-public interface AnnotationMember {
+public interface AnnotatedMember {
     <A extends Annotation> boolean isAnnotationPresent(Class<A> annotationClass);
 
     <A extends Annotation> A getAnnotation(Class<A> annotationClass);

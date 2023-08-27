@@ -3,9 +3,9 @@ package youyihj.probezs.tree;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import stanhebben.zenscript.annotations.*;
+import youyihj.probezs.ProbeZS;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.FieldData;
-import youyihj.probezs.member.MemberFactory;
 import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenOperators;
@@ -72,7 +72,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             readProperties(clazz);
             readIteratorOperators(clazz);
         }
-        for (ExecutableData method : MemberFactory.getDefault().getMethods(clazz)) {
+        for (ExecutableData method : ProbeZS.getMemberFactory().getMethods(clazz)) {
             if (!Modifier.isPublic(method.getModifiers())) continue;
             readGetter(method);
             readSetter(method, isClass);
@@ -160,7 +160,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     private ExecutableData findLambdaMethod(Class<?> clazz) {
         ExecutableData lambdaMethod = null;
         if (clazz.isInterface()) {
-            for (ExecutableData method : MemberFactory.DEFAULT.get().getMethods(clazz)) {
+            for (ExecutableData method : ProbeZS.getMemberFactory().getMethods(clazz)) {
                 int modifiers = method.getModifiers();
                 if (Modifier.isPublic(modifiers) && Modifier.isAbstract(modifiers)) {
                     if (lambdaMethod != null) {
@@ -201,7 +201,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     private void readProperties(Class<?> clazz) {
-        for (FieldData field : MemberFactory.getDefault().getFields(clazz)) {
+        for (FieldData field : ProbeZS.getMemberFactory().getFields(clazz)) {
             if (!Modifier.isPublic(field.getModifiers())) continue;
             if (field.isAnnotationPresent(ZenProperty.class)) {
                 LazyZenClassNode type = tree.createLazyClassNode(field.getType());
@@ -219,7 +219,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     private void readConstructors(Class<?> clazz) {
-        for (ExecutableData constructor : MemberFactory.getDefault().getConstructors(clazz)) {
+        for (ExecutableData constructor : ProbeZS.getMemberFactory().getConstructors(clazz)) {
             if (!Modifier.isPublic(constructor.getModifiers())) continue;
             if (constructor.isAnnotationPresent(ZenConstructor.class)) {
                 constructors.add(ZenConstructorNode.read(constructor, tree));
