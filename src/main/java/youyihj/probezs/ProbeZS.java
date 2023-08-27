@@ -16,6 +16,8 @@ import crafttweaker.api.potions.IPotionType;
 import crafttweaker.api.world.IBiome;
 import crafttweaker.mc1120.brackets.BracketHandlerEnchantments;
 import crafttweaker.mc1120.damage.expand.MCDamageSourceExpand;
+import crafttweaker.mc1120.util.CraftTweakerHacks;
+import crafttweaker.preprocessor.PreprocessorFactory;
 import crafttweaker.zenscript.GlobalRegistry;
 import crafttweaker.zenscript.IBracketHandler;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -24,6 +26,8 @@ import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import stanhebben.zenscript.util.Pair;
 import youyihj.probezs.bracket.BlockBracketNode;
@@ -36,17 +40,16 @@ import youyihj.probezs.tree.global.ZenGlobalMemberTree;
 import youyihj.probezs.util.LoadingObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -110,6 +113,7 @@ public class ProbeZS {
         root.output();
         globalMemberTree.output();
         bracketTree.output();
+        outputPreprocessors();
         if (ProbeZSConfig.socketProtocol != ProbeZSConfig.SocketProtocol.NONE) {
             SocketHandler.enable();
         }
@@ -157,5 +161,18 @@ public class ProbeZS {
         bracketTree.putContent("potion", IPotion.class, ForgeRegistries.POTIONS.getKeys().stream().map(Objects::toString));
         bracketTree.putContent("potiontype", IPotionType.class, ForgeRegistries.POTION_TYPES.getKeys().stream().map(Objects::toString));
         return bracketTree;
+    }
+
+    private void outputPreprocessors() {
+        HashMap<String, PreprocessorFactory<?>> registeredPreprocessorActions = CraftTweakerHacks.getPrivateObject(CraftTweakerAPI.tweaker.getPreprocessorManager(), "registeredPreprocessorActions");
+        try {
+            FileUtils.write(
+                    new File("scripts/generated/preprocessors.json"),
+                    registeredPreprocessorActions.keySet().stream().map(it -> StringUtils.wrap(it, "\"")).collect(Collectors.toList()).toString(),
+                    StandardCharsets.UTF_8
+            );
+        } catch (IOException e) {
+            ProbeZS.logger.error("Failed to output preprocessor json", e);
+        }
     }
 }
