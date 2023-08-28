@@ -21,7 +21,7 @@ public class ProbeZSClassTransformer implements IClassTransformer {
             new ClassReader(basicClass).accept(asm, 0);
             return classWriter.toByteArray();
         }
-        if (ProbeZSConfig.memberCollector == ProbeZSConfig.MemberCollector.ASM && !name.startsWith("youyihj.probezs.")) {
+        if (!name.startsWith("youyihj.probezs.") && ProbeZSConfig.memberCollector == ProbeZSConfig.MemberCollector.ASM) {
             ClassNode classNode = new ClassNode();
             new ClassReader(basicClass).accept(classNode, 0);
             ASMMemberCollector.MEMBER_FACTORY.putClassNode(classNode);
