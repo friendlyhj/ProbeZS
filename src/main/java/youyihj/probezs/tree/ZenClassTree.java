@@ -63,20 +63,24 @@ public class ZenClassTree {
     }
 
     public void putClass(Class<?> clazz) {
-        if (blackList.contains(clazz)) return;
-        ZenClass zenClass = clazz.getAnnotation(ZenClass.class);
-        ZenExpansion zenExpansion = clazz.getAnnotation(ZenExpansion.class);
-        if (zenClass != null) {
-            String name = zenClass.value();
-            ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
-            javaMap.put(clazz, classNode);
-            classNode.readExtendClasses(clazz);
-            classNode.readMembers(clazz, true);
-        }
-        if (zenExpansion != null) {
-            String name = zenExpansion.value();
-            ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
-            classNode.readMembers(clazz, false);
+        try {
+            if (blackList.contains(clazz)) return;
+            ZenClass zenClass = clazz.getAnnotation(ZenClass.class);
+            ZenExpansion zenExpansion = clazz.getAnnotation(ZenExpansion.class);
+            if (zenClass != null) {
+                String name = zenClass.value();
+                ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
+                javaMap.put(clazz, classNode);
+                classNode.readExtendClasses(clazz);
+                classNode.readMembers(clazz, true);
+            }
+            if (zenExpansion != null) {
+                String name = zenExpansion.value();
+                ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
+                classNode.readMembers(clazz, false);
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to get members of " + clazz.getName() + ", try setting MemberCollector to ASM in config?", e);
         }
     }
 
