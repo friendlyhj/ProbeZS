@@ -1,10 +1,10 @@
 package youyihj.probezs.tree.global;
 
+import youyihj.probezs.member.ExecutableData;
+import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.tree.*;
 import youyihj.probezs.util.IndentStringBuilder;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -23,10 +23,10 @@ public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpab
         this.parameters = parameters;
     }
 
-    public static ZenGlobalMethodNode read(String name, Method method, ZenClassTree tree) {
-        LazyZenClassNode returnType = tree.createLazyClassNode(method.getGenericReturnType());
+    public static ZenGlobalMethodNode read(String name, ExecutableData method, ZenClassTree tree) {
+        LazyZenClassNode returnType = tree.createLazyClassNode(method.getReturnType());
 
-        Parameter[] parameters = method.getParameters();
+        ParameterData[] parameters = method.getParameters();
         List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
         for (int i = 0; i < method.getParameterCount(); i++) {
             parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));

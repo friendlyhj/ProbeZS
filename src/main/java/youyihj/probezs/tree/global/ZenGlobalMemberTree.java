@@ -56,7 +56,7 @@ public class ZenGlobalMemberTree {
                 SymbolJavaStaticMethod javaStaticMethod = (SymbolJavaStaticMethod) symbol;
                 IJavaMethod javaMethod = CraftTweakerHacks.getPrivateObject(javaStaticMethod, "method");
                 if (javaMethod instanceof JavaMethod) {
-                    members.add(ZenGlobalMethodNode.read(name, ((JavaMethod) javaMethod).getMethod(), tree));
+                    members.add(ZenGlobalMethodNode.read(name, ProbeZS.getMemberFactory().reflect(((JavaMethod) javaMethod).getMethod()), tree));
                 }
             }
         });

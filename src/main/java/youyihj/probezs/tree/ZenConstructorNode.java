@@ -1,9 +1,9 @@
 package youyihj.probezs.tree;
 
+import youyihj.probezs.member.ExecutableData;
+import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.IndentStringBuilder;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -18,9 +18,9 @@ public class ZenConstructorNode extends ZenExecutableNode implements IZenDumpabl
         this.parameters = parameters;
     }
 
-    public static ZenConstructorNode read(Constructor<?> constructor, ZenClassTree tree) {
+    public static ZenConstructorNode read(ExecutableData constructor, ZenClassTree tree) {
         List<ZenParameterNode> parameterNodes = new ArrayList<>(constructor.getParameterCount());
-        Parameter[] parameters = constructor.getParameters();
+        ParameterData[] parameters = constructor.getParameters();
         for (int i = 0; i < constructor.getParameterCount(); i++) {
             parameterNodes.add(ZenParameterNode.read(constructor, i, parameters[i], tree));
         }

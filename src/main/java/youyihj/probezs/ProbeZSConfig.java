@@ -1,5 +1,6 @@
 package youyihj.probezs;
 
+import com.cleanroommc.configanytime.ConfigAnytime;
 import net.minecraftforge.common.config.Config;
 
 /**
@@ -11,10 +12,20 @@ public class ProbeZSConfig {
     public static boolean dumpJson = false;
     public static int socketPort = 6489;
     public static SocketProtocol socketProtocol = SocketProtocol.RPC;
+    public static MemberCollector memberCollector = MemberCollector.REFLECTION;
 
     public enum SocketProtocol {
         NONE,
         WEBSOCKET,
         RPC
+    }
+
+    public enum MemberCollector {
+        REFLECTION,
+        ASM;
+    }
+
+    static {
+        ConfigAnytime.register(ProbeZSConfig.class);
     }
 }

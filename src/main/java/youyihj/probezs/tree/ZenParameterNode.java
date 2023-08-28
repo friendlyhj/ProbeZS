@@ -3,11 +3,11 @@ package youyihj.probezs.tree;
 import com.google.gson.*;
 import stanhebben.zenscript.annotations.Optional;
 import youyihj.probezs.docs.ParameterNameMappings;
+import youyihj.probezs.member.ExecutableData;
+import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenKeywords;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +30,13 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
         this.varArgs = varArgs;
     }
 
-    public static ZenParameterNode read(Executable method, int index, Parameter parameter, ZenClassTree tree) {
-        boolean varArgs = parameter.isVarArgs();
+    public static ZenParameterNode read(ExecutableData method, int index, ParameterData parameter, ZenClassTree tree) {
+        boolean varArgs = parameter.isVarargs();
         LazyZenClassNode returnType;
         if (varArgs && parameter.getType().isArray()) {
             returnType = tree.createLazyClassNode(parameter.getType().getComponentType());
         } else {
-            returnType = tree.createLazyClassNode(parameter.getParameterizedType());
+            returnType = tree.createLazyClassNode(parameter.getGenericType());
         }
         Supplier<String> name = () -> {
             List<String> list = ParameterNameMappings.find(method);
@@ -48,8 +48,8 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
         return new ZenParameterNode(name, returnType, parameter.getAnnotation(Optional.class), varArgs);
     }
 
-    public static List<ZenParameterNode> read(Executable method, int startIndex, ZenClassTree tree) {
-        Parameter[] parameters = method.getParameters();
+    public static List<ZenParameterNode> read(ExecutableData method, int startIndex, ZenClassTree tree) {
+        ParameterData[] parameters = method.getParameters();
         List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
         for (int i = startIndex; i < method.getParameterCount(); i++) {
             parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));

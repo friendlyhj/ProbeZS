@@ -3,9 +3,9 @@ package youyihj.probezs.tree;
 import com.google.gson.annotations.SerializedName;
 import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
+import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.util.IndentStringBuilder;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +29,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
         this.returnTypeResultSupplier = returnType;
     }
 
-    public static ZenMemberNode read(Method method, ZenClassTree tree, boolean isClass) {
+    public static ZenMemberNode read(ExecutableData method, ZenClassTree tree, boolean isClass) {
         if (isClass && method.isAnnotationPresent(ZenMethod.class)) {
             String name = method.getAnnotation(ZenMethod.class).value();
             if (name.isEmpty()) {
@@ -56,11 +56,11 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
         return null;
     }
 
-    public static ZenMemberNode readDirectly(Method method, ZenClassTree tree, String name, boolean isStatic, boolean expansion) {
+    public static ZenMemberNode readDirectly(ExecutableData method, ZenClassTree tree, String name, boolean isStatic, boolean expansion) {
         int startIndex = expansion ? 1 : 0;
         return new ZenMemberNode(
                 name,
-                tree.createLazyClassNode(method.getGenericReturnType()),
+                tree.createLazyClassNode(method.getReturnType()),
                 ZenParameterNode.read(method, startIndex, tree),
                 isStatic
         );

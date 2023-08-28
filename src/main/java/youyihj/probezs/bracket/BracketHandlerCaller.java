@@ -23,6 +23,7 @@ import stanhebben.zenscript.util.ZenPosition;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.api.BracketHandlerResult;
 import youyihj.probezs.api.BracketHandlerService;
+import youyihj.probezs.core.BytecodeClassLoader;
 import youyihj.probezs.render.RenderHelper;
 import youyihj.probezs.render.RenderTaskDispatcher;
 
@@ -53,6 +54,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
     private static final Field EXPRESSION_INT_VALUE;
     private static final Field EXPRESSION_FLOAT_VALUE;
     private static final Field EXPRESSION_STRING_VALUE;
+    private static final BytecodeClassLoader CLASS_LOADER = new BytecodeClassLoader(ProbeZS.class.getClassLoader());
 
     static {
         try {
@@ -115,14 +117,14 @@ public class BracketHandlerCaller implements BracketHandlerService {
         Expression[] expressions = getFieldUnchecked(CALL_STATIC_ARGUMENTS_FILED, expressionCallStatic);
         Class<?> clazz = CACHED_SUPPLIER_CLASSES.computeIfAbsent(method, (method1 -> {
             byte[] bytecode = defineArgumentSupplierClass(method1, expressions, className);
-            InternalClassLoader.INSTANCE.bytecodes.put(className, bytecode);
+            CLASS_LOADER.putBytecode(className, bytecode);
 //            try {
 //                FileUtils.writeByteArrayToFile(new File("bhClasses/" + className + ".class"), bytecode);
 //            } catch (IOException ex) {
 //                throw new RuntimeException(ex);
 //            }
             try {
-                return Class.forName(className, true, InternalClassLoader.INSTANCE);
+                return Class.forName(className, true, CLASS_LOADER);
             } catch (ClassNotFoundException e) {
                 throw new AssertionError();
             }
@@ -174,10 +176,10 @@ public class BracketHandlerCaller implements BracketHandlerService {
     private static ZenBracketHandlerResult getDirectly(IPartialExpression expression, String className) {
         Class<?> supplierClass;
         try {
-            supplierClass = Class.forName(className, true, InternalClassLoader.INSTANCE);
+            supplierClass = Class.forName(className, true, CLASS_LOADER);
         } catch (ClassNotFoundException e) {
             byte[] bytecode = defineDirectSupplierClass(expression, className);
-            InternalClassLoader.INSTANCE.bytecodes.put(className, bytecode);
+            CLASS_LOADER.putBytecode(className, bytecode);
 //            try {
 //                FileUtils.writeByteArrayToFile(new File("bhClasses/" + className + ".class"), bytecode);
 //            } catch (IOException ex) {
@@ -297,30 +299,6 @@ public class BracketHandlerCaller implements BracketHandlerService {
             return (T) field.get(obj);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private static class InternalClassLoader extends ClassLoader {
-        private static final InternalClassLoader INSTANCE = new InternalClassLoader(ProbeZS.class.getClassLoader());
-        private final Map<String, Class<?>> classes = new HashMap<>();
-        private final Map<String, byte[]> bytecodes = new HashMap<>();
-
-        public InternalClassLoader(ClassLoader parent) {
-            super(parent);
-        }
-
-        @Override
-        protected Class<?> findClass(String name) throws ClassNotFoundException {
-            if (classes.containsKey(name)) {
-                return classes.get(name);
-            }
-            if (bytecodes.containsKey(name)) {
-                byte[] bytes = bytecodes.get(name);
-                Class<?> clazz = defineClass(name, bytes, 0, bytes.length);
-                classes.put(name, clazz);
-                return clazz;
-            }
-            return super.findClass(name);
         }
     }
 }
