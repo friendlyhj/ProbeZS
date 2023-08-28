@@ -36,7 +36,7 @@ public class ASMParameter extends ASMAnnotatedMember implements ParameterData {
     @Override
     public Type getGenericType() {
         String desc = methodNode.signature != null ? methodNode.signature : methodNode.desc;
-        return memberFactory.getTypeDescResolver().resolve(org.objectweb.asm.Type.getType(desc).getArgumentTypes()[index].getDescriptor());
+        return memberFactory.getTypeDescResolver().resolveTypeDesc(org.objectweb.asm.Type.getType(desc).getArgumentTypes()[index].getDescriptor());
     }
 
     @Override

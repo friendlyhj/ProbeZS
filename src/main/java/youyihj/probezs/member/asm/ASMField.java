@@ -36,6 +36,6 @@ public class ASMField extends ASMAnnotatedMember implements FieldData {
 
     @Override
     public Type getType() {
-        return memberFactory.getTypeDescResolver().resolve(fieldNode.desc);
+        return memberFactory.getTypeDescResolver().resolveTypeDesc(fieldNode.desc);
     }
 }

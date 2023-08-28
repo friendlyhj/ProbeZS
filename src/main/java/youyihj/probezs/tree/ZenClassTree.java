@@ -162,6 +162,7 @@ public class ZenClassTree {
         registerPrimitiveClass(double.class, doubleNode);
         registerPrimitiveClass(Double.class, doubleNode);
         javaMap.put(void.class, voidNode);
+        javaMap.put(Void.class, voidNode);
         registerPrimitiveClass(String.class, stringNode);
         registerPrimitiveClass(CharSequence.class, stringNode);
         registerPrimitiveClass(IntRange.class, new ZenIntRangeNode(this));

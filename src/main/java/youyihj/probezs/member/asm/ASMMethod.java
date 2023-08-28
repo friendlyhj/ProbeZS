@@ -54,8 +54,12 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
 
     @Override
     public Type getReturnType() {
-        String desc = methodNode.signature != null ? methodNode.signature : methodNode.desc;
-        return memberFactory.getTypeDescResolver().resolve(org.objectweb.asm.Type.getType(desc).getReturnType().getDescriptor());
+        TypeDescResolver typeDescResolver = memberFactory.getTypeDescResolver();
+        if (methodNode.signature == null) {
+            return typeDescResolver.resolveTypeDesc(methodNode.desc.substring(methodNode.desc.indexOf(')') + 1));
+        } else {
+            return typeDescResolver.resolveTypeDesc(typeDescResolver.resolveMethodReturnType(methodNode.signature));
+        }
     }
 
     @Override
