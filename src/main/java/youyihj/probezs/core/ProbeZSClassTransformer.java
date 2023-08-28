@@ -5,6 +5,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
+import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.core.asm.ASMCraftTweakerAPI;
 
 /**
@@ -20,7 +21,7 @@ public class ProbeZSClassTransformer implements IClassTransformer {
             new ClassReader(basicClass).accept(asm, 0);
             return classWriter.toByteArray();
         }
-        if (!name.startsWith("youyihj.probezs.")) {
+        if (ProbeZSConfig.memberCollector == ProbeZSConfig.MemberCollector.ASM && !name.startsWith("youyihj.probezs.")) {
             ClassNode classNode = new ClassNode();
             new ClassReader(basicClass).accept(classNode, 0);
             ASMMemberCollector.MEMBER_FACTORY.putClassNode(classNode);
