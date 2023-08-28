@@ -91,7 +91,7 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
                 case Type.DOUBLE:
                     return double.class;
                 case Type.ARRAY:
-                    org.objectweb.asm.Type elementType = type.getElementType();
+                    Type elementType = type.getElementType();
                     int dimensions = type.getDimensions();
                     return Array.newInstance(convertASMType(elementType), new int[dimensions]).getClass();
                 case Type.OBJECT:

@@ -26,22 +26,22 @@ class TypeDescResolver {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private final Supplier<BytecodeClassLoader> classLoader;
+    private final Map<String, Type> results = new HashMap<>();
+
     private int tokenIndex;
 
     public TypeDescResolver(ASMMemberFactory memberFactory) {
         this.classLoader = Suppliers.memoize(() -> new BytecodeClassLoader(memberFactory.getClassLoader()));
-        results.put("V", Void.class);
-        results.put("Z", Boolean.class);
-        results.put("C", Character.class);
-        results.put("B", Byte.class);
-        results.put("I", Integer.class);
-        results.put("F", Float.class);
-        results.put("J", Long.class);
-        results.put("D", Double.class);
-        results.put("S", Short.class);
+        results.put("V", void.class);
+        results.put("Z", boolean.class);
+        results.put("C", char.class);
+        results.put("B", byte.class);
+        results.put("I", int.class);
+        results.put("F", float.class);
+        results.put("J", long.class);
+        results.put("D", double.class);
+        results.put("S", short.class);
     }
-
-    private final Map<String, Type> results = new HashMap<>();
 
     Type resolveTypeDesc(String desc) {
         return results.computeIfAbsent(desc, this::buildType);
