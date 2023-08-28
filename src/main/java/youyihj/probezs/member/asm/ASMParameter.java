@@ -1,10 +1,12 @@
 package youyihj.probezs.member.asm;
 
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.MethodNode;
 import youyihj.probezs.member.ParameterData;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * @author youyihj
@@ -14,8 +16,8 @@ public class ASMParameter extends ASMAnnotatedMember implements ParameterData {
     private final int index;
     private final ASMMethod method;
 
-    public ASMParameter(ASMMethod method, MethodNode methodNode, int index, ASMMemberFactory memberFactory) {
-        super(null, memberFactory);
+    public ASMParameter(ASMMethod method, MethodNode methodNode, int index, ASMMemberFactory memberFactory, List<AnnotationNode> annotationNode) {
+        super(annotationNode, memberFactory);
         this.method = method;
         this.methodNode = methodNode;
         this.index = index;

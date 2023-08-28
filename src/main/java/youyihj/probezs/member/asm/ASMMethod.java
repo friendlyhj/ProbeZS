@@ -1,10 +1,13 @@
 package youyihj.probezs.member.asm;
 
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.MethodNode;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.Arrays;
+
+import java.util.List;
 
 /**
  * @author youyihj
@@ -64,7 +67,9 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
     public ParameterData[] getParameters() {
         ParameterData[] parameterData = new ParameterData[getParameterCount()];
         for (int i = 0; i < parameterData.length; i++) {
-            parameterData[i] = new ASMParameter(this, methodNode, i, memberFactory);
+            List<AnnotationNode>[] parameterAnnotations = methodNode.visibleParameterAnnotations;
+            List<AnnotationNode> annotationNodes = parameterAnnotations != null ? parameterAnnotations[i] : null;
+            parameterData[i] = new ASMParameter(this, methodNode, i, memberFactory, annotationNodes);
         }
         return parameterData;
     }
