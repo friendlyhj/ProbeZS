@@ -1,11 +1,12 @@
 package youyihj.probezs.member.asm;
 
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.Arrays;
 
-import java.lang.reflect.Type;
+import java.lang.reflect.Array;
 
 /**
  * @author youyihj
@@ -32,19 +33,18 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
 
     @Override
     public Class<?>[] getParameterTypes() {
-        org.objectweb.asm.Type[] types = org.objectweb.asm.Type.getType(methodNode.desc).getArgumentTypes();
-        return Arrays.map(types, Class.class, it -> {
-            try {
-                return Class.forName(it.getClassName(), false, memberFactory.getClassLoader());
-            } catch (ClassNotFoundException e) {
-                return Object.class;
-            }
-        });
+        Type[] types = Type.getType(methodNode.desc).getArgumentTypes();
+        return Arrays.map(types, Class.class, this::convertASMType);
     }
 
     @Override
     public int getParameterCount() {
-        return methodNode.parameters == null ? 0 : methodNode.parameters.size();
+        TypeDescResolver typeDescResolver = memberFactory.getTypeDescResolver();
+        if (methodNode.signature != null) {
+            return typeDescResolver.resolveMethodArguments(methodNode.signature).size();
+        } else {
+            return org.objectweb.asm.Type.getType(methodNode.desc).getArgumentTypes().length;
+        }
     }
 
     @Override
@@ -53,21 +53,54 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
     }
 
     @Override
-    public Type getReturnType() {
+    public java.lang.reflect.Type getReturnType() {
         TypeDescResolver typeDescResolver = memberFactory.getTypeDescResolver();
-        if (methodNode.signature == null) {
-            return typeDescResolver.resolveTypeDesc(methodNode.desc.substring(methodNode.desc.indexOf(')') + 1));
-        } else {
+        if (methodNode.signature != null) {
             return typeDescResolver.resolveTypeDesc(typeDescResolver.resolveMethodReturnType(methodNode.signature));
+        } else {
+            return typeDescResolver.resolveTypeDesc(methodNode.desc.substring(methodNode.desc.indexOf(')') + 1));
         }
     }
 
     @Override
     public ParameterData[] getParameters() {
         ParameterData[] parameterData = new ParameterData[getParameterCount()];
-        for (int i = 0; i < getParameterCount(); i++) {
-            parameterData[i] = new ASMParameter(methodNode, i, memberFactory);
+        for (int i = 0; i < parameterData.length; i++) {
+            parameterData[i] = new ASMParameter(this, methodNode, i, memberFactory);
         }
         return parameterData;
+    }
+
+    private Class<?> convertASMType(Type type) {
+        try {
+            switch (type.getSort()) {
+                case Type.VOID:
+                    return void.class;
+                case Type.BOOLEAN:
+                    return boolean.class;
+                case Type.BYTE:
+                    return byte.class;
+                case Type.SHORT:
+                    return short.class;
+                case Type.INT:
+                    return int.class;
+                case Type.FLOAT:
+                    return float.class;
+                case Type.LONG:
+                    return long.class;
+                case Type.DOUBLE:
+                    return double.class;
+                case Type.ARRAY:
+                    org.objectweb.asm.Type elementType = type.getElementType();
+                    int dimensions = type.getDimensions();
+                    return Array.newInstance(convertASMType(elementType), new int[dimensions]).getClass();
+                case Type.OBJECT:
+                    return Class.forName(type.getClassName(), false, memberFactory.getClassLoader());
+                default:
+                    return Object.class;
+            }
+        } catch (ClassNotFoundException e) {
+            return Object.class;
+        }
     }
 }
