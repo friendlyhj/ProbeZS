@@ -11,13 +11,13 @@ public class ProbeZSConfig {
     public static boolean dumpDZS = true;
     public static boolean dumpJson = false;
     public static int socketPort = 6489;
-    public static SocketProtocol socketProtocol = SocketProtocol.JSONRPC;
+    public static SocketProtocol socketProtocol = SocketProtocol.RPC;
     public static MemberCollector memberCollector = MemberCollector.REFLECTION;
 
     public enum SocketProtocol {
         NONE,
         WEBSOCKET,
-        JSONRPC
+        RPC
     }
 
     public enum MemberCollector {
