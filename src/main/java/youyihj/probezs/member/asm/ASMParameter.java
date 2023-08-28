@@ -1,5 +1,6 @@
 package youyihj.probezs.member.asm;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.MethodNode;
 import youyihj.probezs.member.ParameterData;
 
@@ -41,6 +42,6 @@ public class ASMParameter extends ASMAnnotatedMember implements ParameterData {
 
     @Override
     public boolean isVarargs() {
-        return false;
+        return (methodNode.access & Opcodes.ACC_VARARGS) != 0 && index == method.getParameterCount() - 1;
     }
 }
