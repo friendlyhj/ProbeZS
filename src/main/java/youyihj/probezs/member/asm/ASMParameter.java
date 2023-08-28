@@ -33,9 +33,9 @@ public class ASMParameter extends ASMAnnotatedMember implements ParameterData {
 
     @Override
     public Type getGenericType() {
-        TypeDescResolver typeDescResolver = memberFactory.getTypeDescResolver();
+        TypeResolver typeResolver = memberFactory.getTypeDescResolver();
         if (methodNode.signature != null) {
-            return typeDescResolver.resolveTypeDesc(typeDescResolver.resolveMethodArguments(methodNode.signature).get(index));
+            return typeResolver.resolveTypeDesc(typeResolver.resolveMethodArguments(methodNode.signature).get(index));
         } else {
             return getType();
         }

@@ -62,7 +62,7 @@ public class ASMAnnotatedMember implements AnnotatedMember {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private Object parseAnnotationValue(Object value) throws Exception {
         if (value.getClass() == Type.class) {
-            return Class.forName(((Type) value).getClassName(), false, memberFactory.getClassLoader());
+            return memberFactory.getTypeDescResolver().convertASMType(((Type) value));
         }
         if (value instanceof List) {
             List<?> list = (List<?>) value;

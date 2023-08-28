@@ -31,12 +31,12 @@ public class ASMMemberFactory implements MemberFactory {
 
     // double supplier to avoid early class loading
     private final Supplier<Supplier<ClassLoader>> classLoader;
-    private final TypeDescResolver typeDescResolver;
+    private final TypeResolver typeResolver;
 
     public ASMMemberFactory(Set<String> classAnnotationFilter, Supplier<Supplier<ClassLoader>> classLoader) {
         this.classAnnotationFilter = classAnnotationFilter;
         this.classLoader = classLoader;
-        this.typeDescResolver = new TypeDescResolver(this);
+        this.typeResolver = new TypeResolver(this);
     }
 
     public void putClassNode(ClassNode classNode) {
@@ -93,7 +93,7 @@ public class ASMMemberFactory implements MemberFactory {
         return classLoader.get().get();
     }
 
-    TypeDescResolver getTypeDescResolver() {
-        return typeDescResolver;
+    TypeResolver getTypeDescResolver() {
+        return typeResolver;
     }
 }

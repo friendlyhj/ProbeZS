@@ -9,6 +9,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import youyihj.probezs.core.BytecodeClassLoader;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,11 +18,15 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.DOUBLE;
+import static org.objectweb.asm.Type.FLOAT;
+import static org.objectweb.asm.Type.LONG;
 
 /**
  * @author youyihj
  */
-class TypeDescResolver {
+class TypeResolver {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -30,7 +35,7 @@ class TypeDescResolver {
 
     private int tokenIndex;
 
-    public TypeDescResolver(ASMMemberFactory memberFactory) {
+    public TypeResolver(ASMMemberFactory memberFactory) {
         this.classLoader = Suppliers.memoize(() -> new BytecodeClassLoader(memberFactory.getClassLoader()));
         results.put("V", void.class);
         results.put("Z", boolean.class);
@@ -57,6 +62,39 @@ class TypeDescResolver {
             return methodSignature.substring(0, methodSignature.indexOf('^'));
         } else {
             return returnAndException;
+        }
+    }
+
+    Class<?> convertASMType(org.objectweb.asm.Type type) {
+        try {
+            switch (type.getSort()) {
+                case VOID:
+                    return void.class;
+                case BOOLEAN:
+                    return boolean.class;
+                case BYTE:
+                    return byte.class;
+                case SHORT:
+                    return short.class;
+                case INT:
+                    return int.class;
+                case FLOAT:
+                    return float.class;
+                case LONG:
+                    return long.class;
+                case DOUBLE:
+                    return double.class;
+                case ARRAY:
+                    org.objectweb.asm.Type elementType = type.getElementType();
+                    int dimensions = type.getDimensions();
+                    return Array.newInstance(convertASMType(elementType), new int[dimensions]).getClass();
+                case OBJECT:
+                    return Class.forName(type.getClassName(), false, classLoader.get());
+                default:
+                    return Object.class;
+            }
+        } catch (ClassNotFoundException e) {
+            return Object.class;
         }
     }
 

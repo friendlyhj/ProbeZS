@@ -6,8 +6,6 @@ import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.Arrays;
 
-import java.lang.reflect.Array;
-
 /**
  * @author youyihj
  */
@@ -34,14 +32,14 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
     @Override
     public Class<?>[] getParameterTypes() {
         Type[] types = Type.getType(methodNode.desc).getArgumentTypes();
-        return Arrays.map(types, Class.class, this::convertASMType);
+        return Arrays.map(types, Class.class, memberFactory.getTypeDescResolver()::convertASMType);
     }
 
     @Override
     public int getParameterCount() {
-        TypeDescResolver typeDescResolver = memberFactory.getTypeDescResolver();
+        TypeResolver typeResolver = memberFactory.getTypeDescResolver();
         if (methodNode.signature != null) {
-            return typeDescResolver.resolveMethodArguments(methodNode.signature).size();
+            return typeResolver.resolveMethodArguments(methodNode.signature).size();
         } else {
             return org.objectweb.asm.Type.getType(methodNode.desc).getArgumentTypes().length;
         }
@@ -54,11 +52,11 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
 
     @Override
     public java.lang.reflect.Type getReturnType() {
-        TypeDescResolver typeDescResolver = memberFactory.getTypeDescResolver();
+        TypeResolver typeResolver = memberFactory.getTypeDescResolver();
         if (methodNode.signature != null) {
-            return typeDescResolver.resolveTypeDesc(typeDescResolver.resolveMethodReturnType(methodNode.signature));
+            return typeResolver.resolveTypeDesc(typeResolver.resolveMethodReturnType(methodNode.signature));
         } else {
-            return typeDescResolver.resolveTypeDesc(methodNode.desc.substring(methodNode.desc.indexOf(')') + 1));
+            return typeResolver.resolveTypeDesc(methodNode.desc.substring(methodNode.desc.indexOf(')') + 1));
         }
     }
 
@@ -69,38 +67,5 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
             parameterData[i] = new ASMParameter(this, methodNode, i, memberFactory);
         }
         return parameterData;
-    }
-
-    private Class<?> convertASMType(Type type) {
-        try {
-            switch (type.getSort()) {
-                case Type.VOID:
-                    return void.class;
-                case Type.BOOLEAN:
-                    return boolean.class;
-                case Type.BYTE:
-                    return byte.class;
-                case Type.SHORT:
-                    return short.class;
-                case Type.INT:
-                    return int.class;
-                case Type.FLOAT:
-                    return float.class;
-                case Type.LONG:
-                    return long.class;
-                case Type.DOUBLE:
-                    return double.class;
-                case Type.ARRAY:
-                    Type elementType = type.getElementType();
-                    int dimensions = type.getDimensions();
-                    return Array.newInstance(convertASMType(elementType), new int[dimensions]).getClass();
-                case Type.OBJECT:
-                    return Class.forName(type.getClassName(), false, memberFactory.getClassLoader());
-                default:
-                    return Object.class;
-            }
-        } catch (ClassNotFoundException e) {
-            return Object.class;
-        }
     }
 }
