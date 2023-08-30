@@ -99,7 +99,6 @@ dependencies {
     }
 
     implementation rfg.deobf("CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.685")
-    implementation 'com.cleanroommc:configanytime:1.0'
 
 
     embed ('org.yaml:snakeyaml:2.0')

@@ -1,6 +1,5 @@
 package youyihj.probezs;
 
-import com.cleanroommc.configanytime.ConfigAnytime;
 import net.minecraftforge.common.config.Config;
 
 /**
@@ -33,9 +32,5 @@ public class ProbeZSConfig {
     public enum MemberCollector {
         REFLECTION,
         ASM;
-    }
-
-    static {
-        ConfigAnytime.register(ProbeZSConfig.class);
     }
 }
