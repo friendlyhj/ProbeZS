@@ -18,15 +18,15 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 import static org.objectweb.asm.Type.DOUBLE;
 import static org.objectweb.asm.Type.FLOAT;
 import static org.objectweb.asm.Type.LONG;
+import static org.objectweb.asm.Type.*;
 
 /**
  * @author youyihj
  */
-class TypeResolver {
+public class TypeResolver {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -48,15 +48,15 @@ class TypeResolver {
         results.put("S", short.class);
     }
 
-    Type resolveTypeDesc(String desc) {
+    public Type resolveTypeDesc(String desc) {
         return results.computeIfAbsent(desc, this::buildType);
     }
 
-    List<String> resolveMethodArguments(String methodSignature) {
+    public List<String> resolveMethodArguments(String methodSignature) {
         return new MethodParameterParser(methodSignature).parse();
     }
 
-    String resolveMethodReturnType(String methodSignature) {
+    public String resolveMethodReturnType(String methodSignature) {
         String returnAndException = methodSignature.substring(methodSignature.indexOf(')') + 1);
         if (returnAndException.contains("^")) {
             return methodSignature.substring(0, methodSignature.indexOf('^'));
@@ -94,6 +94,7 @@ class TypeResolver {
                     return Object.class;
             }
         } catch (ClassNotFoundException e) {
+            LOGGER.throwing(e);
             return Object.class;
         }
     }
@@ -135,8 +136,7 @@ class TypeResolver {
 
         List<String> parse() {
             String params = signature.substring(signature.indexOf('(') + 1, signature.indexOf(')'));
-            boolean inName = false;
-            boolean inClass = false;
+            boolean readingLongType = false;
 
             for (char c : params.toCharArray()) {
                 sb.append(c);
@@ -149,32 +149,29 @@ class TypeResolver {
                     case 'F':
                     case 'J':
                     case 'D':
-                        if (!inClass && !inName) {
+                        if (!readingLongType && layer == 0) {
                             endType();
                         }
                         break;
                     case 'T':
-                        if (!inName) {
+                    case 'L':
+                        if (!readingLongType) {
+                            readingLongType = true;
                             layer++;
                         }
                         break;
-                    case 'L':
-                        if (!inName) {
-                            layer++;
-                            inClass = true;
-                        }
+                    case '<':
+                    case '>':
+                        readingLongType = false;
                         break;
                     case ';':
-                        if (inClass) {
-                            layer--;
-                        }
+                        layer--;
+                        readingLongType = false;
                         if (layer == 0) {
                             endType();
-                            inClass = false;
                         }
                         break;
                 }
-                inName = Character.isAlphabetic(c) || c == '/';
             }
             return paramTypes;
         }
