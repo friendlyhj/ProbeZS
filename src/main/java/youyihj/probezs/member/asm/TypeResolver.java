@@ -11,10 +11,7 @@ import youyihj.probezs.core.BytecodeClassLoader;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -24,6 +21,7 @@ import static org.objectweb.asm.Type.LONG;
 import static org.objectweb.asm.Type.*;
 
 /**
+ * Simple type reader from generic signature, it can't handle type variable.
  * @author youyihj
  */
 public class TypeResolver {
@@ -116,9 +114,9 @@ public class TypeResolver {
         classWriter.visitEnd();
         classLoader.get().putBytecode(className, classWriter.toByteArray());
         try {
-            return ((TypeToken<?>) Class.forName(className, true, classLoader.get()).newInstance()).getType();
+            return Objects.requireNonNull(((TypeToken<?>) Class.forName(className, true, classLoader.get()).newInstance()).getType());
         } catch (Throwable e) {
-            LOGGER.error("Failed get type from desc: " + desc, e);
+            LOGGER.error("Failed get type from desc: " + desc);
             return Object.class;
         }
     }
