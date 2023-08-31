@@ -20,6 +20,7 @@ import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -62,16 +63,12 @@ public class ASMMemberFactory implements MemberFactory {
 
     @Override
     public ExecutableData[] getMethods(Class<?> clazz) {
-        ClassNode classNode = classes.get(Type.getInternalName(clazz));
-        if (classNode != null) {
-            return Arrays.map(classNode.methods.toArray(new MethodNode[0]), ExecutableData.class, it -> new ASMMethod(it, this, clazz));
-        }
-        return new ExecutableData[0];
+        return getExecutables(clazz, false);
     }
 
     @Override
     public ExecutableData[] getConstructors(Class<?> clazz) {
-        return new ExecutableData[0];
+        return getExecutables(clazz, true);
     }
 
     @Override
@@ -95,5 +92,17 @@ public class ASMMemberFactory implements MemberFactory {
 
     TypeResolver getTypeDescResolver() {
         return typeResolver;
+    }
+
+    private ExecutableData[] getExecutables(Class<?> clazz, boolean constructor) {
+        ClassNode classNode = classes.get(Type.getInternalName(clazz));
+        Predicate<MethodNode> isConstructor = it -> "<init>".equals(it.name);
+        if (classNode != null) {
+            return classNode.methods.stream()
+                    .filter(constructor ? isConstructor : isConstructor.negate())
+                    .map(it -> new ASMMethod(it, this, clazz))
+                    .toArray(ExecutableData[]::new);
+        }
+        return new ExecutableData[0];
     }
 }
