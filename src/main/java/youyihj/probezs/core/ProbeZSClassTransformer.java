@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class ProbeZSClassTransformer implements IClassTransformer {
 
-    private static final List<String> EXCLUDE_PACKAGE = Arrays.asList(
+    private static final List<String> EXCLUDE_PACKAGES = Arrays.asList(
             "youyihj.probezs",
             "org.spongepowered",
             "net.minecraft"
@@ -32,8 +32,8 @@ public class ProbeZSClassTransformer implements IClassTransformer {
             new ClassReader(basicClass).accept(asm, 0);
             return classWriter.toByteArray();
         }
-        for (String s : EXCLUDE_PACKAGE) {
-            if (transformedName.startsWith(s)) {
+        for (String excludePackage : EXCLUDE_PACKAGES) {
+            if (transformedName.startsWith(excludePackage)) {
                 return basicClass;
             }
         }
