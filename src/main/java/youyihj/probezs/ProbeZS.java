@@ -257,7 +257,7 @@ public class ProbeZS {
     }
 
     private void outputBracketHandlerMirrors(List<BracketHandlerMirror> mirrors) {
-        String json = ZenClassTree.GSON.toJson(mirrors);
+        String json = BracketHandlerMirror.GSON.toJson(mirrors);
         try {
             FileUtils.write(
                     new File("scripts/generated/brackets.json"),

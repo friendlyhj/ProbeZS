@@ -1,5 +1,7 @@
 package youyihj.probezs.bracket;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import youyihj.probezs.tree.LazyZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
 
@@ -13,6 +15,11 @@ import java.util.stream.Collectors;
  * @author youyihj
  */
 public class BracketHandlerMirror {
+    public static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.FullNameSerializer())
+            .create();
+
     private final LazyZenClassNode type;
     private final String regex;
     private final Map<String, BracketHandlerEntryProperties> entries;

@@ -179,4 +179,12 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
             return new JsonPrimitive(src.get().getQualifiedName());
         }
     }
+
+    public static class FullNameSerializer implements JsonSerializer<LazyZenClassNode> {
+
+        @Override
+        public JsonElement serialize(LazyZenClassNode src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.get().getTypeVariableArray()[0].getName());
+        }
+    }
 }
