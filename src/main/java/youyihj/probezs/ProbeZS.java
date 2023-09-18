@@ -1,6 +1,7 @@
 package youyihj.probezs;
 
 import com.google.common.base.Suppliers;
+import com.google.common.collect.Lists;
 import crafttweaker.CraftTweakerAPI;
 import crafttweaker.api.block.IBlockState;
 import crafttweaker.api.creativetabs.ICreativeTab;
@@ -9,6 +10,7 @@ import crafttweaker.api.enchantments.IEnchantmentDefinition;
 import crafttweaker.api.entity.IEntityDefinition;
 import crafttweaker.api.item.IIngredient;
 import crafttweaker.api.item.IItemStack;
+import crafttweaker.api.item.IngredientAny;
 import crafttweaker.api.liquid.ILiquidStack;
 import crafttweaker.api.minecraft.CraftTweakerMC;
 import crafttweaker.api.oredict.IOreDictEntry;
@@ -20,7 +22,10 @@ import crafttweaker.mc1120.damage.expand.MCDamageSourceExpand;
 import crafttweaker.mc1120.util.CraftTweakerHacks;
 import crafttweaker.preprocessor.PreprocessorFactory;
 import crafttweaker.zenscript.GlobalRegistry;
-import crafttweaker.zenscript.IBracketHandler;
+import net.minecraft.block.Block;
+import net.minecraft.block.properties.IProperty;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionType;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
@@ -30,11 +35,8 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import stanhebben.zenscript.util.Pair;
-import youyihj.probezs.bracket.BlockBracketNode;
-import youyihj.probezs.bracket.IngredientAnyBracketNode;
-import youyihj.probezs.bracket.ItemBracketNode;
-import youyihj.probezs.bracket.ZenBracketTree;
+import youyihj.probezs.bracket.BracketHandlerEntryProperties;
+import youyihj.probezs.bracket.BracketHandlerMirror;
 import youyihj.probezs.core.ASMMemberCollector;
 import youyihj.probezs.member.MemberFactory;
 import youyihj.probezs.member.reflection.ReflectionMemberFactory;
@@ -102,10 +104,10 @@ public class ProbeZS {
                 URLConnection urlConnection = url.openConnection();
                 urlConnection.setConnectTimeout(15000);
                 urlConnection.setReadTimeout(15000);
-                try(BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
                     mappings.set(reader.lines().collect(Collectors.joining("\n")));
                 }
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }).start();
@@ -127,12 +129,12 @@ public class ProbeZS {
             ProbeZS.logger.error("Failed to delete previous dzs", e);
         }
         ZenClassTree root = ZenClassTree.getRoot();
-        ZenBracketTree bracketTree = dumpBracketHandlers(root);
         ZenGlobalMemberTree globalMemberTree = dumpGlobalMembers(root);
+        List<BracketHandlerMirror> mirrors = dumpBracketHandlerMirrors(root);
         root.fresh();
         root.output();
         globalMemberTree.output();
-        bracketTree.output();
+        outputBracketHandlerMirrors(mirrors);
         outputPreprocessors();
         if (ProbeZSConfig.socketProtocol != ProbeZSConfig.SocketProtocol.NONE) {
             SocketHandler.enable();
@@ -150,37 +152,95 @@ public class ProbeZS {
         return globalMemberTree;
     }
 
-    private ZenBracketTree dumpBracketHandlers(ZenClassTree classTree) {
-        ZenBracketTree bracketTree = new ZenBracketTree(classTree);
-        bracketTree.addNode(IItemStack.class, new ItemBracketNode(classTree));
-        bracketTree.addNode(IBlockState.class, new BlockBracketNode(classTree));
-        bracketTree.addNode(IIngredient.class, new IngredientAnyBracketNode(classTree));
-        for (Pair<Integer, IBracketHandler> entry : GlobalRegistry.getPrioritizedBracketHandlers()) {
-            bracketTree.addHandler(entry.getValue());
-        }
-
-        bracketTree.putContent("liquid", ILiquidStack.class,
-                FluidRegistry.getRegisteredFluids().keySet().stream()
-                        .map(it -> it.replace(" ", ""))
+    private List<BracketHandlerMirror> dumpBracketHandlerMirrors(ZenClassTree classTree) {
+        return Lists.newArrayList(
+                BracketHandlerMirror.<IItemStack>builder(classTree)
+                        .setType(IItemStack.class)
+                        .setEntries(CraftTweakerAPI.game.getItems().stream()
+                                .flatMap(it -> it.getSubItems().stream())
+                                .filter(it -> !it.hasTag())
+                                .collect(Collectors.toList())
+                        )
+                        .setRegex(".*")
+                        .setIdMapper(it -> {
+                            String commandString = it.toCommandString();
+                            return commandString.substring(1, commandString.length() - 1);
+                        })
+                        .setPropertiesAdder((item, properties) -> {
+                            properties.add("name", item.getDisplayName(), true);
+                        })
+                        .build(),
+                BracketHandlerMirror.<Block>builder(classTree)
+                        .setType(IBlockState.class)
+                        .setEntries(ForgeRegistries.BLOCKS.getValuesCollection())
+                        .setRegex("blockstate:.*")
+                        .setIdMapper(it -> "blockstate:" + it.getRegistryName())
+                        .setPropertiesAdder(this::fillBlockProperties)
+                        .build(),
+                BracketHandlerMirror.<IIngredient>builder(classTree)
+                        .setRegex("\\*")
+                        .setType(IIngredient.class)
+                        .setEntries(Collections.singleton(IngredientAny.INSTANCE))
+                        .setIdMapper(it -> "*")
+                        .build(),
+                BracketHandlerMirror.<String>builder(classTree)
+                        .setType(ILiquidStack.class)
+                        .setRegex("(fluid|liquid):.*")
+                        .setEntries(FluidRegistry.getRegisteredFluids().keySet())
+                        .setIdMapper(it -> "liquid:" + it.replace(" ", ""))
+                        .build(),
+                BracketHandlerMirror.<IBiome>builder(classTree)
+                        .setType(IBiome.class)
+                        .setRegex("biome:.*")
+                        .setEntries(CraftTweakerAPI.game.getBiomes())
+                        .setIdMapper(it -> "biome:" + it.getId().split(":")[1])
+                        .build(),
+                BracketHandlerMirror.<String>builder(classTree)
+                        .setType(ICreativeTab.class)
+                        .setRegex("creativetab:.*")
+                        .setEntries(CraftTweakerMC.creativeTabs.keySet())
+                        .setIdMapper(it -> "creativetab:" + it)
+                        .build(),
+                BracketHandlerMirror.<Method>builder(classTree)
+                        .setType(IDamageSource.class)
+                        .setRegex("damageSource:.*")
+                        .setEntries(Arrays.stream(MCDamageSourceExpand.class.getDeclaredMethods())
+                                .filter(it -> it.getParameterCount() == 0)
+                                .collect(Collectors.toList())
+                        )
+                        .setIdMapper(it -> "damageSource:" + it.getName())
+                        .build(),
+                BracketHandlerMirror.<String>builder(classTree)
+                        .setType(IEnchantmentDefinition.class)
+                        .setRegex("enchantment:.*")
+                        .setEntries(BracketHandlerEnchantments.enchantments.keySet())
+                        .setIdMapper(it -> "enchantment:" + it)
+                        .build(),
+                BracketHandlerMirror.<IEntityDefinition>builder(classTree)
+                        .setType(IEntityDefinition.class)
+                        .setRegex("entity:.*")
+                        .setEntries(CraftTweakerAPI.game.getEntities())
+                        .setIdMapper(it -> "entity:" + it.getId())
+                        .build(),
+                BracketHandlerMirror.<IOreDictEntry>builder(classTree)
+                        .setType(IOreDictEntry.class)
+                        .setRegex("ore:.*")
+                        .setEntries(CraftTweakerAPI.oreDict.getEntries())
+                        .setIdMapper(it -> "ore:" + it.getName())
+                        .build(),
+                BracketHandlerMirror.<Potion>builder(classTree)
+                        .setType(IPotion.class)
+                        .setRegex("potion:.*")
+                        .setEntries(ForgeRegistries.POTIONS.getValuesCollection())
+                        .setIdMapper(it -> "potion:" + it.getRegistryName())
+                        .build(),
+                BracketHandlerMirror.<PotionType>builder(classTree)
+                        .setType(IPotionType.class)
+                        .setRegex("potiontype:.*")
+                        .setEntries(ForgeRegistries.POTION_TYPES.getValuesCollection())
+                        .setIdMapper(it -> "potiontype:" + it.getRegistryName())
+                        .build()
         );
-
-        bracketTree.putContent("biome", IBiome.class,
-                CraftTweakerAPI.game.getBiomes().stream()
-                        .map(IBiome::getId)
-                        .map(it -> it.split(":")[1])
-        );
-
-        bracketTree.putContent("creativetab", ICreativeTab.class, CraftTweakerMC.creativeTabs.keySet().stream());
-        bracketTree.putContent("damageSource", IDamageSource.class, Arrays.stream(MCDamageSourceExpand.class.getDeclaredMethods())
-                .filter(it -> it.getParameterCount() == 0)
-                .map(Method::getName)
-        );
-        bracketTree.putContent("enchantment", IEnchantmentDefinition.class, BracketHandlerEnchantments.enchantments.keySet().stream());
-        bracketTree.putContent("entity", IEntityDefinition.class, CraftTweakerAPI.game.getEntities().stream().map(IEntityDefinition::getId));
-        bracketTree.putContent("ore", IOreDictEntry.class, CraftTweakerAPI.oreDict.getEntries().stream().map(IOreDictEntry::getName));
-        bracketTree.putContent("potion", IPotion.class, ForgeRegistries.POTIONS.getKeys().stream().map(Objects::toString));
-        bracketTree.putContent("potiontype", IPotionType.class, ForgeRegistries.POTION_TYPES.getKeys().stream().map(Objects::toString));
-        return bracketTree;
     }
 
     private void outputPreprocessors() {
@@ -193,6 +253,31 @@ public class ProbeZS {
             );
         } catch (IOException e) {
             ProbeZS.logger.error("Failed to output preprocessor json", e);
+        }
+    }
+
+    private void outputBracketHandlerMirrors(List<BracketHandlerMirror> mirrors) {
+        String json = ZenClassTree.GSON.toJson(mirrors);
+        try {
+            FileUtils.write(
+                    new File("scripts/generated/brackets.json"),
+                    json,
+                    StandardCharsets.UTF_8
+            );
+        } catch (IOException e) {
+            ProbeZS.logger.error("Failed to output brackets json", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Comparable<T>> void fillBlockProperties(Block block, BracketHandlerEntryProperties properties) {
+        for (IProperty<?> property : block.getBlockState().getProperties()) {
+            IProperty<T> propertyT = ((IProperty<T>) property);
+            List<String> values = new ArrayList<>();
+            for (T allowedValue : propertyT.getAllowedValues()) {
+                values.add(propertyT.getName(allowedValue));
+            }
+            properties.add(property.getName(), values, false);
         }
     }
 }
