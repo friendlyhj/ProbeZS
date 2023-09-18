@@ -1,9 +1,9 @@
 package youyihj.probezs.bracket;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,5 +33,13 @@ public class BracketHandlerEntryProperties {
 
     public Map<String, JsonElement> getProperties() {
         return properties;
+    }
+
+    public static class Serializer implements JsonSerializer<BracketHandlerEntryProperties> {
+
+        @Override
+        public JsonElement serialize(BracketHandlerEntryProperties src, Type typeOfSrc, JsonSerializationContext context) {
+            return context.serialize(src.getProperties(), new TypeToken<Map<String, JsonElement>>() {}.getType());
+        }
     }
 }

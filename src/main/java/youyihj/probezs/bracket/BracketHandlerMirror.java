@@ -18,6 +18,7 @@ public class BracketHandlerMirror {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.FullNameSerializer())
+            .registerTypeAdapter(BracketHandlerEntryProperties.class, new BracketHandlerEntryProperties.Serializer())
             .create();
 
     private final LazyZenClassNode type;
