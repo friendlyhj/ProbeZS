@@ -1,5 +1,7 @@
 ## ProbeZS
 
+将所有 ZenScript 类、方法，以及原版尖括号引用的内容导出成 dzs 文件。
+与 https://github.com/raylras/zenscript-language-server 配合使用。
 
 ### Code Generators
 
