@@ -6,7 +6,7 @@ import youyihj.probezs.tree.LazyZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,17 +18,17 @@ public class BracketHandlerMirror {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.FullNameSerializer())
-            .registerTypeAdapter(BracketHandlerEntryProperties.class, new BracketHandlerEntryProperties.Serializer())
+            .registerTypeAdapter(BracketHandlerEntry.class, new BracketHandlerEntry.Serializer())
             .create();
 
     private final LazyZenClassNode type;
     private final String regex;
-    private final Map<String, BracketHandlerEntryProperties> entries;
+    private final List<BracketHandlerEntry> entries;
 
-    public BracketHandlerMirror(LazyZenClassNode type, String regex, Map<String, BracketHandlerEntryProperties> entities) {
+    public BracketHandlerMirror(LazyZenClassNode type, String regex, List<BracketHandlerEntry> entries) {
         this.type = type;
         this.regex = regex;
-        this.entries = entities;
+        this.entries = entries;
     }
 
     public LazyZenClassNode getType() {
@@ -39,7 +39,7 @@ public class BracketHandlerMirror {
         return regex;
     }
 
-    public Map<String, BracketHandlerEntryProperties> getEntries() {
+    public List<BracketHandlerEntry> getEntries() {
         return entries;
     }
 
@@ -85,14 +85,15 @@ public class BracketHandlerMirror {
         }
 
         public BracketHandlerMirror build() {
-            Map<String, BracketHandlerEntryProperties> entities = entries.stream()
-                    .collect(Collectors.toMap(idMapper, it -> {
+            List<BracketHandlerEntry> entities = entries.stream()
+                    .map(it -> {
                         BracketHandlerEntryProperties properties = new BracketHandlerEntryProperties();
                         if (propertiesAdder != null) {
                             propertiesAdder.accept(it, properties);
                         }
-                        return properties;
-                    }));
+                        return new BracketHandlerEntry(idMapper.apply(it), properties);
+                    })
+                    .collect(Collectors.toList());
             return new BracketHandlerMirror(classTree.createLazyClassNode(type), regex, entities);
         }
     }
