@@ -1,9 +1,6 @@
 package youyihj.probezs.socket;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
@@ -41,6 +38,8 @@ public class BracketCheckHandler extends SimpleChannelInboundHandler<WebSocketFr
         Map<String, String> map = new HashMap<>();
         if (result.getType() != null) {
             map.put("type", result.getType());
+        } else {
+            map.put("_error", "");
         }
         map.putAll(result.getExtras());
         return GSON.toJsonTree(map);

@@ -286,7 +286,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
                 }
                 return Base64.getEncoder().encodeToString(out.toByteArray());
             }).get(3, TimeUnit.SECONDS);
-            extras.put("icon", iconBase64);
+            extras.put("_icon", iconBase64);
         } catch (Exception e) {
             ProbeZS.logger.error(e);
         }
