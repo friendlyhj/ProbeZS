@@ -32,7 +32,7 @@ public class BracketHandlerEntry {
         @Override
         public JsonElement serialize(BracketHandlerEntry src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject json = new JsonObject();
-            json.addProperty("id", src.getId());
+            json.addProperty("_id", src.getId());
             src.getProperties().getProperties().forEach(json::add);
             return json;
         }
