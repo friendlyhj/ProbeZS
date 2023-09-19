@@ -268,7 +268,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
     }
 
     private static void writeItemInfo(ItemStack item, Map<String, String> extras) {
-        extras.put("name", item.getDisplayName());
+        extras.put("_name", item.getDisplayName());
         try {
             String iconBase64 = RenderTaskDispatcher.submit(() -> {
                 RenderHelper.setupRenderState(32);

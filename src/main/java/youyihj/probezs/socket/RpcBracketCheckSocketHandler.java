@@ -3,6 +3,7 @@ package youyihj.probezs.socket;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -35,10 +36,11 @@ public class RpcBracketCheckSocketHandler extends SimpleChannelInboundHandler<By
                 if (!"null".equals(result.getType())) {
                     jsonResponse.add("result", BracketCheckHandler.outputJson(result));
                 } else {
-                    JsonObject error = new JsonObject();
-                    error.addProperty("code", -10000);
-                    error.addProperty("message", "Unknown bracket handler");
-                    jsonResponse.add("error", error);
+                    jsonResponse.add("result", new JsonPrimitive("_error"));
+//                    JsonObject error = new JsonObject();
+//                    error.addProperty("code", -10000);
+//                    error.addProperty("message", "Unknown bracket handler");
+//                    jsonResponse.add("error", error);
                 }
                 jsonResponse.addProperty("id", id);
                 String json = jsonResponse.toString();
