@@ -1,6 +1,8 @@
 package youyihj.probezs.core;
 
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import youyihj.probezs.Environment;
 import youyihj.probezs.ProbeZSConfig;
 
 import javax.annotation.Nullable;
@@ -10,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,7 +37,16 @@ public class CoreMod implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
-        File mcLocation = (File) data.get("mcLocation");
+        readMemberCollectorConfig((File) data.get("mcLocation"));
+        Environment.put("launchArgs", getLaunchArguments());
+    }
+
+    @Override
+    public String getAccessTransformerClass() {
+        return null;
+    }
+
+    private void readMemberCollectorConfig(File mcLocation) {
         Path configPath = Paths.get(mcLocation.toURI()).resolve("config/probezs.cfg");
         try {
             for (String line : Files.readAllLines(configPath, StandardCharsets.UTF_8)) {
@@ -49,8 +61,8 @@ public class CoreMod implements IFMLLoadingPlugin {
         }
     }
 
-    @Override
-    public String getAccessTransformerClass() {
-        return null;
+    @SuppressWarnings("unchecked")
+    private List<String> getLaunchArguments() {
+        return ((List<String>) Launch.blackboard.get("ArgumentList"));
     }
 }

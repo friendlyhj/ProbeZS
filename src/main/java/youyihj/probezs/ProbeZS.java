@@ -24,6 +24,8 @@ import crafttweaker.preprocessor.PreprocessorFactory;
 import crafttweaker.zenscript.GlobalRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
+import net.minecraft.crash.CrashReport;
+import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionType;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -49,13 +51,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -111,23 +114,24 @@ public class ProbeZS {
                 e.printStackTrace();
             }
         }).start();
+        dumpEnvironment();
     }
 
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
-        try {
-            Files.walkFileTree(Paths.get("scripts"), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (file.toString().endsWith(".dzs") || file.toString().endsWith(".json")) {
-                        Files.delete(file);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            ProbeZS.logger.error("Failed to delete previous dzs", e);
-        }
+//        try {
+//            Files.walkFileTree(Paths.get("scripts"), new SimpleFileVisitor<Path>() {
+//                @Override
+//                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+//                    if (file.toString().endsWith(".dzs") || file.toString().endsWith(".json")) {
+//                        Files.delete(file);
+//                    }
+//                    return FileVisitResult.CONTINUE;
+//                }
+//            });
+//        } catch (IOException e) {
+//            ProbeZS.logger.error("Failed to delete previous dzs", e);
+//        }
         ZenClassTree root = ZenClassTree.getRoot();
         ZenGlobalMemberTree globalMemberTree = dumpGlobalMembers(root);
         List<BracketHandlerMirror> mirrors = dumpBracketHandlerMirrors(root);
@@ -279,5 +283,21 @@ public class ProbeZS {
             }
             properties.add(property.getName(), values, false);
         }
+    }
+
+    private void dumpEnvironment() {
+        Environment.put("probezsSocketPort", String.valueOf(ProbeZSConfig.socketPort));
+        Environment.put("probezsSocketProtocol", ProbeZSConfig.socketProtocol.toString());
+        CrashReportCategory category = new CrashReport("", new Throwable()).getCategory();
+        Map<String, CrashReportCategory.Entry> entries = category.children.stream()
+                .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
+        Environment.put("operatorVersion", entries.get("Operating System").getValue());
+        Environment.put("javaVersion", entries.get("Java Version").getValue());
+        Environment.put("jvmVersion", entries.get("Java VM Version").getValue());
+        RuntimeMXBean runtimemxbean = ManagementFactory.getRuntimeMXBean();
+        Environment.put("jvmFlags", runtimemxbean.getInputArguments());
+        Environment.put("classpath", runtimemxbean.getClassPath());
+        Environment.put("bootClassPath", runtimemxbean.getBootClassPath());
+        Environment.output(new File("scripts/generated/env.json"));
     }
 }
