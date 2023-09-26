@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
 @Mod(modid = ProbeZS.MODID, name = ProbeZS.NAME, version = ProbeZS.VERSION, dependencies = ProbeZS.DEPENDENCIES)
 public class ProbeZS {
     public static final String MODID = "probezs";
-    public static final String VERSION = "1.13.0";
+    public static final String VERSION = "1.13.1";
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
@@ -293,6 +293,7 @@ public class ProbeZS {
                 .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
         Environment.put("operatorVersion", entries.get("Operating System").getValue());
         Environment.put("javaVersion", entries.get("Java Version").getValue());
+        Environment.put("javaPath", System.getProperty("java.home"));
         Environment.put("jvmVersion", entries.get("Java VM Version").getValue());
         RuntimeMXBean runtimemxbean = ManagementFactory.getRuntimeMXBean();
         Environment.put("jvmFlags", runtimemxbean.getInputArguments());
