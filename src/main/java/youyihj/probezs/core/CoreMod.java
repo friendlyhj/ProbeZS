@@ -67,9 +67,9 @@ public class CoreMod implements IFMLLoadingPlugin {
         List<String> args = new ArrayList<>();
         Map<String, String> forgeLaunchArgs = (Map<String, String>) Launch.blackboard.get("forgeLaunchArgs");
         forgeLaunchArgs.forEach((key, value) -> {
-            if (!"--accessToken".equals(key)) {
+//            if (!"--accessToken".equals(key)) {
                 args.add(key + " " + value);
-            }
+//            }
         });
         return args;
     }

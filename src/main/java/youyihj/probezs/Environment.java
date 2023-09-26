@@ -3,11 +3,10 @@ package youyihj.probezs;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.io.FileUtils;
+import youyihj.probezs.util.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,14 +29,10 @@ public class Environment {
         ENV_MAP.put(key, value);
     }
 
-    public static void output(File file) {
+    public static void output(Path path) {
 
         try {
-            FileUtils.write(
-                    file,
-                    GSON.toJson(ENV_MAP, new TypeToken<Map<String, String>>() {}.getType()),
-                    StandardCharsets.UTF_8
-            );
+            FileUtils.createFile(path, GSON.toJson(ENV_MAP, new TypeToken<Map<String, String>>() {}.getType()));
         } catch (IOException e) {
             ProbeZS.logger.error("Failed to dump env", e);
         }

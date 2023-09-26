@@ -34,7 +34,7 @@ import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import youyihj.probezs.bracket.BracketHandlerEntryProperties;
@@ -45,6 +45,7 @@ import youyihj.probezs.member.reflection.ReflectionMemberFactory;
 import youyihj.probezs.socket.SocketHandler;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.global.ZenGlobalMemberTree;
+import youyihj.probezs.util.FileUtils;
 import youyihj.probezs.util.LoadingObject;
 
 import java.io.BufferedReader;
@@ -57,6 +58,9 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -75,6 +79,8 @@ public class ProbeZS {
     private static final List<LoadingObject<?>> loadingObjects = new ArrayList<>();
 
     public LoadingObject<String> mappings = LoadingObject.of("");
+
+    public Path generatedPath = getGeneratedPath();
 
     private static final Supplier<MemberFactory> MEMBER_FACTORY = Suppliers.memoize(() -> {
         switch (ProbeZSConfig.memberCollector) {
@@ -96,6 +102,20 @@ public class ProbeZS {
 
     public static MemberFactory getMemberFactory() {
         return MEMBER_FACTORY.get();
+    }
+
+    private static Path getGeneratedPath() {
+        try {
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+            sha1.update(new File("scripts").getAbsolutePath().getBytes(StandardCharsets.UTF_8));
+            String userHome = System.getProperty("user.home");
+            return FileSystems.getDefault().getPath(userHome)
+                    .resolve(".probezs")
+                    .resolve(Hex.encodeHexString(sha1.digest()))
+                    .resolve("generated");
+        } catch (NoSuchAlgorithmException e) { // really?
+            throw new AssertionError();
+        }
     }
 
     @Mod.EventHandler
@@ -250,10 +270,9 @@ public class ProbeZS {
     private void outputPreprocessors() {
         HashMap<String, PreprocessorFactory<?>> registeredPreprocessorActions = CraftTweakerHacks.getPrivateObject(CraftTweakerAPI.tweaker.getPreprocessorManager(), "registeredPreprocessorActions");
         try {
-            FileUtils.write(
-                    new File("scripts/generated/preprocessors.json"),
-                    registeredPreprocessorActions.keySet().stream().map(it -> StringUtils.wrap(it, "\"")).collect(Collectors.toList()).toString(),
-                    StandardCharsets.UTF_8
+            FileUtils.createFile(
+                    generatedPath.resolve("preprocessors.json"),
+                    registeredPreprocessorActions.keySet().stream().map(it -> StringUtils.wrap(it, "\"")).collect(Collectors.toList()).toString()
             );
         } catch (IOException e) {
             ProbeZS.logger.error("Failed to output preprocessor json", e);
@@ -263,11 +282,7 @@ public class ProbeZS {
     private void outputBracketHandlerMirrors(List<BracketHandlerMirror> mirrors) {
         String json = BracketHandlerMirror.GSON.toJson(mirrors);
         try {
-            FileUtils.write(
-                    new File("scripts/generated/brackets.json"),
-                    json,
-                    StandardCharsets.UTF_8
-            );
+            FileUtils.createFile(generatedPath.resolve("brackets.json"), json);
         } catch (IOException e) {
             ProbeZS.logger.error("Failed to output brackets json", e);
         }
@@ -291,7 +306,7 @@ public class ProbeZS {
         CrashReportCategory category = new CrashReport("", new Throwable()).getCategory();
         Map<String, CrashReportCategory.Entry> entries = category.children.stream()
                 .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
-        Environment.put("operatorVersion", entries.get("Operating System").getValue());
+        Environment.put("operatingSystem", entries.get("Operating System").getValue());
         Environment.put("javaVersion", entries.get("Java Version").getValue());
         Environment.put("javaPath", System.getProperty("java.home"));
         Environment.put("jvmVersion", entries.get("Java VM Version").getValue());
@@ -299,6 +314,6 @@ public class ProbeZS {
         Environment.put("jvmFlags", runtimemxbean.getInputArguments());
         Environment.put("classpath", runtimemxbean.getClassPath());
         Environment.put("bootClassPath", runtimemxbean.getBootClassPath());
-        Environment.output(new File("scripts/generated/env.json"));
+        Environment.output(generatedPath.resolve("env.json"));
     }
 }
