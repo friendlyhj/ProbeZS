@@ -64,12 +64,13 @@ public class CoreMod implements IFMLLoadingPlugin {
 
     @SuppressWarnings("unchecked")
     private List<String> getLaunchArguments() {
-        List<String> args = new ArrayList<>((List<String>) Launch.blackboard.get("ArgumentList"));
-        int accessTokenIndex = args.indexOf("--accessToken");
-        if (accessTokenIndex != -1) {
-            args.remove(accessTokenIndex);
-            args.remove(accessTokenIndex + 1);
-        }
+        List<String> args = new ArrayList<>();
+        Map<String, String> forgeLaunchArgs = (Map<String, String>) Launch.blackboard.get("forgeLaunchArgs");
+        forgeLaunchArgs.forEach((key, value) -> {
+            if (!"--accessToken".equals(key)) {
+                args.add(key + " " + value);
+            }
+        });
         return args;
     }
 }
