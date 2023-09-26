@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -63,6 +64,12 @@ public class CoreMod implements IFMLLoadingPlugin {
 
     @SuppressWarnings("unchecked")
     private List<String> getLaunchArguments() {
-        return ((List<String>) Launch.blackboard.get("ArgumentList"));
+        List<String> args = new ArrayList<>((List<String>) Launch.blackboard.get("ArgumentList"));
+        int accessTokenIndex = args.indexOf("--accessToken");
+        if (accessTokenIndex != -1) {
+            args.remove(accessTokenIndex);
+            args.remove(accessTokenIndex + 1);
+        }
+        return args;
     }
 }
