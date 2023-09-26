@@ -49,7 +49,6 @@ import youyihj.probezs.util.FileUtils;
 import youyihj.probezs.util.LoadingObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
@@ -58,7 +57,8 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -107,7 +107,8 @@ public class ProbeZS {
     private static Path getGeneratedPath() {
         try {
             MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
-            sha1.update(new File("scripts").getAbsolutePath().getBytes(StandardCharsets.UTF_8));
+            Path scriptsPath = FileSystems.getDefault().getPath(System.getProperty("user.dir")).resolve("scripts");
+            sha1.update(scriptsPath.toString().getBytes(StandardCharsets.UTF_8));
             String userHome = System.getProperty("user.home");
             return FileSystems.getDefault().getPath(userHome)
                     .resolve(".probezs")
