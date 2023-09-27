@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import crafttweaker.mc1120.util.CraftTweakerHacks;
-import org.apache.commons.io.FileUtils;
 import stanhebben.zenscript.symbols.IZenSymbol;
 import stanhebben.zenscript.symbols.SymbolJavaStaticField;
 import stanhebben.zenscript.symbols.SymbolJavaStaticGetter;
@@ -18,12 +17,11 @@ import youyihj.probezs.tree.IZenDumpable;
 import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.primitive.IPrimitiveType;
+import youyihj.probezs.util.FileUtils;
 import youyihj.probezs.util.IndentStringBuilder;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -101,7 +99,7 @@ public class ZenGlobalMemberTree {
         json.add("fields", ZenClassTree.GSON.toJsonTree(fields, new TypeToken<Set<ZenGlobalFieldNode>>() {}.getType()));
         json.add("members", ZenClassTree.GSON.toJsonTree(members, new TypeToken<Set<ZenGlobalMethodNode>>() {}.getType()));
         try {
-            FileUtils.write(new File("scripts" + File.separator + "generated" + File.separator + "globals.json"), ZenClassTree.GSON.toJson(json), StandardCharsets.UTF_8);
+            FileUtils.createFile(ProbeZS.instance.generatedPath.resolve("globals.json"), ZenClassTree.GSON.toJson(json));
         } catch (IOException e) {
             ProbeZS.logger.error("Failed output globals dzs", e);
         }
@@ -123,7 +121,7 @@ public class ZenGlobalMemberTree {
             sb.nextLine();
         }
         try {
-            FileUtils.write(new File("scripts" + File.separator + "generated" + File.separator + "globals.dzs"), sb.toString(), StandardCharsets.UTF_8);
+            FileUtils.createFile(ProbeZS.instance.generatedPath.resolve("globals.dzs"), sb.toString());
         } catch (IOException e) {
             ProbeZS.logger.error("Failed output globals dzs", e);
         }
