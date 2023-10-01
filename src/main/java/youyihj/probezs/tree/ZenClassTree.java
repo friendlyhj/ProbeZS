@@ -73,6 +73,9 @@ public class ZenClassTree {
             ZenExpansion zenExpansion = clazz.getAnnotation(ZenExpansion.class);
             if (zenClass != null) {
                 String name = zenClass.value();
+                if (name.isEmpty()) {
+                    name = clazz.getName();
+                }
                 ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
                 javaMap.put(clazz, classNode);
                 classNode.readExtendClasses(clazz);
@@ -80,6 +83,10 @@ public class ZenClassTree {
             }
             if (zenExpansion != null) {
                 String name = zenExpansion.value();
+                // don't export collection expansion yet
+                if (name.contains("[")) {
+                    return;
+                }
                 ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
                 classNode.readMembers(clazz, false);
             }
