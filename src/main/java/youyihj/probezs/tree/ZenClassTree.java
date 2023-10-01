@@ -83,8 +83,8 @@ public class ZenClassTree {
             }
             if (zenExpansion != null) {
                 String name = zenExpansion.value();
-                // don't export collection expansion yet
-                if (name.contains("[")) {
+                // don't export collection expansion yet, and avoid empty name
+                if (name.contains("[") || name.isEmpty()) {
                     return;
                 }
                 ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
@@ -196,7 +196,7 @@ public class ZenClassTree {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     String fileString = file.toString();
-                    if (fileString.endsWith(".json") || fileString.endsWith(".zs")) {
+                    if (fileString.endsWith(".json") || fileString.endsWith(".dzs")) {
                         if (!file.getParent().equals(ProbeZS.instance.generatedPath)) {
                             Files.delete(file);
                         }
