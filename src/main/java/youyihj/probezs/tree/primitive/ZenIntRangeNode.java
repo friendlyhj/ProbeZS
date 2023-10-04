@@ -15,8 +15,8 @@ public class ZenIntRangeNode extends ZenClassNode {
         super(ZenTypeIntRange.INTRANGE.getName(), tree);
         properties.put("from", new ZenPropertyNode(tree.createLazyClassNode(int.class), "from"));
         properties.put("to", new ZenPropertyNode(tree.createLazyClassNode(int.class), "to"));
-        operators.add(new ZenOperatorNode(
-                "iterator",
+        operators.put("for_in", new ZenOperatorNode(
+                "for_in",
                 Collections.emptyList(),
                 tree.createLazyClassNode(new TypeToken<List<Integer>>() {}.getType())
         ));

@@ -1,5 +1,6 @@
 package youyihj.probezs.tree;
 
+import com.google.common.collect.Sets;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import stanhebben.zenscript.annotations.*;
@@ -31,7 +32,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     protected final List<ZenMemberNode> members = new ArrayList<>();
     protected final List<ZenConstructorNode> constructors = new ArrayList<>();
     protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
-    protected final List<ZenOperatorNode> operators = new ArrayList<>();
+    protected final Map<String, ZenOperatorNode> operators = new HashMap<>();
     private ZenOperatorNode.As caster;
 
     public ZenClassNode(String name, ZenClassTree tree) {
@@ -103,7 +104,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (ZenConstructorNode constructor : constructors) {
             constructor.fillImportMembers(imports);
         }
-        for (ZenOperatorNode operator : operators) {
+        for (ZenOperatorNode operator : operators.values()) {
             operator.fillImportMembers(imports);
         }
         return imports;
@@ -142,7 +143,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             sb.interLine();
             member.toZenScript(sb);
         }
-        for (ZenOperatorNode operator : operators) {
+        for (ZenOperatorNode operator : operators.values()) {
             sb.interLine();
             operator.toZenScript(sb);
         }
@@ -228,28 +229,29 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     private void readIteratorOperators(Class<?> clazz) {
+        String forIn = "for_in";
         if (clazz.isAnnotationPresent(IterableSimple.class)) {
             String value = clazz.getAnnotation(IterableSimple.class).value();
-            operators.add(
+            operators.put(forIn,
                     new ZenOperatorNode(
-                            "iterator", Collections.emptyList(),
+                            forIn, Collections.emptyList(),
                             () -> LazyZenClassNode.Result.compound("[" + processQualifiedName(value) + "]", tree.getClasses().get(value))
                     )
             );
         }
         if (clazz.isAnnotationPresent(IterableList.class)) {
             String value = clazz.getAnnotation(IterableList.class).value();
-            operators.add(
-                    new ZenOperatorNode("iterator", Collections.emptyList(), () -> LazyZenClassNode.Result.compound("[" + processQualifiedName(value) + "]", tree.getClasses().get(value)))
+            operators.put(forIn,
+                    new ZenOperatorNode(forIn, Collections.emptyList(), () -> LazyZenClassNode.Result.compound("[" + processQualifiedName(value) + "]", tree.getClasses().get(value)))
             );
         }
         if (clazz.isAnnotationPresent(IterableMap.class)) {
             IterableMap iterableMap = clazz.getAnnotation(IterableMap.class);
             String key = iterableMap.key();
             String value = iterableMap.value();
-            operators.add(
+            operators.put(forIn,
                     new ZenOperatorNode(
-                            "iterator", Collections.emptyList(),
+                            forIn, Collections.emptyList(),
                             () -> LazyZenClassNode.Result.compound(String.format("%s[%s]", processQualifiedName(value), processQualifiedName(key)), tree.getClasses().get(key), tree.getClasses().get(value))
                     )
             );
@@ -285,7 +287,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             Type returnType = method.getReturnType();
             if (caster == null) {
                 caster = new ZenOperatorNode.As(tree);
-                operators.add(caster);
+                operators.put("as", caster);
             }
             caster.appendCastType(returnType);
         }
@@ -293,24 +295,30 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     private void readOperator(ExecutableData method, boolean isClass) {
         int startIndex = isClass ? 0 : 1;
+        Set<String> operatorNames = Collections.emptySet();
         if (method.isAnnotationPresent(ZenOperator.class)) {
             OperatorType operatorType = method.getAnnotation(ZenOperator.class).value();
-            operators.add(new ZenOperatorNode(
-                    ZenOperators.getZenScriptFormat(operatorType),
-                    ZenParameterNode.read(method, startIndex, tree),
-                    tree.createLazyClassNode(method.getReturnType())
-            ));
+            switch (operatorType) {
+                case EQUALS:
+                    operatorNames = Sets.newHashSet("==", "!=");
+                    break;
+                case COMPARE:
+                    operatorNames = Sets.newHashSet("==", "!=", ">", ">=", "<", "<=");
+                    break;
+                default:
+                    operatorNames = Collections.singleton(ZenOperators.getZenScriptFormat(operatorType));
+                    break;
+            }
         }
         if (method.isAnnotationPresent(ZenMemberGetter.class)) {
-            operators.add(new ZenOperatorNode(
-                    ".",
-                    ZenParameterNode.read(method, startIndex, tree),
-                    tree.createLazyClassNode(method.getReturnType())
-            ));
+            operatorNames = Collections.singleton(".");
         }
         if (method.isAnnotationPresent(ZenMemberSetter.class)) {
-            operators.add(new ZenOperatorNode(
-                    ".=",
+            operatorNames = Collections.singleton(".=");
+        }
+        for (String operatorName : operatorNames) {
+            operators.put(operatorName, new ZenOperatorNode(
+                    operatorName,
                     ZenParameterNode.read(method, startIndex, tree),
                     tree.createLazyClassNode(method.getReturnType())
             ));
