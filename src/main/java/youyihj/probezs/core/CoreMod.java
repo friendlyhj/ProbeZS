@@ -1,9 +1,12 @@
 package youyihj.probezs.core;
 
+import com.google.common.collect.ImmutableList;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import youyihj.probezs.Environment;
 import youyihj.probezs.ProbeZSConfig;
+import youyihj.probezs.util.DebugAPIAdapter;
+import zone.rong.mixinbooter.ILateMixinLoader;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -19,7 +22,7 @@ import java.util.Map;
 /**
  * @author youyihj
  */
-public class CoreMod implements IFMLLoadingPlugin {
+public class CoreMod implements IFMLLoadingPlugin, ILateMixinLoader {
     @Override
     public String[] getASMTransformerClass() {
         return new String[] {"youyihj.probezs.core.ProbeZSClassTransformer"};
@@ -38,6 +41,7 @@ public class CoreMod implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
+        DebugAPIAdapter.init();
         readMemberCollectorConfig((File) data.get("mcLocation"));
         Environment.put("launchArgs", getLaunchArguments());
     }
@@ -68,9 +72,17 @@ public class CoreMod implements IFMLLoadingPlugin {
         Map<String, String> forgeLaunchArgs = (Map<String, String>) Launch.blackboard.get("forgeLaunchArgs");
         forgeLaunchArgs.forEach((key, value) -> {
 //            if (!"--accessToken".equals(key)) {
-                args.add(key + " " + value);
+            args.add(key);
+            args.add(value);
 //            }
         });
         return args;
+    }
+
+    @Override
+    public List<String> getMixinConfigs() {
+        return ImmutableList.of(
+                "mixins.probezs.json"
+        );
     }
 }
