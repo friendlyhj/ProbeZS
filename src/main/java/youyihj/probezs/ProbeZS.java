@@ -304,6 +304,7 @@ public class ProbeZS {
     private void dumpEnvironment() {
         Environment.put("probezsSocketPort", String.valueOf(ProbeZSConfig.socketPort));
         Environment.put("probezsSocketProtocol", ProbeZSConfig.socketProtocol.toString());
+        Environment.put("probezsVersion", VERSION);
         CrashReportCategory category = new CrashReport("", new Throwable()).getCategory();
         Map<String, CrashReportCategory.Entry> entries = category.children.stream()
                 .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
