@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8",
+  "package": "youyihj.probezs.core.mixin",
+  "refmap": "mixins.probezs.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinEnvironmentMethod",
+    "MixinMethodOutput",
+    "MixinParsedFunction",
+    "MixinParsedZenClass",
+    "MixinStatementBlockOrForeach",
+    "SymbolArgumentAccessor"
+  ]
+}
