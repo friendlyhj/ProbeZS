@@ -235,14 +235,17 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operators.put(forIn,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
-                            () -> LazyZenClassNode.Result.compound("[" + processQualifiedName(value) + "]", tree.getClasses().get(value))
+                            () -> LazyZenClassNode.Result.compound("[%s]", LazyZenClassNode.Result.single(tree.getClasses().get(value)))
                     )
             );
         }
         if (clazz.isAnnotationPresent(IterableList.class)) {
             String value = clazz.getAnnotation(IterableList.class).value();
             operators.put(forIn,
-                    new ZenOperatorNode(forIn, Collections.emptyList(), () -> LazyZenClassNode.Result.compound("[" + processQualifiedName(value) + "]", tree.getClasses().get(value)))
+                    new ZenOperatorNode(
+                            forIn, Collections.emptyList(),
+                            () -> LazyZenClassNode.Result.compound("[%s]", LazyZenClassNode.Result.single(tree.getClasses().get(value)))
+                    )
             );
         }
         if (clazz.isAnnotationPresent(IterableMap.class)) {
@@ -252,7 +255,11 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operators.put(forIn,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
-                            () -> LazyZenClassNode.Result.compound(String.format("%s[%s]", processQualifiedName(value), processQualifiedName(key)), tree.getClasses().get(key), tree.getClasses().get(value))
+                            () -> {
+                                LazyZenClassNode.Result keyResult = LazyZenClassNode.Result.single(tree.getClasses().get(key));
+                                LazyZenClassNode.Result valueResult = LazyZenClassNode.Result.single(tree.getClasses().get(value));
+                                return LazyZenClassNode.Result.compound("%s[%s]", valueResult, keyResult);
+                            }
                     )
             );
         }

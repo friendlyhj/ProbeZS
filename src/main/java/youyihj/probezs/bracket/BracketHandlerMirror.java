@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import youyihj.probezs.tree.LazyZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
 
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class BracketHandlerMirror {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
+            .disableHtmlEscaping()
             .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.FullNameSerializer())
             .registerTypeAdapter(BracketHandlerEntry.class, new BracketHandlerEntry.Serializer())
             .create();
@@ -49,7 +51,7 @@ public class BracketHandlerMirror {
 
     public static class Builder<T> {
         private final ZenClassTree classTree;
-        private Class<?> type;
+        private Type type;
         private String regex;
         private Collection<T> entries;
         private Function<T, String> idMapper;
@@ -59,7 +61,7 @@ public class BracketHandlerMirror {
             this.classTree = classTree;
         }
 
-        public Builder<T> setType(Class<?> type) {
+        public Builder<T> setType(Type type) {
             this.type = type;
             return this;
         }

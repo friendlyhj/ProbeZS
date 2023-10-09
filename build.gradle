@@ -99,6 +99,8 @@ dependencies {
     }
 
     implementation rfg.deobf("CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.685")
+    implementation rfg.deobf("com.teamacronymcoders.base:base:1.12.2-3.13.0-SNAPSHOT.+")
+    implementation rfg.deobf("com.teamacronymcoders:ContentTweaker:1.12.2-4.10.0")
 
 
     embed ('org.yaml:snakeyaml:2.0')
