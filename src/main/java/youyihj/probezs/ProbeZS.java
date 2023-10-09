@@ -338,19 +338,19 @@ public class ProbeZS {
                         .setType(IBlockMaterialDefinition.class)
                         .setRegex("blockmaterial:.*")
                         .setEntries(ContentTweakerAPI.getInstance().getBlockMaterials().getAllNames())
-                        .setIdMapper("blockmaterial"::concat)
+                        .setIdMapper("blockmaterial:"::concat)
                         .build(),
                 BracketHandlerMirror.<String>builder(tree)
                         .setRegex("soundtype:.*")
                         .setType(ISoundTypeDefinition.class)
                         .setEntries(ContentTweakerAPI.getInstance().getSoundTypes().getAllNames())
-                        .setIdMapper("soundtype"::concat)
+                        .setIdMapper("soundtype:"::concat)
                         .build(),
                 BracketHandlerMirror.<String>builder(tree)
                         .setRegex("soundevent:.*")
                         .setType(ISoundEventDefinition.class)
                         .setEntries(ContentTweakerAPI.getInstance().getSoundEvents().getAllNames())
-                        .setIdMapper("soundevent"::concat)
+                        .setIdMapper("soundevent:"::concat)
                         .build(),
                 BracketHandlerMirror.<MaterialPart>builder(tree)
                         .setRegex("materialpart:.*")
