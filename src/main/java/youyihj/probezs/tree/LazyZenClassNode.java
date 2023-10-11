@@ -66,7 +66,7 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
                         return Result.single(zsClass);
                     }
                     // the class isn't exposed to zs, but its super class and implement interfaces may be exposed
-                    Set<Class<?>> exposedParents = collectExposedParents(clazz, new HashSet<>());
+                    List<Class<?>> exposedParents = collectExposedParents(clazz, new ArrayList<>());
                     if (exposedParents.isEmpty()) {
                         return Result.missing(classTree, clazz);
                     }
@@ -106,25 +106,32 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
         return Result.missing(classTree, type);
     }
 
-    private Set<Class<?>> collectExposedParents(Class<?> clazz, Set<Class<?>> set) {
+    public List<Class<?>> collectExposedParents(Class<?> clazz, List<Class<?>> list) {
         for (Class<?> anInterface : clazz.getInterfaces()) {
             if (classTree.getJavaMap().containsKey(anInterface)) {
-                set.add(anInterface);
+                addInteractionClasses(list, anInterface);
             } else {
-                collectExposedParents(anInterface, set);
+                collectExposedParents(anInterface, list);
             }
         }
         if (!clazz.isInterface()) {
             Class<?> superclass = clazz.getSuperclass();
             if (superclass != null && superclass != Object.class) {
                 if (classTree.getJavaMap().containsKey(superclass)) {
-                    set.add(superclass);
+                    addInteractionClasses(list, superclass);
                 } else {
-                    collectExposedParents(superclass, set);
+                    collectExposedParents(superclass, list);
                 }
             }
         }
-        return set;
+        return list;
+    }
+
+    private void addInteractionClasses(List<Class<?>> classes, Class<?> clazz) {
+        boolean overlap = classes.stream().anyMatch(clazz::isAssignableFrom);
+        if (!overlap) {
+            classes.add(clazz);
+        }
     }
 
     public interface Result {

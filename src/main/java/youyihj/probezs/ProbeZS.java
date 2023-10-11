@@ -6,6 +6,7 @@ import com.teamacronymcoders.base.materialsystem.MaterialSystem;
 import com.teamacronymcoders.base.materialsystem.materialparts.MaterialPart;
 import com.teamacronymcoders.contenttweaker.api.ContentTweakerAPI;
 import com.teamacronymcoders.contenttweaker.api.ctobjects.blockmaterial.IBlockMaterialDefinition;
+import com.teamacronymcoders.contenttweaker.api.ctobjects.entity.player.CTPlayer;
 import com.teamacronymcoders.contenttweaker.modules.materials.brackethandler.MaterialPartDefinition;
 import com.teamacronymcoders.contenttweaker.modules.vanilla.resources.sounds.ISoundEventDefinition;
 import com.teamacronymcoders.contenttweaker.modules.vanilla.resources.sounds.ISoundTypeDefinition;
@@ -51,6 +52,7 @@ import youyihj.probezs.core.ASMMemberCollector;
 import youyihj.probezs.member.MemberFactory;
 import youyihj.probezs.member.reflection.ReflectionMemberFactory;
 import youyihj.probezs.socket.SocketHandler;
+import youyihj.probezs.tree.LazyZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.global.ZenGlobalMemberTree;
 import youyihj.probezs.util.FileUtils;
@@ -172,6 +174,9 @@ public class ProbeZS {
         if (ProbeZSConfig.socketProtocol != ProbeZSConfig.SocketProtocol.NONE) {
             SocketHandler.enable();
         }
+        LazyZenClassNode lazyClassNode = root.createLazyClassNode(CTPlayer.class);
+        List<Class<?>> classes = lazyClassNode.collectExposedParents(CTPlayer.class, new ArrayList<>());
+        System.out.println(classes);
     }
 
     @Mod.EventHandler
