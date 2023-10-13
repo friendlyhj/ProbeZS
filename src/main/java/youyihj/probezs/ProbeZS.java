@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
 @Mod(modid = ProbeZS.MODID, name = ProbeZS.NAME, version = ProbeZS.VERSION, dependencies = ProbeZS.DEPENDENCIES)
 public class ProbeZS {
     public static final String MODID = "probezs";
-    public static final String VERSION = "1.17.2";
+    public static final String VERSION = "1.17.3";
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
@@ -276,7 +276,7 @@ public class ProbeZS {
                         .build()
         );
         if (Loader.isModLoaded("contenttweaker")) {
-            mirrors.addAll(dumpCoTBracketMirrors(classTree));
+            mirrors.addAll(ContentTweaker.dumpCoTBracketMirrors(classTree));
         }
 
         return mirrors;
@@ -333,33 +333,36 @@ public class ProbeZS {
         Environment.output(generatedPath.resolve("env.json"));
     }
 
-    @Optional.Method(modid = "contenttweaker")
-    private List<BracketHandlerMirror> dumpCoTBracketMirrors(ZenClassTree tree) {
-        return Lists.newArrayList(
-                BracketHandlerMirror.<String>builder(tree)
-                        .setType(IBlockMaterialDefinition.class)
-                        .setRegex("blockmaterial:.*")
-                        .setEntries(ContentTweakerAPI.getInstance().getBlockMaterials().getAllNames())
-                        .setIdMapper("blockmaterial:"::concat)
-                        .build(),
-                BracketHandlerMirror.<String>builder(tree)
-                        .setRegex("soundtype:.*")
-                        .setType(ISoundTypeDefinition.class)
-                        .setEntries(ContentTweakerAPI.getInstance().getSoundTypes().getAllNames())
-                        .setIdMapper("soundtype:"::concat)
-                        .build(),
-                BracketHandlerMirror.<String>builder(tree)
-                        .setRegex("soundevent:.*")
-                        .setType(ISoundEventDefinition.class)
-                        .setEntries(ContentTweakerAPI.getInstance().getSoundEvents().getAllNames())
-                        .setIdMapper("soundevent:"::concat)
-                        .build(),
-                BracketHandlerMirror.<MaterialPart>builder(tree)
-                        .setRegex("materialpart:.*")
-                        .setType(MaterialPartDefinition.class)
-                        .setEntries(MaterialSystem.getMaterialParts().values())
-                        .setIdMapper(it -> "materialpart:" + it.getMaterial().getUnlocalizedName() + ":" + it.getPart().getShortUnlocalizedName())
-                        .build()
-        );
+    private static class ContentTweaker {
+
+        @Optional.Method(modid = "contenttweaker")
+        private static List<BracketHandlerMirror> dumpCoTBracketMirrors(ZenClassTree tree) {
+            return Lists.newArrayList(
+                    BracketHandlerMirror.<String>builder(tree)
+                            .setType(IBlockMaterialDefinition.class)
+                            .setRegex("blockmaterial:.*")
+                            .setEntries(ContentTweakerAPI.getInstance().getBlockMaterials().getAllNames())
+                            .setIdMapper("blockmaterial:"::concat)
+                            .build(),
+                    BracketHandlerMirror.<String>builder(tree)
+                            .setRegex("soundtype:.*")
+                            .setType(ISoundTypeDefinition.class)
+                            .setEntries(ContentTweakerAPI.getInstance().getSoundTypes().getAllNames())
+                            .setIdMapper("soundtype:"::concat)
+                            .build(),
+                    BracketHandlerMirror.<String>builder(tree)
+                            .setRegex("soundevent:.*")
+                            .setType(ISoundEventDefinition.class)
+                            .setEntries(ContentTweakerAPI.getInstance().getSoundEvents().getAllNames())
+                            .setIdMapper("soundevent:"::concat)
+                            .build(),
+                    BracketHandlerMirror.<MaterialPart>builder(tree)
+                            .setRegex("materialpart:.*")
+                            .setType(MaterialPartDefinition.class)
+                            .setEntries(MaterialSystem.getMaterialParts().values())
+                            .setIdMapper(it -> "materialpart:" + it.getMaterial().getUnlocalizedName() + ":" + it.getPart().getShortUnlocalizedName())
+                            .build()
+            );
+        }
     }
 }
