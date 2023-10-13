@@ -13,6 +13,6 @@ import java.util.Collections;
 public class FileUtils {
     public static void createFile(Path path, String content) throws IOException {
         Files.createDirectories(path.getParent());
-        Files.write(path, Collections.singleton(content), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+        Files.write(path, Collections.singleton(content), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 }
