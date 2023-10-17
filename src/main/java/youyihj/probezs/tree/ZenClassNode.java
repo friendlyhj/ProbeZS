@@ -303,14 +303,17 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     private void readOperator(ExecutableData method, boolean isClass) {
         int startIndex = isClass ? 0 : 1;
         Set<String> operatorNames = Collections.emptySet();
+        boolean isCompare = false;
         if (method.isAnnotationPresent(ZenOperator.class)) {
             OperatorType operatorType = method.getAnnotation(ZenOperator.class).value();
             switch (operatorType) {
                 case EQUALS:
                     operatorNames = Sets.newHashSet("==", "!=");
+                    isCompare = true;
                     break;
                 case COMPARE:
                     operatorNames = Sets.newHashSet("==", "!=", ">", ">=", "<", "<=");
+                    isCompare = true;
                     break;
                 default:
                     operatorNames = Collections.singleton(ZenOperators.getZenScriptFormat(operatorType));
@@ -327,7 +330,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operators.put(operatorName, new ZenOperatorNode(
                     operatorName,
                     ZenParameterNode.read(method, startIndex, tree),
-                    tree.createLazyClassNode(method.getReturnType())
+                    tree.createLazyClassNode(isCompare ? boolean.class : method.getReturnType())
             ));
         }
     }
