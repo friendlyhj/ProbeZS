@@ -89,7 +89,7 @@ public class ProbeZS {
 
     public volatile LoadingObject<String> mappings = LoadingObject.of("");
 
-    public Path generatedPath = getGeneratedPath();
+    public Path generatedPath = processGeneratedPath();
 
     private static final Supplier<MemberFactory> MEMBER_FACTORY = Suppliers.memoize(() -> {
         switch (ProbeZSConfig.memberCollector) {
@@ -113,10 +113,16 @@ public class ProbeZS {
         return MEMBER_FACTORY.get();
     }
 
-    private static Path getGeneratedPath() {
+    private static Path processGeneratedPath() {
         try {
             MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
-            Path scriptsPath = FileSystems.getDefault().getPath(System.getProperty("user.dir")).resolve("scripts");
+            Path scriptsPath;
+            try {
+                scriptsPath = FileSystems.getDefault().getPath("scripts").toRealPath();
+            } catch (IOException e) {
+                scriptsPath = FileSystems.getDefault().getPath(System.getProperty("user.dir")).resolve("scripts");
+            }
+            Environment.put("scriptPath", scriptsPath.toString());
             sha1.update(scriptsPath.toString().getBytes(StandardCharsets.UTF_8));
             String userHome = System.getProperty("user.home");
             return FileSystems.getDefault().getPath(userHome)
