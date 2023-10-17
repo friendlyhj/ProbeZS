@@ -13,12 +13,12 @@ import java.util.List;
 public class ZenIntRangeNode extends ZenClassNode {
     public ZenIntRangeNode(ZenClassTree tree) {
         super(ZenTypeIntRange.INTRANGE.getName(), tree);
-        properties.put("from", new ZenPropertyNode(tree.createLazyClassNode(int.class), "from"));
-        properties.put("to", new ZenPropertyNode(tree.createLazyClassNode(int.class), "to"));
+        properties.put("from", new ZenPropertyNode(tree.createJavaTypeMirror(int.class), "from"));
+        properties.put("to", new ZenPropertyNode(tree.createJavaTypeMirror(int.class), "to"));
         operators.put("for_in", new ZenOperatorNode(
                 "for_in",
                 Collections.emptyList(),
-                tree.createLazyClassNode(new TypeToken<List<Integer>>() {}.getType())
+                tree.createJavaTypeMirror(new TypeToken<List<Integer>>() {}.getType())
         ));
     }
 }

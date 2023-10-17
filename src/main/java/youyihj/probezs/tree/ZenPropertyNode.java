@@ -8,7 +8,7 @@ import java.util.Set;
  * @author youyihj
  */
 public class ZenPropertyNode implements IZenDumpable, IHasImportMembers {
-    private final LazyZenClassNode type;
+    private final JavaTypeMirror type;
     private final String name;
 
     private boolean hasGetter;
@@ -16,7 +16,7 @@ public class ZenPropertyNode implements IZenDumpable, IHasImportMembers {
 
     private boolean isStatic;
 
-    public ZenPropertyNode(LazyZenClassNode type, String name) {
+    public ZenPropertyNode(JavaTypeMirror type, String name) {
         this.type = type;
         this.name = name;
     }

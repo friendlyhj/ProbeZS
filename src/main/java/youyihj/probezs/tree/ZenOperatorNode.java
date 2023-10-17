@@ -19,9 +19,9 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
     private final String name;
     private final List<ZenParameterNode> parameters;
 
-    protected Supplier<LazyZenClassNode.Result> returnType;
+    protected Supplier<JavaTypeMirror.Result> returnType;
 
-    public ZenOperatorNode(String name, List<ZenParameterNode> parameters, Supplier<LazyZenClassNode.Result> returnTypes) {
+    public ZenOperatorNode(String name, List<ZenParameterNode> parameters, Supplier<JavaTypeMirror.Result> returnTypes) {
         this.name = name;
         this.parameters = parameters;
         this.returnType = returnTypes;
@@ -37,7 +37,7 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        if (parameters.stream().map(ZenParameterNode::getType).allMatch(LazyZenClassNode::isExisted)) {
+        if (parameters.stream().map(ZenParameterNode::getType).allMatch(JavaTypeMirror::isExisted)) {
             sb.append("operator ");
             partialDump(sb, name, parameters, returnType.get());
         }
@@ -59,7 +59,7 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
             } else {
                 intersectionType = intersectionType.append(type);
             }
-            returnType = tree.createLazyClassNode(intersectionType);
+            returnType = tree.createJavaTypeMirror(intersectionType);
         }
     }
 

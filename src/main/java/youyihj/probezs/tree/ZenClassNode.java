@@ -28,7 +28,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     private final ZenClassTree tree;
     private final String qualifiedName;
 
-    protected final List<LazyZenClassNode> extendClasses = new ArrayList<>();
+    protected final List<JavaTypeMirror> extendClasses = new ArrayList<>();
     protected final List<ZenMemberNode> members = new ArrayList<>();
     protected final List<ZenConstructorNode> constructors = new ArrayList<>();
     protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
@@ -56,10 +56,10 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     public void readExtendClasses(Class<?> clazz) {
         Class<?> superclass = clazz.getSuperclass();
         if (superclass != null && superclass != Object.class) {
-            extendClasses.add(tree.createLazyClassNode(superclass));
+            extendClasses.add(tree.createJavaTypeMirror(superclass));
         }
         for (Class<?> anInterface : clazz.getInterfaces()) {
-            extendClasses.add(tree.createLazyClassNode(anInterface));
+            extendClasses.add(tree.createJavaTypeMirror(anInterface));
         }
         ExecutableData lambdaMethod = findLambdaMethod(clazz);
         if (lambdaMethod != null) {
@@ -118,9 +118,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
         sb.interLine();
         String extendInformation = extendClasses.stream()
-                .filter(LazyZenClassNode::isExisted)
-                .map(LazyZenClassNode::get)
-                .map(LazyZenClassNode.Result::getQualifiedName)
+                .filter(JavaTypeMirror::isExisted)
+                .map(JavaTypeMirror::get)
+                .map(JavaTypeMirror.Result::getQualifiedName)
                 .collect(Collectors.joining(", "));
         sb.append("zenClass ");
         sb.append(getQualifiedName());
@@ -153,7 +153,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     @Override
     public void fillImportMembers(Set<ZenClassNode> members) {
-        for (LazyZenClassNode extendClass : extendClasses) {
+        for (JavaTypeMirror extendClass : extendClasses) {
             members.addAll(extendClass.get().getTypeVariables());
         }
     }
@@ -205,7 +205,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (FieldData field : ProbeZS.getMemberFactory().getFields(clazz)) {
             if (!Modifier.isPublic(field.getModifiers())) continue;
             if (field.isAnnotationPresent(ZenProperty.class)) {
-                LazyZenClassNode type = tree.createLazyClassNode(field.getType());
+                JavaTypeMirror type = tree.createJavaTypeMirror(field.getType());
                 String name = field.getAnnotation(ZenProperty.class).value();
                 if (name.isEmpty()) {
                     name = field.getName();
@@ -235,7 +235,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operators.put(forIn,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
-                            () -> LazyZenClassNode.Result.compound("[%s]", LazyZenClassNode.Result.single(tree.getClasses().get(value)))
+                            () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses().get(value)))
                     )
             );
         }
@@ -244,7 +244,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operators.put(forIn,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
-                            () -> LazyZenClassNode.Result.compound("[%s]", LazyZenClassNode.Result.single(tree.getClasses().get(value)))
+                            () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses().get(value)))
                     )
             );
         }
@@ -256,9 +256,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
                             () -> {
-                                LazyZenClassNode.Result keyResult = LazyZenClassNode.Result.single(tree.getClasses().get(key));
-                                LazyZenClassNode.Result valueResult = LazyZenClassNode.Result.single(tree.getClasses().get(value));
-                                return LazyZenClassNode.Result.compound("%s[%s]", valueResult, keyResult);
+                                JavaTypeMirror.Result keyResult = JavaTypeMirror.Result.single(tree.getClasses().get(key));
+                                JavaTypeMirror.Result valueResult = JavaTypeMirror.Result.single(tree.getClasses().get(value));
+                                return JavaTypeMirror.Result.compound("%s[%s]", valueResult, keyResult);
                             }
                     )
             );
@@ -267,7 +267,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     private void readGetter(ExecutableData method) {
         if (method.isAnnotationPresent(ZenGetter.class)) {
-            LazyZenClassNode type = tree.createLazyClassNode(method.getReturnType());
+            JavaTypeMirror type = tree.createJavaTypeMirror(method.getReturnType());
             String name = method.getAnnotation(ZenGetter.class).value();
             if (name.isEmpty()) {
                 name = method.getName();
@@ -279,7 +279,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     private void readSetter(ExecutableData method, boolean isClass) {
         if (method.isAnnotationPresent(ZenSetter.class)) {
-            LazyZenClassNode type = tree.createLazyClassNode(method.getParameterTypes()[isClass ? 0 : 1]);
+            JavaTypeMirror type = tree.createJavaTypeMirror(method.getParameterTypes()[isClass ? 0 : 1]);
             String name = method.getAnnotation(ZenSetter.class).value();
             if (name.isEmpty()) {
                 name = method.getName();
@@ -330,7 +330,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operators.put(operatorName, new ZenOperatorNode(
                     operatorName,
                     ZenParameterNode.read(method, startIndex, tree),
-                    tree.createLazyClassNode(isCompare ? boolean.class : method.getReturnType())
+                    tree.createJavaTypeMirror(isCompare ? boolean.class : method.getReturnType())
             ));
         }
     }
@@ -354,7 +354,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                 imports.add(importMember.getName());
             }
             json.add("imports", imports);
-            json.add("extends", context.serialize(src.extendClasses, new TypeToken<List<LazyZenClassNode>>() {
+            json.add("extends", context.serialize(src.extendClasses, new TypeToken<List<JavaTypeMirror>>() {
             }.getType()));
             json.add("properties", context.serialize(src.properties.values(), new TypeToken<Collection<ZenPropertyNode>>() {
             }.getType()));

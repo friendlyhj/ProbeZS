@@ -20,9 +20,9 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     private final boolean isStatic;
 
     @SerializedName("returnType")
-    private final Supplier<LazyZenClassNode.Result> returnTypeResultSupplier;
+    private final Supplier<JavaTypeMirror.Result> returnTypeResultSupplier;
 
-    public ZenMemberNode(String name, Supplier<LazyZenClassNode.Result> returnType, List<ZenParameterNode> parameters, boolean isStatic) {
+    public ZenMemberNode(String name, Supplier<JavaTypeMirror.Result> returnType, List<ZenParameterNode> parameters, boolean isStatic) {
         this.name = name;
         this.parameters = parameters;
         this.isStatic = isStatic;
@@ -60,7 +60,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
         int startIndex = expansion ? 1 : 0;
         return new ZenMemberNode(
                 name,
-                tree.createLazyClassNode(method.getReturnType()),
+                tree.createJavaTypeMirror(method.getReturnType()),
                 ZenParameterNode.read(method, startIndex, tree),
                 isStatic
         );
@@ -68,7 +68,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
-        if (parameters.stream().map(ZenParameterNode::getType).allMatch(LazyZenClassNode::isExisted)) {
+        if (parameters.stream().map(ZenParameterNode::getType).allMatch(JavaTypeMirror::isExisted)) {
             if (isStatic) {
                 sb.append("static ");
             }

@@ -34,9 +34,9 @@ public class ZenClassTree {
     private static LoadingObject<ZenClassTree> root;
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
-            .registerTypeAdapter(new TypeToken<Supplier<LazyZenClassNode.Result>>() {
-            }.getType(), new LazyZenClassNode.Serializer())
-            .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.Serializer())
+            .registerTypeAdapter(new TypeToken<Supplier<JavaTypeMirror.Result>>() {
+            }.getType(), new JavaTypeMirror.Serializer())
+            .registerTypeAdapter(JavaTypeMirror.class, new JavaTypeMirror.Serializer())
             .registerTypeAdapter(ZenClassNode.class, new ZenClassNode.Serializer())
             .registerTypeAdapter(ZenParameterNode.class, new ZenParameterNode.Serializer())
             .registerTypeAdapter(ZenOperatorNode.As.class, new ZenOperatorNode.AsSerializer())
@@ -44,7 +44,7 @@ public class ZenClassTree {
 
     private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();
     private final Map<Class<?>, ZenClassNode> javaMap = new HashMap<>();
-    private final List<LazyZenClassNode> lazyZenClassNodes = new ArrayList<>();
+    private final List<JavaTypeMirror> javaTypeMirrors = new ArrayList<>();
 
     private final Set<Class<?>> blackList = new HashSet<>();
     private final ZenClassNode anyClass = new ZenAnyNode(this);
@@ -95,14 +95,14 @@ public class ZenClassTree {
         }
     }
 
-    public LazyZenClassNode createLazyClassNode(Type type) {
-        LazyZenClassNode lazyZenClassNode = new LazyZenClassNode(Objects.requireNonNull(type), this);
-        lazyZenClassNodes.add(lazyZenClassNode);
-        return lazyZenClassNode;
+    public JavaTypeMirror createJavaTypeMirror(Type type) {
+        JavaTypeMirror javaTypeMirror = new JavaTypeMirror(Objects.requireNonNull(type), this);
+        javaTypeMirrors.add(javaTypeMirror);
+        return javaTypeMirror;
     }
 
     public void fresh() {
-        lazyZenClassNodes.forEach(LazyZenClassNode::fresh);
+        javaTypeMirrors.forEach(JavaTypeMirror::fresh);
     }
 
     public void addBlockList(Class<?>... classes) {

@@ -14,17 +14,17 @@ import java.util.Set;
  */
 public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers, Comparable<ZenGlobalMethodNode> {
     private final String name;
-    private final LazyZenClassNode returnType;
+    private final JavaTypeMirror returnType;
     private final List<ZenParameterNode> parameters;
 
-    public ZenGlobalMethodNode(String name, LazyZenClassNode returnType, List<ZenParameterNode> parameters) {
+    public ZenGlobalMethodNode(String name, JavaTypeMirror returnType, List<ZenParameterNode> parameters) {
         this.name = name;
         this.returnType = returnType;
         this.parameters = parameters;
     }
 
     public static ZenGlobalMethodNode read(String name, ExecutableData method, ZenClassTree tree) {
-        LazyZenClassNode returnType = tree.createLazyClassNode(method.getReturnType());
+        JavaTypeMirror returnType = tree.createJavaTypeMirror(method.getReturnType());
 
         ParameterData[] parameters = method.getParameters();
         List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());

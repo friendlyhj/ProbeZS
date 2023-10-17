@@ -44,12 +44,12 @@ public class ZenGlobalMemberTree {
                 SymbolJavaStaticField javaStaticField = (SymbolJavaStaticField) symbol;
                 Field field = CraftTweakerHacks.getPrivateObject(javaStaticField, "field");
                 tree.putGlobalInternalClass(field.getType());
-                fields.add(new ZenGlobalFieldNode(name, tree.createLazyClassNode(field.getGenericType())));
+                fields.add(new ZenGlobalFieldNode(name, tree.createJavaTypeMirror(field.getGenericType())));
             } else if (symbol instanceof SymbolJavaStaticGetter) {
                 SymbolJavaStaticGetter javaStaticGetter = (SymbolJavaStaticGetter) symbol;
                 IJavaMethod method = CraftTweakerHacks.getPrivateObject(javaStaticGetter, "method");
                 tree.putGlobalInternalClass(method.getReturnType().toJavaClass());
-                fields.add(new ZenGlobalFieldNode(name, tree.createLazyClassNode(method.getReturnType().toJavaClass())));
+                fields.add(new ZenGlobalFieldNode(name, tree.createJavaTypeMirror(method.getReturnType().toJavaClass())));
             } else if (symbol instanceof SymbolJavaStaticMethod) {
                 SymbolJavaStaticMethod javaStaticMethod = (SymbolJavaStaticMethod) symbol;
                 IJavaMethod javaMethod = CraftTweakerHacks.getPrivateObject(javaStaticMethod, "method");

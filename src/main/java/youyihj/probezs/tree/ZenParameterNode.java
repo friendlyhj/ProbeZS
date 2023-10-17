@@ -19,11 +19,11 @@ import java.util.function.Supplier;
  */
 public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
     private final Supplier<String> name;
-    private final LazyZenClassNode type;
+    private final JavaTypeMirror type;
     private final Optional optional;
     private final boolean varArgs;
 
-    public ZenParameterNode(Supplier<String> name, LazyZenClassNode type, Optional optional, boolean varArgs) {
+    public ZenParameterNode(Supplier<String> name, JavaTypeMirror type, Optional optional, boolean varArgs) {
         this.name = name;
         this.type = type;
         this.optional = optional;
@@ -32,11 +32,11 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
 
     public static ZenParameterNode read(ExecutableData method, int index, ParameterData parameter, ZenClassTree tree) {
         boolean varArgs = parameter.isVarargs();
-        LazyZenClassNode returnType;
+        JavaTypeMirror returnType;
         if (varArgs && parameter.getType().isArray()) {
-            returnType = tree.createLazyClassNode(parameter.getType().getComponentType());
+            returnType = tree.createJavaTypeMirror(parameter.getType().getComponentType());
         } else {
-            returnType = tree.createLazyClassNode(parameter.getGenericType());
+            returnType = tree.createJavaTypeMirror(parameter.getGenericType());
         }
         Supplier<String> name = () -> {
             List<String> list = ParameterNameMappings.find(method);
@@ -68,7 +68,7 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
         return name;
     }
 
-    public LazyZenClassNode getType() {
+    public JavaTypeMirror getType() {
         return type;
     }
 

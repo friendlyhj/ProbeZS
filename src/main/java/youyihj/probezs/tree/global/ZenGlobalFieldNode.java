@@ -2,7 +2,7 @@ package youyihj.probezs.tree.global;
 
 import youyihj.probezs.tree.IHasImportMembers;
 import youyihj.probezs.tree.IZenDumpable;
-import youyihj.probezs.tree.LazyZenClassNode;
+import youyihj.probezs.tree.JavaTypeMirror;
 import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.util.IndentStringBuilder;
 
@@ -13,9 +13,9 @@ import java.util.Set;
  */
 public class ZenGlobalFieldNode implements IZenDumpable, IHasImportMembers, Comparable<ZenGlobalFieldNode> {
     private final String name;
-    private final LazyZenClassNode type;
+    private final JavaTypeMirror type;
 
-    public ZenGlobalFieldNode(String name, LazyZenClassNode type) {
+    public ZenGlobalFieldNode(String name, JavaTypeMirror type) {
         this.name = name;
         this.type = type;
     }

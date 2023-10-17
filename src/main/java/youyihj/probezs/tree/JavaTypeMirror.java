@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @author youyihj
  */
-public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
+public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
     private final Type type;
     private final ZenClassTree classTree;
     private Result result;
@@ -25,7 +25,7 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
     private boolean init = false;
     private boolean existed = false;
 
-    public LazyZenClassNode(Type type, ZenClassTree classTree) {
+    public JavaTypeMirror(Type type, ZenClassTree classTree) {
         this.type = type;
         this.classTree = classTree;
     }
@@ -272,10 +272,10 @@ public class LazyZenClassNode implements Supplier<LazyZenClassNode.Result> {
         }
     }
 
-    public static class FullNameSerializer implements JsonSerializer<LazyZenClassNode> {
+    public static class FullNameSerializer implements JsonSerializer<JavaTypeMirror> {
 
         @Override
-        public JsonElement serialize(LazyZenClassNode src, Type typeOfSrc, JsonSerializationContext context) {
+        public JsonElement serialize(JavaTypeMirror src, Type typeOfSrc, JsonSerializationContext context) {
             return new JsonPrimitive(src.get().getFullName());
         }
     }

@@ -42,7 +42,7 @@ public class ZenStringNode extends ZenClassNode implements IPrimitiveType {
                         if (convertType == null) continue readMethod;
                         parameterNodes.add(ZenParameterNode.read(ProbeZS.getMemberFactory().reflect(method), i, ProbeZS.getMemberFactory().reflect(parameter), tree));
                     }
-                    ZenMemberNode zenMemberNode = new ZenMemberNode(method.getName(), tree.createLazyClassNode(method.getGenericReturnType()), parameterNodes, false);
+                    ZenMemberNode zenMemberNode = new ZenMemberNode(method.getName(), tree.createJavaTypeMirror(method.getGenericReturnType()), parameterNodes, false);
                     members.add(zenMemberNode);
                 }
             }

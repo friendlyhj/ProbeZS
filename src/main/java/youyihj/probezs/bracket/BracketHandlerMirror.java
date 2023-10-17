@@ -2,7 +2,7 @@ package youyihj.probezs.bracket;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import youyihj.probezs.tree.LazyZenClassNode;
+import youyihj.probezs.tree.JavaTypeMirror;
 import youyihj.probezs.tree.ZenClassTree;
 
 import java.lang.reflect.Type;
@@ -19,21 +19,21 @@ public class BracketHandlerMirror {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .disableHtmlEscaping()
-            .registerTypeAdapter(LazyZenClassNode.class, new LazyZenClassNode.FullNameSerializer())
+            .registerTypeAdapter(JavaTypeMirror.class, new JavaTypeMirror.FullNameSerializer())
             .registerTypeAdapter(BracketHandlerEntry.class, new BracketHandlerEntry.Serializer())
             .create();
 
-    private final LazyZenClassNode type;
+    private final JavaTypeMirror type;
     private final String regex;
     private final List<BracketHandlerEntry> entries;
 
-    public BracketHandlerMirror(LazyZenClassNode type, String regex, List<BracketHandlerEntry> entries) {
+    public BracketHandlerMirror(JavaTypeMirror type, String regex, List<BracketHandlerEntry> entries) {
         this.type = type;
         this.regex = regex;
         this.entries = entries;
     }
 
-    public LazyZenClassNode getType() {
+    public JavaTypeMirror getType() {
         return type;
     }
 
@@ -96,7 +96,7 @@ public class BracketHandlerMirror {
                         return new BracketHandlerEntry(idMapper.apply(it), properties);
                     })
                     .collect(Collectors.toList());
-            return new BracketHandlerMirror(classTree.createLazyClassNode(type), regex, entities);
+            return new BracketHandlerMirror(classTree.createJavaTypeMirror(type), regex, entities);
         }
     }
 }

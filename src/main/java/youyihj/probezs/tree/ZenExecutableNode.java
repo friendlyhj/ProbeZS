@@ -9,7 +9,7 @@ import java.util.List;
  * @author youyihj
  */
 public class ZenExecutableNode {
-    protected void partialDump(IndentStringBuilder sb, String name, List<ZenParameterNode> parameters, LazyZenClassNode.Result returnType) {
+    protected void partialDump(IndentStringBuilder sb, String name, List<ZenParameterNode> parameters, JavaTypeMirror.Result returnType) {
         sb.append(name).append("(");
         Iterator<ZenParameterNode> iterator = parameters.iterator();
         while (iterator.hasNext()) {
