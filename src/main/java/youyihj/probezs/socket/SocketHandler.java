@@ -2,11 +2,9 @@ package youyihj.probezs.socket;
 
 import crafttweaker.CraftTweakerAPI;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.*;
+import io.netty.channel.oio.OioEventLoopGroup;
+import io.netty.channel.socket.oio.OioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import youyihj.probezs.ProbeZSConfig;
@@ -17,8 +15,8 @@ import youyihj.probezs.ProbeZSConfig;
 public class SocketHandler {
     public static SocketHandler INSTANCE = null;
 
-    private NioEventLoopGroup bossGroup;
-    private NioEventLoopGroup workerGroup;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
 
     public SocketHandler() {
         new Thread(this::handleServerSocket, "ProbeZS-Server-Websocket").start();
@@ -32,8 +30,8 @@ public class SocketHandler {
 
     private void handleServerSocket() {
         try {
-            bossGroup = new NioEventLoopGroup(1);
-            workerGroup = new NioEventLoopGroup();
+            bossGroup = new OioEventLoopGroup(1);
+            workerGroup = new OioEventLoopGroup();
 
             ChannelHandler childHandler = null;
             switch (ProbeZSConfig.socketProtocol) {
@@ -47,7 +45,7 @@ public class SocketHandler {
 
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class)
+                    .channel(OioServerSocketChannel.class)
                     .childHandler(childHandler)
                     .option(ChannelOption.SO_BACKLOG, 512)
                     .handler(new LoggingHandler(LogLevel.INFO))
