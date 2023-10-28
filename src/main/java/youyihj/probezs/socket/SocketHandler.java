@@ -2,8 +2,11 @@ package youyihj.probezs.socket;
 
 import crafttweaker.CraftTweakerAPI;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
-import io.netty.channel.oio.OioEventLoopGroup;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.oio.OioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -30,8 +33,8 @@ public class SocketHandler {
 
     private void handleServerSocket() {
         try {
-            bossGroup = new OioEventLoopGroup(1);
-            workerGroup = new OioEventLoopGroup();
+            bossGroup = new NioEventLoopGroup(1);
+            workerGroup = new NioEventLoopGroup();
 
             ChannelHandler childHandler = null;
             switch (ProbeZSConfig.socketProtocol) {
