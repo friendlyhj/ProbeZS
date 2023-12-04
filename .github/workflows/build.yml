@@ -5,22 +5,20 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  generate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout ProbeZS Repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: Set up JDK 1.8
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 17
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2.4.2
-      - name: Setup Decomp Workspace
-        run: ./gradlew setupDecompWorkspace
       - name: Generate Parameter Name Mappings
         run: ./gradlew generateParameterNameMappings
       - name: Upload Parameter Name Mappings
@@ -28,6 +26,26 @@ jobs:
         with:
           name: mappings
           path: generated
+  build:
+    runs-on: ubuntu-latest
+    needs: generate
+    steps:
+      - name: Checkout ProbeZS Repository
+        uses: actions/checkout@v3
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+      - name: Download Parameter Name Mappings
+        uses: actions/download-artifact@v3
+        with:
+          name: mappings
+          path: generated
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2.4.2
+      - name: Setup Decomp Workspace
+        run: ./gradlew setupDecompWorkspace
       - name: Copy Parameter Name Mappings to Sources
         run: cp -f ./generated/method-parameter-names.yaml ./src/main/resources/mappings/
       - name: Build with Gradle
