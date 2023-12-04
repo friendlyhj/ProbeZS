@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,6 +32,10 @@ public class MethodParameterNamesGenerator {
         "crafttweaker.runtime.GlobalFunctions::isNull"
     );
 
+    private static final Set<Path> invalidUnits = Sets.newHashSet(
+            Paths.get("gregtech", "api", "util", "RelativeDirection.java")
+    );
+
 
     public static void main(String[] args) {
         String folderPath = args[0];
@@ -37,6 +43,7 @@ public class MethodParameterNamesGenerator {
 
         Launcher launcher = new Launcher();
         launcher.addInputResource(folderPath);
+        launcher.getModelBuilder().addCompilationUnitFilter(MethodParameterNamesGenerator::isInvalidUnit);
         launcher.buildModel();
         CtModel model = launcher.getModel();
 
@@ -150,5 +157,13 @@ public class MethodParameterNamesGenerator {
         return result;
     }
 
+    private static boolean isInvalidUnit(String unitPath) {
+        for (Path invalidClass : invalidUnits) {
+            if (Paths.get(unitPath).endsWith(invalidClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }
