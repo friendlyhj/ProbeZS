@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.oio.OioServerSocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import youyihj.probezs.ProbeZSConfig;
@@ -48,7 +48,7 @@ public class SocketHandler {
 
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
-                    .channel(OioServerSocketChannel.class)
+                    .channel(NioServerSocketChannel.class)
                     .childHandler(childHandler)
                     .option(ChannelOption.SO_BACKLOG, 512)
                     .handler(new LoggingHandler(LogLevel.INFO))
