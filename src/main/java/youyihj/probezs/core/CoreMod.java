@@ -1,12 +1,10 @@
 package youyihj.probezs.core;
 
-import com.google.common.collect.ImmutableList;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import youyihj.probezs.Environment;
 import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.util.DebugAPIAdapter;
-import zone.rong.mixinbooter.ILateMixinLoader;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -22,7 +20,7 @@ import java.util.Map;
 /**
  * @author youyihj
  */
-public class CoreMod implements IFMLLoadingPlugin, ILateMixinLoader {
+public class CoreMod implements IFMLLoadingPlugin {
     @Override
     public String[] getASMTransformerClass() {
         return new String[] {"youyihj.probezs.core.ProbeZSClassTransformer"};
@@ -77,12 +75,5 @@ public class CoreMod implements IFMLLoadingPlugin, ILateMixinLoader {
 //            }
         });
         return args;
-    }
-
-    @Override
-    public List<String> getMixinConfigs() {
-        return ImmutableList.of(
-                "mixins.probezs.json"
-        );
     }
 }
