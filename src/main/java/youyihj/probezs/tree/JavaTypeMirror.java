@@ -26,6 +26,9 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
     private boolean existed = false;
 
     public JavaTypeMirror(Type type, ZenClassTree classTree) {
+        if (type == List.class) {
+            System.out.println("123");
+        }
         this.type = type;
         this.classTree = classTree;
     }

@@ -54,7 +54,7 @@ public class JavaExecutable implements ExecutableData {
 
     @Override
     public Type getReturnType() {
-        return executable instanceof Method ? ((Method) executable).getReturnType() : getDecalredClass();
+        return executable instanceof Method ? ((Method) executable).getGenericReturnType() : getDecalredClass();
     }
 
     @Override

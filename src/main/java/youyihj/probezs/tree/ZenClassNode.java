@@ -279,7 +279,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     private void readSetter(ExecutableData method, boolean isClass) {
         if (method.isAnnotationPresent(ZenSetter.class)) {
-            JavaTypeMirror type = tree.createJavaTypeMirror(method.getParameterTypes()[isClass ? 0 : 1]);
+            JavaTypeMirror type = tree.createJavaTypeMirror(method.getParameters()[isClass ? 0 : 1].getGenericType());
             String name = method.getAnnotation(ZenSetter.class).value();
             if (name.isEmpty()) {
                 name = method.getName();
