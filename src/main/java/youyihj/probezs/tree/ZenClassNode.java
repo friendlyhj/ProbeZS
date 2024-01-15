@@ -1,5 +1,7 @@
 package youyihj.probezs.tree;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -32,7 +34,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     protected final List<ZenMemberNode> members = new ArrayList<>();
     protected final List<ZenConstructorNode> constructors = new ArrayList<>();
     protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
-    protected final Map<String, ZenOperatorNode> operators = new HashMap<>();
+    protected final Multimap<String, ZenOperatorNode> operators = HashMultimap.create();
     private ZenOperatorNode.As caster;
 
     public ZenClassNode(String name, ZenClassTree tree) {

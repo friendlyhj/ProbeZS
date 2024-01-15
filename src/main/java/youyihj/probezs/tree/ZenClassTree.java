@@ -52,7 +52,7 @@ public class ZenClassTree {
     public static ZenClassTree getRoot() {
         if (root == null) {
             root = LoadingObject.of(new ZenClassTree());
-            root.get().addBlockList(
+            root.get().addBlackList(
                     ExpandAnyDict.class,
                     ExpandAnyArray.class,
                     ExpandByteArray.class,
@@ -105,7 +105,7 @@ public class ZenClassTree {
         javaTypeMirrors.forEach(JavaTypeMirror::fresh);
     }
 
-    public void addBlockList(Class<?>... classes) {
+    public void addBlackList(Class<?>... classes) {
         blackList.addAll(Arrays.asList(classes));
     }
 
