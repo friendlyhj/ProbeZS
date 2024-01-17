@@ -35,7 +35,9 @@ import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionType;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Optional;
@@ -87,7 +89,7 @@ import java.util.stream.Collectors;
 @Mod(modid = ProbeZS.MODID, name = ProbeZS.NAME, version = ProbeZS.VERSION, dependencies = ProbeZS.DEPENDENCIES)
 public class ProbeZS {
     public static final String MODID = "probezs";
-    public static final String VERSION = "1.18.0";
+    public static final String VERSION = "1.18.1";
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
@@ -236,6 +238,10 @@ public class ProbeZS {
                         .setRegex("(fluid|liquid):.*")
                         .setEntries(FluidRegistry.getRegisteredFluids().keySet())
                         .setIdMapper(it -> "liquid:" + it.replace(" ", ""))
+                        .setPropertiesAdder((liquid, properties) -> {
+                            FluidStack fluidStack = Objects.requireNonNull(FluidRegistry.getFluidStack(liquid, Fluid.BUCKET_VOLUME));
+                            properties.add("name", fluidStack.getLocalizedName(), true);
+                        })
                         .build(),
                 BracketHandlerMirror.<IBiome>builder(classTree)
                         .setType(IBiome.class)
@@ -275,6 +281,9 @@ public class ProbeZS {
                         .setRegex("ore:.*")
                         .setEntries(CraftTweakerAPI.oreDict.getEntries())
                         .setIdMapper(it -> "ore:" + it.getName())
+                        .setPropertiesAdder((od, properties) -> {
+                            properties.add("name", od.getFirstItem().getDisplayName(), true);
+                        })
                         .build(),
                 BracketHandlerMirror.<Potion>builder(classTree)
                         .setType(IPotion.class)
