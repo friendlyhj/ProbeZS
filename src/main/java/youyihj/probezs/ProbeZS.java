@@ -69,9 +69,11 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -383,6 +385,8 @@ public class ProbeZS {
 
     private void registerRMI() throws RemoteException {
         Registry registry = LocateRegistry.createRegistry(ProbeZSConfig.socketPort);
-        registry.rebind("BracketHandler", new BracketHandlerServiceImpl());
+        Remote remote = new BracketHandlerServiceImpl();
+        UnicastRemoteObject.exportObject(remote, ProbeZSConfig.socketPort);
+        registry.rebind("BracketHandler", remote);
     }
 }
