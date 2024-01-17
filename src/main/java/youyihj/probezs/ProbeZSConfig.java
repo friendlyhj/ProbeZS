@@ -17,17 +17,8 @@ public class ProbeZSConfig {
     @Config.Comment("Communication port with language server")
     public static int socketPort = 6489;
 
-    @Config.Comment("Communication protocol with language server")
-    public static SocketProtocol socketProtocol = SocketProtocol.RPC;
-
     @Config.Comment("The way to collect zenscript libs")
     public static MemberCollector memberCollector = MemberCollector.REFLECTION;
-
-    public enum SocketProtocol {
-        NONE,
-        WEBSOCKET,
-        RPC
-    }
 
     public enum MemberCollector {
         REFLECTION,

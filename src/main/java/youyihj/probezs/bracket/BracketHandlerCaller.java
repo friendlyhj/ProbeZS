@@ -1,11 +1,12 @@
 package youyihj.probezs.bracket;
 
 import crafttweaker.api.item.IItemStack;
+import crafttweaker.api.liquid.ILiquidStack;
 import crafttweaker.api.minecraft.CraftTweakerMC;
+import crafttweaker.api.oredict.IOreDictEntry;
 import crafttweaker.zenscript.GlobalRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 import org.objectweb.asm.*;
 import stanhebben.zenscript.ZenTokener;
@@ -17,22 +18,26 @@ import stanhebben.zenscript.expression.*;
 import stanhebben.zenscript.expression.partial.IPartialExpression;
 import stanhebben.zenscript.parser.Token;
 import stanhebben.zenscript.symbols.IZenSymbol;
+import stanhebben.zenscript.type.ZenType;
 import stanhebben.zenscript.type.natives.JavaMethod;
 import stanhebben.zenscript.util.MethodOutput;
 import stanhebben.zenscript.util.ZenPosition;
 import youyihj.probezs.ProbeZS;
-import youyihj.probezs.api.BracketHandlerResult;
 import youyihj.probezs.api.BracketHandlerService;
 import youyihj.probezs.core.BytecodeClassLoader;
 import youyihj.probezs.render.RenderHelper;
 import youyihj.probezs.render.RenderTaskDispatcher;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.rmi.Remote;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -44,7 +49,7 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class BracketHandlerCaller implements BracketHandlerService {
     public static final BracketHandlerCaller INSTANCE = new BracketHandlerCaller();
-    public static final BracketHandlerResult EMPTY_RESULT = new BracketHandlerResult(null, Collections.emptyMap());
+    public static final BracketHandlerResult EMPTY_RESULT = new BracketHandlerResult(null, ZenType.ANY);
 
     private static final IEnvironmentGlobal ENVIRONMENT_GLOBAL = GlobalRegistry.makeGlobalEnvironment(new HashMap<>());
     private static final ZenPosition POSITION = new ZenPosition(null, 1, 0, "BracketHandlerCaller.java");
@@ -73,11 +78,10 @@ public class BracketHandlerCaller implements BracketHandlerService {
         }
     }
 
-    @Override
-    public BracketHandlerResult query(String content, boolean requiresExtras) {
+    public BracketHandlerResult query(String content) {
         String className = "bh$" + content.replaceAll("\\W", "_");
         IPartialExpression expression = getZenExpression(content);
-        ZenBracketHandlerResult result;
+        BracketHandlerResult result;
         if (expression == null) {
             return EMPTY_RESULT;
         }
@@ -88,9 +92,6 @@ public class BracketHandlerCaller implements BracketHandlerService {
         }
         if (result.getObject() == null) {
             return EMPTY_RESULT;
-        }
-        if (requiresExtras) {
-            writeExtras(result);
         }
         return result;
     }
@@ -112,7 +113,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
         }
     }
 
-    private static ZenBracketHandlerResult getCached(ExpressionCallStatic expressionCallStatic, String className) {
+    private static BracketHandlerResult getCached(ExpressionCallStatic expressionCallStatic, String className) {
         Method method = ((JavaMethod) getFieldUnchecked(CALL_STATIC_METHOD_FIELD, expressionCallStatic)).getMethod();
         Expression[] expressions = getFieldUnchecked(CALL_STATIC_ARGUMENTS_FILED, expressionCallStatic);
         Class<?> clazz = CACHED_SUPPLIER_CLASSES.computeIfAbsent(method, (method1 -> {
@@ -135,24 +136,34 @@ public class BracketHandlerCaller implements BracketHandlerService {
             Expression expression = expressions[i];
             Class<?> parameterType = parameterTypes[i];
             if (expression instanceof ExpressionInt) {
-                Long value = getFieldUnchecked(EXPRESSION_INT_VALUE, expression);
+                long value = 0;
+                try {
+                    value = EXPRESSION_INT_VALUE.getLong(expression);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
                 if (parameterType == int.class) {
-                    argumentsForConstructor[i] = value.intValue();
+                    argumentsForConstructor[i] = ((int) value);
                 } else if (parameterType == long.class) {
                     argumentsForConstructor[i] = value;
                 } else if (parameterType == short.class) {
-                    argumentsForConstructor[i] = value.shortValue();
+                    argumentsForConstructor[i] = ((short) value);
                 } else if (parameterType == byte.class) {
-                    argumentsForConstructor[i] = value.byteValue();
+                    argumentsForConstructor[i] = ((byte) value);
                 } else {
                     return getDirectly(expressionCallStatic, className);
                 }
             } else if (expression instanceof ExpressionFloat) {
-                Double value = getFieldUnchecked(EXPRESSION_FLOAT_VALUE, expression);
+                double value = 0;
+                try {
+                    value = EXPRESSION_FLOAT_VALUE.getDouble(expression);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
                 if (parameterType == double.class) {
                     argumentsForConstructor[i] = value;
                 } else if (parameterType == float.class) {
-                    argumentsForConstructor[i] = value.floatValue();
+                    argumentsForConstructor[i] = ((float) value);
                 } else {
                     return getDirectly(expressionCallStatic, className);
                 }
@@ -167,13 +178,13 @@ public class BracketHandlerCaller implements BracketHandlerService {
         }
         try {
             Object obj = ((Supplier<?>) clazz.getConstructor(parameterTypes).newInstance(argumentsForConstructor)).get();
-            return new ZenBracketHandlerResult(obj, expressionCallStatic.getType());
+            return new BracketHandlerResult(obj, expressionCallStatic.getType());
         } catch (ReflectiveOperationException e) {
             return getDirectly(expressionCallStatic, className);
         }
     }
 
-    private static ZenBracketHandlerResult getDirectly(IPartialExpression expression, String className) {
+    private static BracketHandlerResult getDirectly(IPartialExpression expression, String className) {
         Class<?> supplierClass;
         try {
             supplierClass = Class.forName(className, true, CLASS_LOADER);
@@ -188,7 +199,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
             return getDirectly(expression, className);
         }
         try {
-            return new ZenBracketHandlerResult(((Supplier<?>) supplierClass.newInstance()).get(), expression.getType());
+            return new BracketHandlerResult(((Supplier<?>) supplierClass.newInstance()).get(), expression.getType());
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -259,40 +270,6 @@ public class BracketHandlerCaller implements BracketHandlerService {
         return classWriter.toByteArray();
     }
 
-    private static void writeExtras(ZenBracketHandlerResult result) {
-        Object object = result.getObject();
-        Map<String, String> extras = result.getExtras();
-        if (object instanceof IItemStack) {
-            writeItemInfo(CraftTweakerMC.getItemStack((IItemStack) object), extras);
-        }
-    }
-
-    private static void writeItemInfo(ItemStack item, Map<String, String> extras) {
-        extras.put("_name", item.getDisplayName());
-        try {
-            String iconBase64 = RenderTaskDispatcher.submit(() -> {
-                RenderHelper.setupRenderState(32);
-                GlStateManager.pushMatrix();
-                GlStateManager.clearColor(0, 0, 0, 0);
-                GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-                Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(item, 0, 0);
-                GlStateManager.popMatrix();
-                RenderHelper.tearDownRenderState();
-                BufferedImage img = RenderHelper.createFlipped(RenderHelper.readPixels(32, 32));
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                try {
-                    ImageIO.write(img, "PNG", out);
-                } catch (IOException ignored) {
-                }
-                return Base64.getEncoder().encodeToString(out.toByteArray());
-            }).get(3, TimeUnit.SECONDS);
-            extras.put("_icon", iconBase64);
-        } catch (Exception e) {
-            ProbeZS.logger.error(e);
-        }
-
-    }
-
     @SuppressWarnings("unchecked")
     private static <T> T getFieldUnchecked(Field field, Object obj) {
         try {
@@ -300,5 +277,58 @@ public class BracketHandlerCaller implements BracketHandlerService {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Nullable
+    @Override
+    public String getLocalizedName(String expr) {
+        BracketHandlerResult result = query(expr);
+        Object object = result.getObject();
+        if (object instanceof IItemStack) {
+            return ((IItemStack) object).getDisplayName();
+        }
+        if (object instanceof ILiquidStack) {
+            return ((ILiquidStack) object).getDisplayName();
+        }
+        if (object instanceof IOreDictEntry) {
+            return ((IOreDictEntry) object).getFirstItem().getDisplayName();
+        }
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public String getIcon(String expr) {
+        BracketHandlerResult result = query(expr);
+        Object object = result.getObject();
+        if (object instanceof IItemStack) {
+            try {
+                return RenderTaskDispatcher.submit(() -> {
+                    RenderHelper.setupRenderState(32);
+                    GlStateManager.pushMatrix();
+                    GlStateManager.clearColor(0, 0, 0, 0);
+                    GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+                    Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(CraftTweakerMC.getItemStack((IItemStack) object), 0, 0);
+                    GlStateManager.popMatrix();
+                    RenderHelper.tearDownRenderState();
+                    BufferedImage img = RenderHelper.createFlipped(RenderHelper.readPixels(32, 32));
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    try {
+                        ImageIO.write(img, "PNG", out);
+                    } catch (IOException ignored) {
+                    }
+                    return Base64.getEncoder().encodeToString(out.toByteArray());
+                }).get(3, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                ProbeZS.logger.error(e);
+            }
+        }
+        return null;
+    }
+
+    @Nonnull
+    @Override
+    public String getTypeName(String expr) {
+        return query(expr).getZenType().getName();
     }
 }
