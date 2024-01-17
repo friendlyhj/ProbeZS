@@ -1,19 +1,15 @@
 package youyihj.probezs.bracket;
 
 import stanhebben.zenscript.type.ZenType;
-import youyihj.probezs.api.BracketHandlerResult;
-
-import java.util.HashMap;
 
 /**
  * @author youyihj
  */
-public class ZenBracketHandlerResult extends BracketHandlerResult {
+public class BracketHandlerResult {
     private final Object object;
     private final ZenType zenType;
 
-    public ZenBracketHandlerResult(Object object, ZenType zenType) {
-        super(zenType.getName(), new HashMap<>());
+    public BracketHandlerResult(Object object, ZenType zenType) {
         this.object = object;
         this.zenType = zenType;
     }

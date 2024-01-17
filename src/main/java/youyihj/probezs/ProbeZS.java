@@ -46,12 +46,13 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import youyihj.probezs.api.BracketHandlerServiceImpl;
+import youyihj.probezs.bracket.BracketHandlerCaller;
 import youyihj.probezs.bracket.BracketHandlerEntryProperties;
 import youyihj.probezs.bracket.BracketHandlerMirror;
 import youyihj.probezs.core.ASMMemberCollector;
 import youyihj.probezs.member.MemberFactory;
 import youyihj.probezs.member.reflection.ReflectionMemberFactory;
-import youyihj.probezs.socket.SocketHandler;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.global.ZenGlobalMemberTree;
 import youyihj.probezs.util.FileUtils;
@@ -68,6 +69,9 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -155,6 +159,11 @@ public class ProbeZS {
 
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
+        try {
+            registerRMI();
+        } catch (RemoteException e) {
+            logger.error(e);
+        }
 //        try {
 //            Files.walkFileTree(Paths.get("scripts"), new SimpleFileVisitor<Path>() {
 //                @Override
@@ -176,9 +185,6 @@ public class ProbeZS {
         globalMemberTree.output();
         outputBracketHandlerMirrors(mirrors);
         outputPreprocessors();
-        if (ProbeZSConfig.socketProtocol != ProbeZSConfig.SocketProtocol.NONE) {
-            SocketHandler.enable();
-        }
     }
 
     @Mod.EventHandler
@@ -323,7 +329,6 @@ public class ProbeZS {
 
     private void dumpEnvironment() {
         Environment.put("probezsSocketPort", String.valueOf(ProbeZSConfig.socketPort));
-        Environment.put("probezsSocketProtocol", ProbeZSConfig.socketProtocol.toString());
         Environment.put("probezsVersion", VERSION);
         CrashReportCategory category = new CrashReport("", new Throwable()).getCategory();
         Map<String, CrashReportCategory.Entry> entries = category.children.stream()
@@ -374,5 +379,10 @@ public class ProbeZS {
                             .build()
             );
         }
+    }
+
+    private void registerRMI() throws RemoteException {
+        Registry registry = LocateRegistry.createRegistry(ProbeZSConfig.socketPort);
+        registry.rebind("BracketHandler", new BracketHandlerServiceImpl());
     }
 }
