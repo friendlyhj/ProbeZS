@@ -10,7 +10,7 @@ import java.rmi.Remote;
 /**
  * @author youyihj
  */
-public class BracketHandlerServiceImpl implements BracketHandlerService, Remote, Serializable {
+public class BracketHandlerServiceImpl implements BracketHandlerService {
     @Nullable
     @Override
     public String getLocalizedName(String expr) {
