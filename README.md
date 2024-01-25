@@ -8,7 +8,7 @@ Works with [ZenScript IntelliSense](https://marketplace.visualstudio.com/items?i
 
 Since Java compiled bytecodes don't retain parameter names by default. ProbeZS keeps a parameter name mapping by analysing source code.
 
-If you want to dump parameter name of another mod, please make a PR to add a submodule link the mod repo in ModSources directory.
+If you want to dump parameter names of another mod, please make a PR to add a submodule link the mod repo in ModSources directory.
 
 * You can add extra entries manually in `src/generator/resources/default.yaml`
-* You can add methods that don't be annotated `@ZenMethod` in `MethodParameterNamesGenerator.extras`
+* You can add methods that aren't annotated `@ZenMethod` in `MethodParameterNamesGenerator.extras`
