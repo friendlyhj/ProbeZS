@@ -289,7 +289,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
             return ((ILiquidStack) object).getDisplayName();
         }
         if (object instanceof IOreDictEntry) {
-            return ((IOreDictEntry) object).getFirstItem().getDisplayName();
+            return ProbeZS.safeGetItemName(((IOreDictEntry) object).getFirstItem());
         }
         return null;
     }
