@@ -282,7 +282,7 @@ public class ProbeZS {
                         .setEntries(CraftTweakerAPI.oreDict.getEntries())
                         .setIdMapper(it -> "ore:" + it.getName())
                         .setPropertiesAdder((od, properties) -> {
-                            properties.add("name", od.getFirstItem().getDisplayName(), true);
+                            properties.add("name", ProbeZS.safeGetItemName(od.getFirstItem()), true);
                         })
                         .build(),
                 BracketHandlerMirror.<Potion>builder(classTree)
