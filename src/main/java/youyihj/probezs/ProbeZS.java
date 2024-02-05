@@ -45,11 +45,11 @@ import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import youyihj.probezs.api.BracketHandlerServiceImpl;
-import youyihj.probezs.bracket.BracketHandlerCaller;
 import youyihj.probezs.bracket.BracketHandlerEntryProperties;
 import youyihj.probezs.bracket.BracketHandlerMirror;
 import youyihj.probezs.core.ASMMemberCollector;
@@ -89,7 +89,7 @@ import java.util.stream.Collectors;
 @Mod(modid = ProbeZS.MODID, name = ProbeZS.NAME, version = ProbeZS.VERSION, dependencies = ProbeZS.DEPENDENCIES)
 public class ProbeZS {
     public static final String MODID = "probezs";
-    public static final String VERSION = "1.18.1";
+    public static final String VERSION = "1.18.2";
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
@@ -217,7 +217,7 @@ public class ProbeZS {
                             return commandString.substring(1, commandString.length() - 1);
                         })
                         .setPropertiesAdder((item, properties) -> {
-                            properties.add("name", item.getDisplayName(), true);
+                            properties.add("name", safeGetItemName(item), true);
                         })
                         .build(),
                 BracketHandlerMirror.<Block>builder(classTree)
@@ -397,5 +397,16 @@ public class ProbeZS {
         Remote remote = new BracketHandlerServiceImpl();
         UnicastRemoteObject.exportObject(remote, ProbeZSConfig.socketPort);
         registry.rebind("BracketHandler", remote);
+    }
+
+    public static String safeGetItemName(IItemStack item) {
+        try {
+            if (item.getMetadata() == OreDictionary.WILDCARD_VALUE) {
+                item = item.withDamage(0);
+            }
+            return item.getDisplayName();
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

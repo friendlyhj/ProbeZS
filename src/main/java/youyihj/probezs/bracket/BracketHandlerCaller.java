@@ -34,10 +34,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.rmi.Remote;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -285,7 +283,7 @@ public class BracketHandlerCaller implements BracketHandlerService {
         BracketHandlerResult result = query(expr);
         Object object = result.getObject();
         if (object instanceof IItemStack) {
-            return ((IItemStack) object).getDisplayName();
+            return ProbeZS.safeGetItemName(((IItemStack) object));
         }
         if (object instanceof ILiquidStack) {
             return ((ILiquidStack) object).getDisplayName();
