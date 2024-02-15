@@ -406,7 +406,12 @@ public class ProbeZS {
             }
             return item.getDisplayName();
         } catch (Exception e) {
-            return "";
+            item = item.withDamage(0);
+            try {
+                return item.getDisplayName();
+            } catch (Exception ex) {
+                return "ERROR";
+            }
         }
     }
 }
