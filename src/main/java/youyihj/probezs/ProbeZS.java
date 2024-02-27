@@ -35,6 +35,7 @@ import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionType;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -89,7 +90,7 @@ import java.util.stream.Collectors;
 @Mod(modid = ProbeZS.MODID, name = ProbeZS.NAME, version = ProbeZS.VERSION, dependencies = ProbeZS.DEPENDENCIES)
 public class ProbeZS {
     public static final String MODID = "probezs";
-    public static final String VERSION = "1.18.2";
+    public static final String VERSION = "1.18.3";
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
@@ -404,11 +405,11 @@ public class ProbeZS {
             if (item.getMetadata() == OreDictionary.WILDCARD_VALUE) {
                 item = item.withDamage(0);
             }
-            return item.getDisplayName();
+            return TextFormatting.getTextWithoutFormattingCodes(item.getDisplayName());
         } catch (Exception e) {
             item = item.withDamage(0);
             try {
-                return item.getDisplayName();
+                return TextFormatting.getTextWithoutFormattingCodes(item.getDisplayName());
             } catch (Exception ex) {
                 return "ERROR";
             }
