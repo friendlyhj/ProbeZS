@@ -33,7 +33,7 @@ public class MethodParameterNamesGenerator {
     );
 
     private static final Set<Path> invalidUnits = Sets.newHashSet(
-//            Paths.get("gregtech", "api", "util", "RelativeDirection.java")
+            Paths.get("gregtech", "api", "util", "RelativeDirection.java")
     );
 
 
