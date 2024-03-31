@@ -27,3 +27,6 @@
 [submodule "ModSources/ModularMachinery-Community-Edition"]
 	path = ModSources/ModularMachinery-Community-Edition
 	url = https://github.com/NovaEngineering-Source/ModularMachinery-Community-Edition.git
+[submodule "ModSources/CraftTweakerIntegration"]
+	path = ModSources/CraftTweakerIntegration
+	url = https://github.com/TCreopargh/CraftTweakerIntegration.git
