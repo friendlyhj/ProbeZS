@@ -18,7 +18,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2.4.2
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: 8.1.1
       - name: Generate Parameter Name Mappings
         run: gradle generateParameterNameMappings --stacktrace
       - name: Upload Parameter Name Mappings
@@ -43,7 +45,9 @@ jobs:
           name: mappings
           path: generated
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2.4.2
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: 8.1.1
       - name: Setup Decomp Workspace
         run: ./gradlew setupDecompWorkspace
       - name: Copy Parameter Name Mappings to Sources
