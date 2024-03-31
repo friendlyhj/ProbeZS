@@ -21,6 +21,8 @@ jobs:
         uses: gradle/gradle-build-action@v3
         with:
           gradle-version: 8.1.1
+      - name: Setup Decomp Workspace
+        run: ./gradlew setupDecompWorkspace
       - name: Generate Parameter Name Mappings
         run: gradle generateParameterNameMappings --stacktrace
       - name: Upload Parameter Name Mappings
