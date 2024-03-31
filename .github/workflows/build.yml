@@ -20,7 +20,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2.4.2
       - name: Generate Parameter Name Mappings
-        run: gradle generateParameterNameMappings
+        run: gradle generateParameterNameMappings --stacktrace
       - name: Upload Parameter Name Mappings
         uses: actions/upload-artifact@v3
         with:
