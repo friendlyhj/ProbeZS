@@ -1,5 +1,7 @@
 package youyihj.probezs.tree.global;
 
+import youyihj.probezs.ProbeZS;
+import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.tree.*;
@@ -31,13 +33,14 @@ public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpab
         for (int i = 0; i < method.getParameterCount(); i++) {
             parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));
         }
-        return new ZenGlobalMethodNode(name, returnType, parameterNodes);
-    }
-
-    @Override
-    public void toZenScript(IndentStringBuilder sb) {
-        sb.append("global function ");
-        partialDump(sb, name, parameters, returnType.get());
+        ZenGlobalMethodNode globalMethodNode = new ZenGlobalMethodNode(name, returnType, parameterNodes);
+        if (ProbeZSConfig.outputSourceExpansionMembers) {
+            String classOwner = ProbeZS.instance.getClassOwner(method.getDecalredClass());
+            if (!"crafttweaker".equals(classOwner)) {
+                globalMethodNode.setOwner(classOwner);
+            }
+        }
+        return globalMethodNode;
     }
 
     @Override
@@ -51,5 +54,25 @@ public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpab
     @Override
     public int compareTo(ZenGlobalMethodNode o) {
         return name.compareTo(o.name);
+    }
+
+    @Override
+    protected boolean existed() {
+        return true;
+    }
+
+    @Override
+    protected void writeModifiersAndName(IndentStringBuilder sb) {
+        sb.append("global function ").append(name);
+    }
+
+    @Override
+    protected List<ZenParameterNode> getParameters() {
+        return parameters;
+    }
+
+    @Override
+    protected JavaTypeMirror.Result getReturnType() {
+        return returnType.get();
     }
 }

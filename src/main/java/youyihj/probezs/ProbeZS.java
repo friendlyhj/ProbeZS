@@ -41,6 +41,7 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -77,8 +78,10 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.CodeSource;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -90,7 +93,7 @@ import java.util.stream.Collectors;
 @Mod(modid = ProbeZS.MODID, name = ProbeZS.NAME, version = ProbeZS.VERSION, dependencies = ProbeZS.DEPENDENCIES)
 public class ProbeZS {
     public static final String MODID = "probezs";
-    public static final String VERSION = "1.18.3";
+    public static final String VERSION = "1.18.5";
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
@@ -99,6 +102,8 @@ public class ProbeZS {
     public volatile LoadingObject<String> mappings = LoadingObject.of("");
 
     public Path generatedPath = processGeneratedPath();
+    public final Map<String, ModContainer> pathToModMap = new HashMap<>();
+
 
     private static final Supplier<MemberFactory> MEMBER_FACTORY = Suppliers.memoize(() -> {
         switch (ProbeZSConfig.memberCollector) {
@@ -135,9 +140,9 @@ public class ProbeZS {
             sha1.update(scriptsPath.toString().getBytes(StandardCharsets.UTF_8));
             String userHome = System.getProperty("user.home");
             return FileSystems.getDefault().getPath(userHome)
-                    .resolve(".probezs")
-                    .resolve(Hex.encodeHexString(sha1.digest()))
-                    .resolve("generated");
+                              .resolve(".probezs")
+                              .resolve(Hex.encodeHexString(sha1.digest()))
+                              .resolve("generated");
         } catch (NoSuchAlgorithmException e) { // really?
             throw new AssertionError();
         }
@@ -206,98 +211,98 @@ public class ProbeZS {
     private List<BracketHandlerMirror> dumpBracketHandlerMirrors(ZenClassTree classTree) {
         List<BracketHandlerMirror> mirrors = Lists.newArrayList(
                 BracketHandlerMirror.<IItemStack>builder(classTree)
-                        .setType(IItemStack.class)
-                        .setEntries(CraftTweakerAPI.game.getItems().stream()
-                                .flatMap(it -> it.getSubItems().stream())
-                                .filter(it -> !it.hasTag())
-                                .collect(Collectors.toList())
-                        )
-                        .setRegex(".*")
-                        .setIdMapper(it -> {
-                            String commandString = it.toCommandString();
-                            return commandString.substring(1, commandString.length() - 1);
-                        })
-                        .setPropertiesAdder((item, properties) -> {
-                            properties.add("name", safeGetItemName(item), true);
-                        })
-                        .build(),
+                                    .setType(IItemStack.class)
+                                    .setEntries(CraftTweakerAPI.game.getItems().stream()
+                                                                    .flatMap(it -> it.getSubItems().stream())
+                                                                    .filter(it -> !it.hasTag())
+                                                                    .collect(Collectors.toList())
+                                    )
+                                    .setRegex(".*")
+                                    .setIdMapper(it -> {
+                                        String commandString = it.toCommandString();
+                                        return commandString.substring(1, commandString.length() - 1);
+                                    })
+                                    .setPropertiesAdder((item, properties) -> {
+                                        properties.add("name", safeGetItemName(item), true);
+                                    })
+                                    .build(),
                 BracketHandlerMirror.<Block>builder(classTree)
-                        .setType(IBlockState.class)
-                        .setEntries(ForgeRegistries.BLOCKS.getValuesCollection())
-                        .setRegex("blockstate:.*")
-                        .setIdMapper(it -> "blockstate:" + it.getRegistryName())
-                        .setPropertiesAdder(this::fillBlockProperties)
-                        .build(),
+                                    .setType(IBlockState.class)
+                                    .setEntries(ForgeRegistries.BLOCKS.getValuesCollection())
+                                    .setRegex("blockstate:.*")
+                                    .setIdMapper(it -> "blockstate:" + it.getRegistryName())
+                                    .setPropertiesAdder(this::fillBlockProperties)
+                                    .build(),
                 BracketHandlerMirror.<IIngredient>builder(classTree)
-                        .setRegex("\\*")
-                        .setType(IIngredient.class)
-                        .setEntries(Collections.singleton(IngredientAny.INSTANCE))
-                        .setIdMapper(it -> "*")
-                        .build(),
+                                    .setRegex("\\*")
+                                    .setType(IIngredient.class)
+                                    .setEntries(Collections.singleton(IngredientAny.INSTANCE))
+                                    .setIdMapper(it -> "*")
+                                    .build(),
                 BracketHandlerMirror.<String>builder(classTree)
-                        .setType(ILiquidStack.class)
-                        .setRegex("(fluid|liquid):.*")
-                        .setEntries(FluidRegistry.getRegisteredFluids().keySet())
-                        .setIdMapper(it -> "liquid:" + it.replace(" ", ""))
-                        .setPropertiesAdder((liquid, properties) -> {
-                            FluidStack fluidStack = Objects.requireNonNull(FluidRegistry.getFluidStack(liquid, Fluid.BUCKET_VOLUME));
-                            properties.add("name", fluidStack.getLocalizedName(), true);
-                        })
-                        .build(),
+                                    .setType(ILiquidStack.class)
+                                    .setRegex("(fluid|liquid):.*")
+                                    .setEntries(FluidRegistry.getRegisteredFluids().keySet())
+                                    .setIdMapper(it -> "liquid:" + it.replace(" ", ""))
+                                    .setPropertiesAdder((liquid, properties) -> {
+                                        FluidStack fluidStack = Objects.requireNonNull(FluidRegistry.getFluidStack(liquid, Fluid.BUCKET_VOLUME));
+                                        properties.add("name", fluidStack.getLocalizedName(), true);
+                                    })
+                                    .build(),
                 BracketHandlerMirror.<IBiome>builder(classTree)
-                        .setType(IBiome.class)
-                        .setRegex("biome:.*")
-                        .setEntries(CraftTweakerAPI.game.getBiomes())
-                        .setIdMapper(it -> "biome:" + it.getId().split(":")[1])
-                        .build(),
+                                    .setType(IBiome.class)
+                                    .setRegex("biome:.*")
+                                    .setEntries(CraftTweakerAPI.game.getBiomes())
+                                    .setIdMapper(it -> "biome:" + it.getId().split(":")[1])
+                                    .build(),
                 BracketHandlerMirror.<String>builder(classTree)
-                        .setType(ICreativeTab.class)
-                        .setRegex("creativetab:.*")
-                        .setEntries(CraftTweakerMC.creativeTabs.keySet())
-                        .setIdMapper("creativetab:"::concat)
-                        .build(),
+                                    .setType(ICreativeTab.class)
+                                    .setRegex("creativetab:.*")
+                                    .setEntries(CraftTweakerMC.creativeTabs.keySet())
+                                    .setIdMapper("creativetab:"::concat)
+                                    .build(),
                 BracketHandlerMirror.<Method>builder(classTree)
-                        .setType(IDamageSource.class)
-                        .setRegex("damageSource:.*")
-                        .setEntries(Arrays.stream(MCDamageSourceExpand.class.getDeclaredMethods())
-                                .filter(it -> it.getParameterCount() == 0)
-                                .collect(Collectors.toList())
-                        )
-                        .setIdMapper(it -> "damageSource:" + it.getName())
-                        .build(),
+                                    .setType(IDamageSource.class)
+                                    .setRegex("damageSource:.*")
+                                    .setEntries(Arrays.stream(MCDamageSourceExpand.class.getDeclaredMethods())
+                                                      .filter(it -> it.getParameterCount() == 0)
+                                                      .collect(Collectors.toList())
+                                    )
+                                    .setIdMapper(it -> "damageSource:" + it.getName())
+                                    .build(),
                 BracketHandlerMirror.<String>builder(classTree)
-                        .setType(IEnchantmentDefinition.class)
-                        .setRegex("enchantment:.*")
-                        .setEntries(BracketHandlerEnchantments.enchantments.keySet())
-                        .setIdMapper(it -> "enchantment:" + it)
-                        .build(),
+                                    .setType(IEnchantmentDefinition.class)
+                                    .setRegex("enchantment:.*")
+                                    .setEntries(BracketHandlerEnchantments.enchantments.keySet())
+                                    .setIdMapper(it -> "enchantment:" + it)
+                                    .build(),
                 BracketHandlerMirror.<IEntityDefinition>builder(classTree)
-                        .setType(IEntityDefinition.class)
-                        .setRegex("entity:.*")
-                        .setEntries(CraftTweakerAPI.game.getEntities())
-                        .setIdMapper(it -> "entity:" + it.getId())
-                        .build(),
+                                    .setType(IEntityDefinition.class)
+                                    .setRegex("entity:.*")
+                                    .setEntries(CraftTweakerAPI.game.getEntities())
+                                    .setIdMapper(it -> "entity:" + it.getId())
+                                    .build(),
                 BracketHandlerMirror.<IOreDictEntry>builder(classTree)
-                        .setType(IOreDictEntry.class)
-                        .setRegex("ore:.*")
-                        .setEntries(CraftTweakerAPI.oreDict.getEntries())
-                        .setIdMapper(it -> "ore:" + it.getName())
-                        .setPropertiesAdder((od, properties) -> {
-                            properties.add("name", ProbeZS.safeGetItemName(od.getFirstItem()), true);
-                        })
-                        .build(),
+                                    .setType(IOreDictEntry.class)
+                                    .setRegex("ore:.*")
+                                    .setEntries(CraftTweakerAPI.oreDict.getEntries())
+                                    .setIdMapper(it -> "ore:" + it.getName())
+                                    .setPropertiesAdder((od, properties) -> {
+                                        properties.add("name", ProbeZS.safeGetItemName(od.getFirstItem()), true);
+                                    })
+                                    .build(),
                 BracketHandlerMirror.<Potion>builder(classTree)
-                        .setType(IPotion.class)
-                        .setRegex("potion:.*")
-                        .setEntries(ForgeRegistries.POTIONS.getValuesCollection())
-                        .setIdMapper(it -> "potion:" + it.getRegistryName())
-                        .build(),
+                                    .setType(IPotion.class)
+                                    .setRegex("potion:.*")
+                                    .setEntries(ForgeRegistries.POTIONS.getValuesCollection())
+                                    .setIdMapper(it -> "potion:" + it.getRegistryName())
+                                    .build(),
                 BracketHandlerMirror.<PotionType>builder(classTree)
-                        .setType(IPotionType.class)
-                        .setRegex("potiontype:.*")
-                        .setEntries(ForgeRegistries.POTION_TYPES.getValuesCollection())
-                        .setIdMapper(it -> "potiontype:" + it.getRegistryName())
-                        .build()
+                                    .setType(IPotionType.class)
+                                    .setRegex("potiontype:.*")
+                                    .setEntries(ForgeRegistries.POTION_TYPES.getValuesCollection())
+                                    .setIdMapper(it -> "potiontype:" + it.getRegistryName())
+                                    .build()
         );
         if (Loader.isModLoaded("contenttweaker")) {
             mirrors.addAll(ContentTweaker.dumpCoTBracketMirrors(classTree));
@@ -311,7 +316,11 @@ public class ProbeZS {
         try {
             FileUtils.createFile(
                     generatedPath.resolve("preprocessors.json"),
-                    registeredPreprocessorActions.keySet().stream().map(it -> StringUtils.wrap(it, "\"")).collect(Collectors.toList()).toString()
+                    registeredPreprocessorActions.keySet()
+                                                 .stream()
+                                                 .map(it -> StringUtils.wrap(it, "\""))
+                                                 .collect(Collectors.toList())
+                                                 .toString()
             );
         } catch (IOException e) {
             ProbeZS.logger.error("Failed to output preprocessor json", e);
@@ -344,7 +353,7 @@ public class ProbeZS {
         Environment.put("probezsVersion", VERSION);
         CrashReportCategory category = new CrashReport("", new Throwable()).getCategory();
         Map<String, CrashReportCategory.Entry> entries = category.children.stream()
-                .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
+                                                                          .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
         Environment.put("operatingSystem", entries.get("Operating System").getValue());
         Environment.put("javaVersion", entries.get("Java Version").getValue());
         Environment.put("javaPath", System.getProperty("java.home"));
@@ -360,46 +369,6 @@ public class ProbeZS {
         Environment.output(generatedPath.resolve("env.json"));
     }
 
-    private static class ContentTweaker {
-
-        @Optional.Method(modid = "contenttweaker")
-        private static List<BracketHandlerMirror> dumpCoTBracketMirrors(ZenClassTree tree) {
-            return Lists.newArrayList(
-                    BracketHandlerMirror.<String>builder(tree)
-                            .setType(IBlockMaterialDefinition.class)
-                            .setRegex("blockmaterial:.*")
-                            .setEntries(ContentTweakerAPI.getInstance().getBlockMaterials().getAllNames())
-                            .setIdMapper("blockmaterial:"::concat)
-                            .build(),
-                    BracketHandlerMirror.<String>builder(tree)
-                            .setRegex("soundtype:.*")
-                            .setType(ISoundTypeDefinition.class)
-                            .setEntries(ContentTweakerAPI.getInstance().getSoundTypes().getAllNames())
-                            .setIdMapper("soundtype:"::concat)
-                            .build(),
-                    BracketHandlerMirror.<String>builder(tree)
-                            .setRegex("soundevent:.*")
-                            .setType(ISoundEventDefinition.class)
-                            .setEntries(ContentTweakerAPI.getInstance().getSoundEvents().getAllNames())
-                            .setIdMapper("soundevent:"::concat)
-                            .build(),
-                    BracketHandlerMirror.<MaterialPart>builder(tree)
-                            .setRegex("materialpart:.*")
-                            .setType(MaterialPartDefinition.class)
-                            .setEntries(MaterialSystem.getMaterialParts().values())
-                            .setIdMapper(it -> "materialpart:" + it.getMaterial().getUnlocalizedName() + ":" + it.getPart().getShortUnlocalizedName())
-                            .build()
-            );
-        }
-    }
-
-    private void registerRMI() throws RemoteException {
-        Registry registry = LocateRegistry.createRegistry(ProbeZSConfig.socketPort);
-        Remote remote = new BracketHandlerServiceImpl();
-        UnicastRemoteObject.exportObject(remote, ProbeZSConfig.socketPort);
-        registry.rebind("BracketHandler", remote);
-    }
-
     public static String safeGetItemName(IItemStack item) {
         try {
             if (item.getMetadata() == OreDictionary.WILDCARD_VALUE) {
@@ -413,6 +382,60 @@ public class ProbeZS {
             } catch (Exception ex) {
                 return "ERROR";
             }
+        }
+    }
+
+    public String getClassOwner(Class<?> clazz) {
+        return java.util.Optional.of(clazz)
+                                 .map(Class::getProtectionDomain)
+                                 .map(ProtectionDomain::getCodeSource)
+                                 .map(CodeSource::getLocation)
+                                 .map(URL::getFile)
+                                 .map(it -> it.split("!")[0])
+                                 .map(pathToModMap::get)
+                                 .map(ModContainer::getModId)
+                                 .orElse(null);
+    }
+
+    private void registerRMI() throws RemoteException {
+        Registry registry = LocateRegistry.createRegistry(ProbeZSConfig.socketPort);
+        Remote remote = new BracketHandlerServiceImpl();
+        UnicastRemoteObject.exportObject(remote, ProbeZSConfig.socketPort);
+        registry.rebind("BracketHandler", remote);
+    }
+
+    private static class ContentTweaker {
+
+        @Optional.Method(modid = "contenttweaker")
+        private static List<BracketHandlerMirror> dumpCoTBracketMirrors(ZenClassTree tree) {
+            return Lists.newArrayList(
+                    BracketHandlerMirror.<String>builder(tree)
+                                        .setType(IBlockMaterialDefinition.class)
+                                        .setRegex("blockmaterial:.*")
+                                        .setEntries(ContentTweakerAPI.getInstance().getBlockMaterials().getAllNames())
+                                        .setIdMapper("blockmaterial:"::concat)
+                                        .build(),
+                    BracketHandlerMirror.<String>builder(tree)
+                                        .setRegex("soundtype:.*")
+                                        .setType(ISoundTypeDefinition.class)
+                                        .setEntries(ContentTweakerAPI.getInstance().getSoundTypes().getAllNames())
+                                        .setIdMapper("soundtype:"::concat)
+                                        .build(),
+                    BracketHandlerMirror.<String>builder(tree)
+                                        .setRegex("soundevent:.*")
+                                        .setType(ISoundEventDefinition.class)
+                                        .setEntries(ContentTweakerAPI.getInstance().getSoundEvents().getAllNames())
+                                        .setIdMapper("soundevent:"::concat)
+                                        .build(),
+                    BracketHandlerMirror.<MaterialPart>builder(tree)
+                                        .setRegex("materialpart:.*")
+                                        .setType(MaterialPartDefinition.class)
+                                        .setEntries(MaterialSystem.getMaterialParts().values())
+                                        .setIdMapper(it -> "materialpart:" + it.getMaterial()
+                                                                               .getUnlocalizedName() + ":" + it.getPart()
+                                                                                                               .getShortUnlocalizedName())
+                                        .build()
+            );
         }
     }
 }

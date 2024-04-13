@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * @author youyihj
  */
-public class ZenConstructorNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers {
+public class ZenConstructorNode extends ZenExecutableNode implements IHasImportMembers {
     private final List<ZenParameterNode> parameters;
 
     public ZenConstructorNode(List<ZenParameterNode> parameters) {
@@ -35,7 +35,22 @@ public class ZenConstructorNode extends ZenExecutableNode implements IZenDumpabl
     }
 
     @Override
-    public void toZenScript(IndentStringBuilder sb) {
-        partialDump(sb, "zenConstructor", parameters, null);
+    protected boolean existed() {
+        return true;
+    }
+
+    @Override
+    protected void writeModifiersAndName(IndentStringBuilder sb) {
+        sb.append("zenConstructor");
+    }
+
+    @Override
+    protected List<ZenParameterNode> getParameters() {
+        return parameters;
+    }
+
+    @Override
+    protected JavaTypeMirror.Result getReturnType() {
+        return null;
     }
 }

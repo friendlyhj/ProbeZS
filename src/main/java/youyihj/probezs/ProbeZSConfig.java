@@ -20,6 +20,9 @@ public class ProbeZSConfig {
     @Config.Comment("The way to collect zenscript libs")
     public static MemberCollector memberCollector = MemberCollector.REFLECTION;
 
+    @Config.Comment("If true, outputs the source of expansion members in dzs")
+    public static boolean outputSourceExpansionMembers = false;
+
     public enum MemberCollector {
         REFLECTION,
         ASM;

@@ -7,6 +7,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.ProbeZS;
+import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.FieldData;
 import youyihj.probezs.tree.primitive.IPrimitiveType;
@@ -36,6 +37,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
     protected final Multimap<String, ZenOperatorNode> operators = HashMultimap.create();
     private ZenOperatorNode.As caster;
+    private String owner;
 
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
@@ -74,10 +76,13 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             readConstructors(clazz);
             readProperties(clazz);
             readIteratorOperators(clazz);
+            if (ProbeZSConfig.outputSourceExpansionMembers) {
+                owner = ProbeZS.instance.getClassOwner(clazz);
+            }
         }
         for (ExecutableData method : ProbeZS.getMemberFactory().getMethods(clazz)) {
             if (!Modifier.isPublic(method.getModifiers())) continue;
-            readGetter(method);
+            readGetter(method, isClass);
             readSetter(method, isClass);
             readMethod(method, isClass);
             readOperator(method, isClass);
@@ -120,10 +125,10 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
         sb.interLine();
         String extendInformation = extendClasses.stream()
-                .filter(JavaTypeMirror::isExisted)
-                .map(JavaTypeMirror::get)
-                .map(JavaTypeMirror.Result::getQualifiedName)
-                .collect(Collectors.joining(", "));
+                                                .filter(JavaTypeMirror::isExisted)
+                                                .map(JavaTypeMirror::get)
+                                                .map(JavaTypeMirror.Result::getQualifiedName)
+                                                .collect(Collectors.joining(", "));
         sb.append("zenClass ");
         sb.append(getQualifiedName());
         if (!extendInformation.isEmpty()) {
@@ -134,6 +139,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         sb.push();
         for (ZenPropertyNode propertyNode : properties.values()) {
             sb.nextLine();
+            removeSelfExpansion(propertyNode);
             propertyNode.toZenScript(sb);
         }
         for (ZenConstructorNode constructor : constructors) {
@@ -143,10 +149,12 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
         for (ZenMemberNode member : members) {
             sb.interLine();
+            removeSelfExpansion(member);
             member.toZenScript(sb);
         }
         for (ZenOperatorNode operator : operators.values()) {
             sb.interLine();
+            removeSelfExpansion(operator);
             operator.toZenScript(sb);
         }
         sb.pop();
@@ -237,7 +245,8 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operators.put(forIn,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
-                            () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses().get(value)))
+                            () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses()
+                                                                                                          .get(value)))
                     )
             );
         }
@@ -246,7 +255,8 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operators.put(forIn,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
-                            () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses().get(value)))
+                            () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses()
+                                                                                                          .get(value)))
                     )
             );
         }
@@ -258,8 +268,10 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
                             () -> {
-                                JavaTypeMirror.Result keyResult = JavaTypeMirror.Result.single(tree.getClasses().get(key));
-                                JavaTypeMirror.Result valueResult = JavaTypeMirror.Result.single(tree.getClasses().get(value));
+                                JavaTypeMirror.Result keyResult = JavaTypeMirror.Result.single(tree.getClasses()
+                                                                                                   .get(key));
+                                JavaTypeMirror.Result valueResult = JavaTypeMirror.Result.single(tree.getClasses()
+                                                                                                     .get(value));
                                 return JavaTypeMirror.Result.compound("%s[%s]", valueResult, keyResult);
                             }
                     )
@@ -267,7 +279,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    private void readGetter(ExecutableData method) {
+    private void readGetter(ExecutableData method, boolean isClass) {
         if (method.isAnnotationPresent(ZenGetter.class)) {
             JavaTypeMirror type = tree.createJavaTypeMirror(method.getReturnType());
             String name = method.getAnnotation(ZenGetter.class).value();
@@ -276,6 +288,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             }
             ZenPropertyNode propertyNode = properties.computeIfAbsent(name, it -> new ZenPropertyNode(type, it));
             propertyNode.setHasGetter(true);
+            if (!isClass) {
+                readExpansionExecutableOwner(method, propertyNode);
+            }
         }
     }
 
@@ -288,6 +303,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             }
             ZenPropertyNode propertyNode = properties.computeIfAbsent(name, it -> new ZenPropertyNode(type, it));
             propertyNode.setHasSetter(true);
+            if (!isClass) {
+                readExpansionExecutableOwner(method, propertyNode);
+            }
         }
     }
 
@@ -329,18 +347,38 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             operatorNames = Collections.singleton(".=");
         }
         for (String operatorName : operatorNames) {
-            operators.put(operatorName, new ZenOperatorNode(
+            ZenOperatorNode operator = new ZenOperatorNode(
                     operatorName,
                     ZenParameterNode.read(method, startIndex, tree),
                     tree.createJavaTypeMirror(isCompare ? boolean.class : method.getReturnType())
-            ));
+            );
+            operators.put(operatorName, operator);
+            if (!isClass) {
+                readExpansionExecutableOwner(method, operator);
+            }
         }
     }
 
     private void readMethod(ExecutableData method, boolean isClass) {
         ZenMemberNode memberNode = ZenMemberNode.read(method, tree, isClass);
         if (memberNode != null) {
+            if (!isClass) {
+                readExpansionExecutableOwner(method, memberNode);
+            }
             members.add(memberNode);
+        }
+    }
+
+    private void readExpansionExecutableOwner(ExecutableData method, IMaybeExpansionMember expansionMember) {
+        if (ProbeZSConfig.outputSourceExpansionMembers) {
+            String classOwner = ProbeZS.instance.getClassOwner(method.getDecalredClass());
+            expansionMember.setOwner(classOwner);
+        }
+    }
+
+    private void removeSelfExpansion(IMaybeExpansionMember expansionMember) {
+        if (Objects.equals(owner, expansionMember.getOwner())) {
+            expansionMember.setOwner(null);
         }
     }
 

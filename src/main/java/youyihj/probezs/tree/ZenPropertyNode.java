@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * @author youyihj
  */
-public class ZenPropertyNode implements IZenDumpable, IHasImportMembers {
+public class ZenPropertyNode implements IZenDumpable, IHasImportMembers, IMaybeExpansionMember {
     private final JavaTypeMirror type;
     private final String name;
 
@@ -15,6 +15,7 @@ public class ZenPropertyNode implements IZenDumpable, IHasImportMembers {
     private boolean hasSetter;
 
     private boolean isStatic;
+    private String owner;
 
     public ZenPropertyNode(JavaTypeMirror type, String name) {
         this.type = type;
@@ -48,6 +49,9 @@ public class ZenPropertyNode implements IZenDumpable, IHasImportMembers {
     @Override
     public void toZenScript(IndentStringBuilder sb) {
         if (type.isExisted()) {
+            if (owner != null) {
+                sb.append("// expansion member from ").append(owner).nextLine();
+            }
             String declareKeyword = isStatic ? "static" : isHasSetter() ? "var" : "val";
             sb.append(declareKeyword);
             sb.append(" ").append(name).append(" as ").append(type.get().getQualifiedName()).append(";");
@@ -57,5 +61,16 @@ public class ZenPropertyNode implements IZenDumpable, IHasImportMembers {
     @Override
     public void fillImportMembers(Set<ZenClassNode> members) {
         members.addAll(type.get().getTypeVariables());
+    }
+
+
+    @Override
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    @Override
+    public String getOwner() {
+        return owner;
     }
 }

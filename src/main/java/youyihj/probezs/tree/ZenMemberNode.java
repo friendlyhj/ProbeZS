@@ -67,14 +67,26 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     }
 
     @Override
-    public void toZenScript(IndentStringBuilder sb) {
-        if (parameters.stream().map(ZenParameterNode::getType).allMatch(JavaTypeMirror::isExisted)) {
-            if (isStatic) {
-                sb.append("static ");
-            }
-            sb.append("function ");
-            partialDump(sb, name, parameters, returnTypeResultSupplier.get());
+    protected boolean existed() {
+        return parameters.stream().map(ZenParameterNode::getType).allMatch(JavaTypeMirror::isExisted);
+    }
+
+    @Override
+    protected void writeModifiersAndName(IndentStringBuilder sb) {
+        if (isStatic) {
+            sb.append("static ");
         }
+        sb.append("function ").append(name);
+    }
+
+    @Override
+    protected List<ZenParameterNode> getParameters() {
+        return parameters;
+    }
+
+    @Override
+    protected JavaTypeMirror.Result getReturnType() {
+        return returnTypeResultSupplier.get();
     }
 
     @Override

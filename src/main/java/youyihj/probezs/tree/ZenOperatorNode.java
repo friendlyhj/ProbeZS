@@ -36,11 +36,23 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
     }
 
     @Override
-    public void toZenScript(IndentStringBuilder sb) {
-        if (parameters.stream().map(ZenParameterNode::getType).allMatch(JavaTypeMirror::isExisted)) {
-            sb.append("operator ");
-            partialDump(sb, name, parameters, returnType.get());
-        }
+    protected boolean existed() {
+        return parameters.stream().map(ZenParameterNode::getType).allMatch(JavaTypeMirror::isExisted);
+    }
+
+    @Override
+    protected void writeModifiersAndName(IndentStringBuilder sb) {
+        sb.append("operator ").append(name);
+    }
+
+    @Override
+    protected List<ZenParameterNode> getParameters() {
+        return parameters;
+    }
+
+    @Override
+    protected JavaTypeMirror.Result getReturnType() {
+        return returnType.get();
     }
 
     public static class As extends ZenOperatorNode {
