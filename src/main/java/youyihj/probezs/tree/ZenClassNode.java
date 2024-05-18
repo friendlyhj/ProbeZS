@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import crafttweaker.CraftTweakerAPI;
 import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
@@ -95,6 +96,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             @Override
             public boolean add(ZenClassNode node) {
                 if (node instanceof IPrimitiveType || node == ZenClassNode.this) {
+                    return false;
+                } else if (node == null) {
+                    CraftTweakerAPI.logInfo("[ProbeZS]: null import member in " + ZenClassNode.this.name);
                     return false;
                 } else {
                     return super.add(node);
