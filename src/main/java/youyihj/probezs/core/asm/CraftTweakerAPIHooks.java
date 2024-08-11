@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class CraftTweakerAPIHooks {
     public static void readClass(Class<?> clazz) {
-        Map<String, ModContainer> pathToModMap = ProbeZS.instance.pathToModMap;
+        Map<String, ModContainer> pathToModMap = ProbeZS.pathToModMap;
         if (ProbeZSConfig.outputSourceExpansionMembers && pathToModMap.isEmpty()) {
             Loader.instance().getActiveModList().forEach(mod -> {
                 String uri = mod.getSource().toURI().toString();

@@ -102,7 +102,7 @@ public class ProbeZS {
     public volatile LoadingObject<String> mappings = LoadingObject.of("");
 
     public Path generatedPath = processGeneratedPath();
-    public final Map<String, ModContainer> pathToModMap = new HashMap<>();
+    public static final Map<String, ModContainer> pathToModMap = new HashMap<>();
 
 
     private static final Supplier<MemberFactory> MEMBER_FACTORY = Suppliers.memoize(() -> {
