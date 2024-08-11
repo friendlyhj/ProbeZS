@@ -29,12 +29,19 @@ import crafttweaker.mc1120.damage.expand.MCDamageSourceExpand;
 import crafttweaker.mc1120.util.CraftTweakerHacks;
 import crafttweaker.preprocessor.PreprocessorFactory;
 import crafttweaker.zenscript.GlobalRegistry;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionType;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -212,11 +219,7 @@ public class ProbeZS {
         List<BracketHandlerMirror> mirrors = Lists.newArrayList(
                 BracketHandlerMirror.<IItemStack>builder(classTree)
                                     .setType(IItemStack.class)
-                                    .setEntries(CraftTweakerAPI.game.getItems().stream()
-                                                                    .flatMap(it -> it.getSubItems().stream())
-                                                                    .filter(it -> !it.hasTag())
-                                                                    .collect(Collectors.toList())
-                                    )
+                                    .setEntries(safeGetItemRegistry())
                                     .setRegex(".*")
                                     .setIdMapper(it -> {
                                         String commandString = it.toCommandString();
@@ -383,6 +386,26 @@ public class ProbeZS {
                 return "ERROR";
             }
         }
+    }
+
+    public static List<IItemStack> safeGetItemRegistry() {
+        List<IItemStack> items = new ArrayList<>();
+        for (Item item : ForgeRegistries.ITEMS.getValuesCollection()) {
+            if (item == Items.AIR)
+                continue;
+            NonNullList<ItemStack> subItems = NonNullList.create();
+            CreativeTabs tab = item.getCreativeTab() != null ? item.getCreativeTab() : CreativeTabs.SEARCH;
+            item.getSubItems(tab, subItems);
+            IntSet validMetas = new IntArraySet();
+            for (ItemStack subItem : subItems) {
+                validMetas.add(subItem.getMetadata());
+            }
+            for (int validMeta : validMetas.toIntArray()) {
+                IItemStack ctItem = CraftTweakerMC.getIItemStackMutable(new ItemStack(item, 1, validMeta));
+                items.add(ctItem);
+            }
+        }
+        return items;
     }
 
     public String getClassOwner(Class<?> clazz) {
