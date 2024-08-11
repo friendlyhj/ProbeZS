@@ -140,7 +140,7 @@ public class ZenClassTree {
                     );
                 }
             } catch (IOException e) {
-                ProbeZS.logger.error("Failed to output: {}" + classNode.getName(), e);
+                ProbeZS.logger.error("Failed to output: {} {}", classNode.getName(), e);
             }
         }
     }
