@@ -2,6 +2,8 @@
 
 Dumps all ZenScript classes, methods and vanilla bracket handler entries into `*.dzs` files.
 
+It only targets at MC 1.12.2. And there are no plans to update to modern versions.
+
 Works with [ZenScript IntelliSense](https://marketplace.visualstudio.com/items?itemName=raylras.zenscript-intelli-sense)
 
 ## Code Generators
