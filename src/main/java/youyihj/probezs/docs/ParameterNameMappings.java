@@ -5,7 +5,6 @@ import youyihj.probezs.ProbeZS;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.util.LoadingObject;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -13,22 +12,25 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 public class ParameterNameMappings {
-    private static LoadingObject<Map<String, List<Map<String, Object>>>> nameMappings;
+    private LoadingObject<Map<String, List<Map<String, Object>>>> nameMappings;
 
-    public static void load(String path) {
+    public void load(String path) {
         Yaml yaml = new Yaml();
-        if (ProbeZS.instance.mappings.get().isEmpty()) {
-            try (InputStream inputStream = ParameterNameMappings.class.getClassLoader().getResourceAsStream(path)) {
-                nameMappings = LoadingObject.of(yaml.loadAs(inputStream, Map.class));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        try {
+            if (!ProbeZS.instance.mappingsFuture.isDone()) {
+                ProbeZS.instance.mappingsFuture.cancel(true);
+                try (InputStream inputStream = ParameterNameMappings.class.getClassLoader().getResourceAsStream(path)) {
+                    nameMappings = LoadingObject.of(yaml.loadAs(inputStream, Map.class));
+                }
+            } else {
+                nameMappings = LoadingObject.of(yaml.loadAs(ProbeZS.instance.mappingsFuture.get(), Map.class));
             }
-        } else {
-            nameMappings = LoadingObject.of(yaml.loadAs(ProbeZS.instance.mappings.get(), Map.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public static List<String> find(ExecutableData method) {
+    public List<String> find(ExecutableData method) {
         if (nameMappings == null) {
             load("mappings/method-parameter-names.yaml");
         }

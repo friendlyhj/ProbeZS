@@ -2,7 +2,6 @@ package youyihj.probezs.tree;
 
 import com.google.gson.*;
 import stanhebben.zenscript.annotations.Optional;
-import youyihj.probezs.docs.ParameterNameMappings;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.IndentStringBuilder;
@@ -39,7 +38,7 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
             returnType = tree.createJavaTypeMirror(parameter.getGenericType());
         }
         Supplier<String> name = () -> {
-            List<String> list = ParameterNameMappings.find(method);
+            List<String> list = tree.getMappings().find(method);
             if (list != null && index < list.size()) {
                 return list.get(index);
             }

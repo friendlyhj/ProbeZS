@@ -41,7 +41,7 @@ public class CoreMod implements IFMLLoadingPlugin {
     public void injectData(Map<String, Object> data) {
         DebugAPIAdapter.init();
         readMemberCollectorConfig((File) data.get("mcLocation"));
-        Environment.put("launchArgs", getLaunchArguments());
+//        Environment.put("launchArgs", getLaunchArguments());
     }
 
     @Override

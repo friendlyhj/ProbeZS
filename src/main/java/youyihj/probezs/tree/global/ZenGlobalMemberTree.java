@@ -22,6 +22,7 @@ import youyihj.probezs.util.IndentStringBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -80,16 +81,16 @@ public class ZenGlobalMemberTree {
         return imports;
     }
 
-    public void output() {
+    public void output(Path dzsPath) {
         if (ProbeZSConfig.dumpDZS) {
-            outputDZS();
+            outputDZS(dzsPath);
         }
         if (ProbeZSConfig.dumpJson) {
-            outputJson();
+            outputJson(dzsPath);
         }
     }
 
-    private void outputJson() {
+    private void outputJson(Path dzsPath) {
         JsonObject json = new JsonObject();
         JsonArray imports = new JsonArray();
         for (ZenClassNode importMember : getImportMembers()) {
@@ -99,13 +100,13 @@ public class ZenGlobalMemberTree {
         json.add("fields", ZenClassTree.GSON.toJsonTree(fields, new TypeToken<Set<ZenGlobalFieldNode>>() {}.getType()));
         json.add("members", ZenClassTree.GSON.toJsonTree(members, new TypeToken<Set<ZenGlobalMethodNode>>() {}.getType()));
         try {
-            FileUtils.createFile(ProbeZS.instance.generatedPath.resolve("globals.json"), ZenClassTree.GSON.toJson(json));
+            FileUtils.createFile(dzsPath.resolve("globals.json"), ZenClassTree.GSON.toJson(json));
         } catch (IOException e) {
             ProbeZS.logger.error("Failed output globals dzs", e);
         }
     }
 
-    private void outputDZS() {
+    private void outputDZS(Path dzsPath) {
         IndentStringBuilder sb = new IndentStringBuilder();
         for (ZenClassNode anImport : getImportMembers()) {
             sb.append("import ").append(anImport.getName()).append(";").nextLine();
@@ -121,7 +122,7 @@ public class ZenGlobalMemberTree {
             sb.nextLine();
         }
         try {
-            FileUtils.createFile(ProbeZS.instance.generatedPath.resolve("globals.dzs"), sb.toString());
+            FileUtils.createFile(dzsPath.resolve("globals.dzs"), sb.toString());
         } catch (IOException e) {
             ProbeZS.logger.error("Failed output globals dzs", e);
         }
