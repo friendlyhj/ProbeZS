@@ -26,11 +26,12 @@ import java.util.stream.Collectors;
  * @author youyihj
  */
 public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable<ZenClassNode> {
-    private static final Pattern QUALIFIED_NAME_REGEX = Pattern.compile("(\\w+\\.)*(\\w+)");
+    private static final Pattern QUALIFIED_NAME_REGEX = Pattern.compile("((\\w+\\.)*\\w+)\\.(\\w+)");
 
     private final String name;
     private final ZenClassTree tree;
     private final String qualifiedName;
+    private final String packageName;
 
     protected final List<JavaTypeMirror> extendClasses = new ArrayList<>();
     protected final List<ZenMemberNode> members = new ArrayList<>();
@@ -43,7 +44,15 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
         this.tree = tree;
-        this.qualifiedName = processQualifiedName(name);
+
+        Matcher matcher = QUALIFIED_NAME_REGEX.matcher(name);
+        if (matcher.find()) {
+            this.qualifiedName = matcher.group(3);
+            this.packageName = matcher.group(1);
+        } else {
+            this.qualifiedName = name;
+            this.packageName = null;
+        }
     }
 
     public String getName() {
@@ -123,6 +132,10 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     @Override
     public void toZenScript(IndentStringBuilder sb) {
+        if (packageName != null) {
+            sb.append("package ").append(packageName).append(";");
+            sb.interLine();
+        }
         Set<ZenClassNode> imports = getImportMembers();
         for (ZenClassNode anImport : imports) {
             sb.append("import ").append(anImport.getName()).append(";").nextLine();
@@ -186,15 +199,6 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             }
         }
         return lambdaMethod;
-    }
-
-    private static String processQualifiedName(String name) {
-        Matcher matcher = QUALIFIED_NAME_REGEX.matcher(name);
-        if (matcher.find()) {
-            return matcher.group(2);
-        } else {
-            return name;
-        }
     }
 
     @Override
