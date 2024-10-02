@@ -7,6 +7,7 @@ import crafttweaker.api.oredict.IOreDictEntry;
 import crafttweaker.zenscript.GlobalRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraftforge.oredict.OreDictionary;
 import org.lwjgl.opengl.GL11;
 import org.objectweb.asm.*;
 import stanhebben.zenscript.ZenTokener;
@@ -302,11 +303,15 @@ public class BracketHandlerCaller implements BracketHandlerService {
         if (object instanceof IItemStack) {
             try {
                 return RenderTaskDispatcher.submit(() -> {
+                    IItemStack item = (IItemStack) object;
+                    if (item.getMetadata() == OreDictionary.WILDCARD_VALUE) {
+                        item = item.withDamage(0);
+                    }
                     RenderHelper.setupRenderState(32);
                     GlStateManager.pushMatrix();
                     GlStateManager.clearColor(0, 0, 0, 0);
                     GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-                    Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(CraftTweakerMC.getItemStack((IItemStack) object), 0, 0);
+                    Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(CraftTweakerMC.getItemStack(item), 0, 0);
                     GlStateManager.popMatrix();
                     RenderHelper.tearDownRenderState();
                     BufferedImage img = RenderHelper.createFlipped(RenderHelper.readPixels(32, 32));
