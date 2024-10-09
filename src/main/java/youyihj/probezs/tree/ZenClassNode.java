@@ -75,10 +75,6 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (Class<?> anInterface : clazz.getInterfaces()) {
             extendClasses.add(tree.createJavaTypeMirror(anInterface));
         }
-        ExecutableData lambdaMethod = findLambdaMethod(clazz);
-        if (lambdaMethod != null) {
-            members.add(ZenMemberNode.readDirectly(lambdaMethod, tree, "", false, false));
-        }
     }
 
     public void readMembers(Class<?> clazz, boolean isClass) {
@@ -90,13 +86,36 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                 owner = ProbeZS.instance.getClassOwner(clazz);
             }
         }
+        boolean findingLambdaFrom = isClass;
+        ExecutableData lambdaForm = null;
+        ZenMemberNode lambdaFormZenCode = null;
         for (ExecutableData method : ProbeZS.getMemberFactory().getMethods(clazz)) {
             if (!Modifier.isPublic(method.getModifiers())) continue;
             readGetter(method, isClass);
             readSetter(method, isClass);
-            readMethod(method, isClass);
+            if (findingLambdaFrom && Modifier.isAbstract(method.getModifiers())) {
+                if (lambdaForm == null) {
+                    lambdaForm = method;
+                    lambdaFormZenCode = readMethod(method, true);
+                } else {
+                    lambdaForm = null;
+                    lambdaFormZenCode = null;
+                    findingLambdaFrom = false;
+                }
+            } else {
+                readMethod(method, isClass);
+            }
             readOperator(method, isClass);
             readCaster(method);
+        }
+        if (lambdaForm != null) {
+            if (lambdaFormZenCode != null) {
+                lambdaFormZenCode.setLambda();
+            } else {
+                lambdaFormZenCode = ZenMemberNode.readDirectly(lambdaForm, tree, "", false, false);
+                lambdaFormZenCode.setLambda();
+                members.add(lambdaFormZenCode);
+            }
         }
     }
 
@@ -367,7 +386,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    private void readMethod(ExecutableData method, boolean isClass) {
+    private ZenMemberNode readMethod(ExecutableData method, boolean isClass) {
         ZenMemberNode memberNode = ZenMemberNode.read(method, tree, isClass);
         if (memberNode != null) {
             if (!isClass) {
@@ -375,6 +394,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             }
             members.add(memberNode);
         }
+        return memberNode;
     }
 
     private void readExpansionExecutableOwner(ExecutableData method, IMaybeExpansionMember expansionMember) {

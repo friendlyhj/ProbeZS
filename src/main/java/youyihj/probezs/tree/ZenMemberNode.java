@@ -18,6 +18,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     private final String name;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
+    private boolean isLambda;
 
     @SerializedName("returnType")
     private final Supplier<JavaTypeMirror.Result> returnTypeResultSupplier;
@@ -73,6 +74,9 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
 
     @Override
     protected void writeModifiersAndName(IndentStringBuilder sb) {
+        if (isLambda) {
+            sb.append("lambda ");
+        }
         if (isStatic) {
             sb.append("static ");
         }
@@ -95,5 +99,9 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
             parameter.fillImportMembers(members);
         }
         members.addAll(returnTypeResultSupplier.get().getTypeVariables());
+    }
+
+    public void setLambda() {
+        isLambda = true;
     }
 }
