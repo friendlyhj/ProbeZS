@@ -3,7 +3,7 @@ package youyihj.probezs.tree;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import youyihj.probezs.util.IntersectionType;
+import youyihj.probezs.util.CastRuleType;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Type;
@@ -57,21 +57,15 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
 
     public static class As extends ZenOperatorNode {
 
-        private IntersectionType intersectionType;
-        private final ZenClassTree tree;
+        private final CastRuleType castRuleType = new CastRuleType();
 
         public As(ZenClassTree tree) {
             super("as", Collections.emptyList(), null);
-            this.tree = tree;
+            this.returnType = tree.createJavaTypeMirror(castRuleType);
         }
 
         public void appendCastType(Type type) {
-            if (intersectionType == null) {
-                intersectionType = new IntersectionType(new Type[] {type});
-            } else {
-                intersectionType = intersectionType.append(type);
-            }
-            returnType = tree.createJavaTypeMirror(intersectionType);
+            castRuleType.appendType(type);
         }
     }
 

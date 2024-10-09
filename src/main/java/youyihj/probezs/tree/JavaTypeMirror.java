@@ -6,6 +6,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import crafttweaker.util.IEventHandler;
 import youyihj.probezs.ProbeZS;
+import youyihj.probezs.util.CastRuleType;
 import youyihj.probezs.util.IntersectionType;
 
 import java.lang.reflect.ParameterizedType;
@@ -100,6 +101,13 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
                                 .map(this::getResult)
                                 .collect(Collectors.toList())
                 );
+            } else if (type instanceof CastRuleType) {
+                return Result.castResult(
+                        ((CastRuleType) type).getTypes()
+                        .stream()
+                        .map(this::getResult)
+                        .collect(Collectors.toList())
+                );
             }
         } catch (Exception ignored) {
         }
@@ -155,7 +163,11 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
 
         static Result intersection(List<Result> results) {
-            return new IntersectionResult(results);
+            return new MultipleResult(results, " & ");
+        }
+
+        static Result castResult(List<Result> results) {
+            return new MultipleResult(results, ", ");
         }
     }
 
@@ -234,25 +246,27 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
     }
 
-    private static class IntersectionResult implements Result {
+    private static class MultipleResult implements Result {
         private final List<Result> results;
+        private final String delimiter;
 
-        public IntersectionResult(List<Result> results) {
+        public MultipleResult(List<Result> results, String delimiter) {
             this.results = results;
+            this.delimiter = delimiter;
         }
 
         @Override
         public String getFullName() {
             return results.stream()
                     .map(Result::getFullName)
-                    .collect(Collectors.joining(" & "));
+                    .collect(Collectors.joining(delimiter));
         }
 
         @Override
         public String getQualifiedName() {
             return results.stream()
                     .map(Result::getQualifiedName)
-                    .collect(Collectors.joining(" & "));
+                    .collect(Collectors.joining(delimiter));
         }
 
         @Override

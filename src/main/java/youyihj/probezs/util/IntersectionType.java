@@ -1,7 +1,5 @@
 package youyihj.probezs.util;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Objects;
@@ -19,10 +17,6 @@ public class IntersectionType implements Type {
 
     public Type[] getCompoundTypes() {
         return types;
-    }
-
-    public IntersectionType append(Type type) {
-        return new IntersectionType(ArrayUtils.add(types, type));
     }
 
     @Override
