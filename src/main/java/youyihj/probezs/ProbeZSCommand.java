@@ -1,10 +1,8 @@
 package youyihj.probezs;
 
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.common.collect.Sets;
+import com.google.gson.*;
 import com.teamacronymcoders.base.materialsystem.MaterialSystem;
 import com.teamacronymcoders.base.materialsystem.materialparts.MaterialPart;
 import com.teamacronymcoders.contenttweaker.api.ContentTweakerAPI;
@@ -60,6 +58,7 @@ import youyihj.probezs.tree.global.ZenGlobalMemberTree;
 import youyihj.probezs.util.FileUtils;
 
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -91,34 +90,38 @@ public class ProbeZSCommand extends CraftTweakerCommand {
 
     @Override
     public void executeCommand(MinecraftServer server, ICommandSender sender, String[] args) {
-        Path dzsPath = getDZSPathFromIntellizenJson();
-        if (dzsPath == null) {
+        Path probeZSPath = getProbeZSPathFromIntellizenJson();
+        if (probeZSPath == null) {
             if (args.length == 0) {
-                sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "Can not read intellizen.json, generate one now"));
+                sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "Can not read dump dir from intellizen.json, generate one now"));
                 sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "Please define the path of dzs scripts by executing " + TextFormatting.GREEN + "/ct probezs minecraft" + TextFormatting.AQUA + " or " + TextFormatting.GREEN + "/ct probezs user"));
                 sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "minecraft: this minecraft instance dir"));
                 sender.sendMessage(new TextComponentString(TextFormatting.AQUA + "user: USER_DIR/.probezs"));
             } else {
-                dzsPath = generateDefaultIntellizenJson(args[0], sender);
+                probeZSPath = generateDefaultIntellizenJson(args[0], sender);
+            }
+        } else {
+            if (args.length > 0) {
+                sender.sendMessage(new TextComponentString(TextFormatting.YELLOW + "Warning: dump dir is already defined by intellizen.json, the argument will be ignored"));
             }
         }
-        if (dzsPath != null) {
+        if (probeZSPath != null) {
             try {
-                if (Files.exists(dzsPath)) {
-                    removeOldScripts(dzsPath);
+                if (Files.exists(probeZSPath)) {
+                    removeOldScripts(probeZSPath);
                 } else {
-                    Files.createDirectories(dzsPath);
+                    Files.createDirectories(probeZSPath);
                 }
-                Files.createDirectories(dzsPath);
+                Files.createDirectories(probeZSPath);
                 ZenClassTree tree = new ZenClassTree(CraftTweakerAPIHooks.ZEN_CLASSES);
                 ZenGlobalMemberTree globalMemberTree = dumpGlobalMembers(tree);
                 List<BracketHandlerMirror> mirrors = dumpBracketHandlerMirrors(tree);
                 tree.fresh();
-                tree.output(dzsPath);
-                globalMemberTree.output(dzsPath);
-                outputBracketHandlerMirrors(mirrors, dzsPath);
-                outputPreprocessors(dzsPath);
-                dumpEnvironment(dzsPath);
+                tree.output(probeZSPath);
+                globalMemberTree.output(probeZSPath);
+                outputBracketHandlerMirrors(mirrors, probeZSPath);
+                outputPreprocessors(probeZSPath);
+                dumpEnvironment(probeZSPath);
             } catch (IOException e) {
                 sender.sendMessage(new TextComponentString(TextFormatting.RED + "Can not dump zs lib " + e));
             }
@@ -131,27 +134,29 @@ public class ProbeZSCommand extends CraftTweakerCommand {
         return Arrays.asList("minecraft", "user");
     }
 
-    private Path getDZSPathFromIntellizenJson() {
+    private Path getProbeZSPathFromIntellizenJson() {
         Path path = FileSystems.getDefault().getPath("intellizen.json");
         if (!Files.exists(path)) {
             path = FileSystems.getDefault().getPath("scripts", "probezs.json");
         }
         try {
             JsonObject json = GSON.fromJson(Files.newBufferedReader(path), JsonElement.class).getAsJsonObject();
-            String dzsScriptsPath = json.get("dzs_scripts").getAsString();
+            String probeZSPath = json.getAsJsonObject("probezs")
+                    .get("dumpDir")
+                    .getAsString();
             Path parent = path.getParent();
-            return parent == null ? FileSystems.getDefault().getPath(dzsScriptsPath) : parent.resolve(dzsScriptsPath);
-        } catch (Exception e) {
-            return null;
+            return parent == null ? FileSystems.getDefault().getPath(probeZSPath) : parent.resolve(probeZSPath);
+        } catch (Exception ignored) {
         }
+        return null;
     }
 
     private Path generateDefaultIntellizenJson(String arg, ICommandSender sender) {
         Path intellizenPath = FileSystems.getDefault().getPath("intellizen.json");
-        String dzsScriptsPath;
+        String probeZSPath;
         switch (arg) {
             case "minecraft":
-                dzsScriptsPath = "./dzs_scripts";
+                probeZSPath = "./probezs";
                 break;
             case "user":
                 try {
@@ -159,14 +164,15 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                     Path scriptsPath;
                     try {
                         scriptsPath = FileSystems.getDefault().getPath("scripts").toRealPath();
-                    } catch (
-                            IOException e) {
-                        scriptsPath = FileSystems.getDefault().getPath(System.getProperty("user.dir")).resolve("scripts");
+                    } catch (IOException e) {
+                        scriptsPath = FileSystems.getDefault()
+                                .getPath(System.getProperty("user.dir"))
+                                .resolve("scripts");
                     }
                     Environment.put("scriptPath", scriptsPath.toString());
                     sha1.update(scriptsPath.toString().getBytes(StandardCharsets.UTF_8));
-                    dzsScriptsPath = System.getProperty("user.home") + "/.probezs/" + Hex.encodeHexString(sha1.digest()) + "/dzs_scripts";
-                    dzsScriptsPath = dzsScriptsPath.replace('\\', '/');
+                    probeZSPath = System.getProperty("user.home") + "/.probezs/" + Hex.encodeHexString(sha1.digest());
+                    probeZSPath = probeZSPath.replace('\\', '/');
                 } catch (NoSuchAlgorithmException e) { // really?
                     throw new AssertionError();
                 }
@@ -175,15 +181,42 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                 sender.sendMessage(new TextComponentString(TextFormatting.RED + "Unknown dir argument"));
                 return null;
         }
-        JsonObject json = new JsonObject();
-        json.addProperty("scripts", "./scripts");
-        json.addProperty("dzs_scripts", dzsScriptsPath);
+        JsonObject json;
+        try (BufferedReader reader = Files.newBufferedReader(intellizenPath, StandardCharsets.UTF_8)) {
+            json = GSON.fromJson(reader, JsonObject.class);
+        } catch (IOException e) {
+            json = new JsonObject();
+        }
+        Set<JsonElement> srcRoots;
+        if (json.has("srcRoots")) {
+            srcRoots = Sets.newHashSet(json.get("srcRoots").getAsJsonArray());
+        } else {
+            srcRoots = Sets.newHashSet();
+        }
+        srcRoots.add(new JsonPrimitive("./scripts"));
+        JsonObject dumpDirRef = new JsonObject();
+        dumpDirRef.addProperty("$ref", "#/probezs/dumpDir");
+        srcRoots.add(dumpDirRef);
+//        srcRoots.add(new JsonPrimitive(probeZSPath));
+        json.add("srcRoots", newJsonArray(srcRoots));
+        JsonObject probezs = new JsonObject();
+        probezs.addProperty("dumpDir", probeZSPath);
+        probezs.addProperty("rpcSocketPort", ProbeZSConfig.socketPort);
+        json.add("probezs", probezs);
         try (BufferedWriter writer = Files.newBufferedWriter(intellizenPath)) {
             GSON.toJson(json, writer);
         } catch (IOException e) {
             sender.sendMessage(new TextComponentString(TextFormatting.RED + "Failed to write intellizen.json file"));
         }
-        return FileSystems.getDefault().getPath(dzsScriptsPath);
+        return FileSystems.getDefault().getPath(probeZSPath);
+    }
+
+    private static JsonArray newJsonArray(Collection<JsonElement> elements) {
+        JsonArray array = new JsonArray();
+        for (JsonElement element : elements) {
+            array.add(element);
+        }
+        return array;
     }
 
     private void removeOldScripts(Path dzsPath) {
@@ -214,94 +247,94 @@ public class ProbeZSCommand extends CraftTweakerCommand {
     private List<BracketHandlerMirror> dumpBracketHandlerMirrors(ZenClassTree classTree) {
         List<BracketHandlerMirror> mirrors = Lists.newArrayList(
                 BracketHandlerMirror.<IItemStack>builder(classTree)
-                                    .setType(IItemStack.class)
-                                    .setEntries(ProbeZS.safeGetItemRegistry())
-                                    .setRegex(".*")
-                                    .setIdMapper(it -> {
-                                        String commandString = it.toCommandString();
-                                        return commandString.substring(1, commandString.length() - 1);
-                                    })
-                                    .setPropertiesAdder((item, properties) -> {
-                                        properties.add("name", ProbeZS.safeGetItemName(item), true);
-                                    })
-                                    .build(),
+                        .setType(IItemStack.class)
+                        .setEntries(ProbeZS.safeGetItemRegistry())
+                        .setRegex(".*")
+                        .setIdMapper(it -> {
+                            String commandString = it.toCommandString();
+                            return commandString.substring(1, commandString.length() - 1);
+                        })
+                        .setPropertiesAdder((item, properties) -> {
+                            properties.add("name", ProbeZS.safeGetItemName(item), true);
+                        })
+                        .build(),
                 BracketHandlerMirror.<Block>builder(classTree)
-                                    .setType(IBlockState.class)
-                                    .setEntries(ForgeRegistries.BLOCKS.getValuesCollection())
-                                    .setRegex("blockstate:.*")
-                                    .setIdMapper(it -> "blockstate:" + it.getRegistryName())
-                                    .setPropertiesAdder(this::fillBlockProperties)
-                                    .build(),
+                        .setType(IBlockState.class)
+                        .setEntries(ForgeRegistries.BLOCKS.getValuesCollection())
+                        .setRegex("blockstate:.*")
+                        .setIdMapper(it -> "blockstate:" + it.getRegistryName())
+                        .setPropertiesAdder(this::fillBlockProperties)
+                        .build(),
                 BracketHandlerMirror.<IIngredient>builder(classTree)
-                                    .setRegex("\\*")
-                                    .setType(IIngredient.class)
-                                    .setEntries(Collections.singleton(IngredientAny.INSTANCE))
-                                    .setIdMapper(it -> "*")
-                                    .build(),
+                        .setRegex("\\*")
+                        .setType(IIngredient.class)
+                        .setEntries(Collections.singleton(IngredientAny.INSTANCE))
+                        .setIdMapper(it -> "*")
+                        .build(),
                 BracketHandlerMirror.<String>builder(classTree)
-                                    .setType(ILiquidStack.class)
-                                    .setRegex("(fluid|liquid):.*")
-                                    .setEntries(FluidRegistry.getRegisteredFluids().keySet())
-                                    .setIdMapper(it -> "liquid:" + it.replace(" ", ""))
-                                    .setPropertiesAdder((liquid, properties) -> {
-                                        FluidStack fluidStack = Objects.requireNonNull(FluidRegistry.getFluidStack(liquid, Fluid.BUCKET_VOLUME));
-                                        properties.add("name", fluidStack.getLocalizedName(), true);
-                                    })
-                                    .build(),
+                        .setType(ILiquidStack.class)
+                        .setRegex("(fluid|liquid):.*")
+                        .setEntries(FluidRegistry.getRegisteredFluids().keySet())
+                        .setIdMapper(it -> "liquid:" + it.replace(" ", ""))
+                        .setPropertiesAdder((liquid, properties) -> {
+                            FluidStack fluidStack = Objects.requireNonNull(FluidRegistry.getFluidStack(liquid, Fluid.BUCKET_VOLUME));
+                            properties.add("name", fluidStack.getLocalizedName(), true);
+                        })
+                        .build(),
                 BracketHandlerMirror.<IBiome>builder(classTree)
-                                    .setType(IBiome.class)
-                                    .setRegex("biome:.*")
-                                    .setEntries(CraftTweakerAPI.game.getBiomes())
-                                    .setIdMapper(it -> "biome:" + it.getId().split(":")[1])
-                                    .build(),
+                        .setType(IBiome.class)
+                        .setRegex("biome:.*")
+                        .setEntries(CraftTweakerAPI.game.getBiomes())
+                        .setIdMapper(it -> "biome:" + it.getId().split(":")[1])
+                        .build(),
                 BracketHandlerMirror.<String>builder(classTree)
-                                    .setType(ICreativeTab.class)
-                                    .setRegex("creativetab:.*")
-                                    .setEntries(CraftTweakerMC.creativeTabs.keySet())
-                                    .setIdMapper("creativetab:"::concat)
-                                    .build(),
+                        .setType(ICreativeTab.class)
+                        .setRegex("creativetab:.*")
+                        .setEntries(CraftTweakerMC.creativeTabs.keySet())
+                        .setIdMapper("creativetab:"::concat)
+                        .build(),
                 BracketHandlerMirror.<Method>builder(classTree)
-                                    .setType(IDamageSource.class)
-                                    .setRegex("damageSource:.*")
-                                    .setEntries(Arrays.stream(MCDamageSourceExpand.class.getDeclaredMethods())
-                                                      .filter(it -> it.getParameterCount() == 0)
-                                                      .collect(Collectors.toList())
-                                    )
-                                    .setIdMapper(it -> "damageSource:" + it.getName())
-                                    .build(),
+                        .setType(IDamageSource.class)
+                        .setRegex("damageSource:.*")
+                        .setEntries(Arrays.stream(MCDamageSourceExpand.class.getDeclaredMethods())
+                                .filter(it -> it.getParameterCount() == 0)
+                                .collect(Collectors.toList())
+                        )
+                        .setIdMapper(it -> "damageSource:" + it.getName())
+                        .build(),
                 BracketHandlerMirror.<String>builder(classTree)
-                                    .setType(IEnchantmentDefinition.class)
-                                    .setRegex("enchantment:.*")
-                                    .setEntries(BracketHandlerEnchantments.enchantments.keySet())
-                                    .setIdMapper(it -> "enchantment:" + it)
-                                    .build(),
+                        .setType(IEnchantmentDefinition.class)
+                        .setRegex("enchantment:.*")
+                        .setEntries(BracketHandlerEnchantments.enchantments.keySet())
+                        .setIdMapper(it -> "enchantment:" + it)
+                        .build(),
                 BracketHandlerMirror.<IEntityDefinition>builder(classTree)
-                                    .setType(IEntityDefinition.class)
-                                    .setRegex("entity:.*")
-                                    .setEntries(CraftTweakerAPI.game.getEntities())
-                                    .setIdMapper(it -> "entity:" + it.getId())
-                                    .build(),
+                        .setType(IEntityDefinition.class)
+                        .setRegex("entity:.*")
+                        .setEntries(CraftTweakerAPI.game.getEntities())
+                        .setIdMapper(it -> "entity:" + it.getId())
+                        .build(),
                 BracketHandlerMirror.<IOreDictEntry>builder(classTree)
-                                    .setType(IOreDictEntry.class)
-                                    .setRegex("ore:.*")
-                                    .setEntries(CraftTweakerAPI.oreDict.getEntries())
-                                    .setIdMapper(it -> "ore:" + it.getName())
-                                    .setPropertiesAdder((od, properties) -> {
-                                        properties.add("name", ProbeZS.safeGetItemName(od.getFirstItem()), true);
-                                    })
-                                    .build(),
+                        .setType(IOreDictEntry.class)
+                        .setRegex("ore:.*")
+                        .setEntries(CraftTweakerAPI.oreDict.getEntries())
+                        .setIdMapper(it -> "ore:" + it.getName())
+                        .setPropertiesAdder((od, properties) -> {
+                            properties.add("name", ProbeZS.safeGetItemName(od.getFirstItem()), true);
+                        })
+                        .build(),
                 BracketHandlerMirror.<Potion>builder(classTree)
-                                    .setType(IPotion.class)
-                                    .setRegex("potion:.*")
-                                    .setEntries(ForgeRegistries.POTIONS.getValuesCollection())
-                                    .setIdMapper(it -> "potion:" + it.getRegistryName())
-                                    .build(),
+                        .setType(IPotion.class)
+                        .setRegex("potion:.*")
+                        .setEntries(ForgeRegistries.POTIONS.getValuesCollection())
+                        .setIdMapper(it -> "potion:" + it.getRegistryName())
+                        .build(),
                 BracketHandlerMirror.<PotionType>builder(classTree)
-                                    .setType(IPotionType.class)
-                                    .setRegex("potiontype:.*")
-                                    .setEntries(ForgeRegistries.POTION_TYPES.getValuesCollection())
-                                    .setIdMapper(it -> "potiontype:" + it.getRegistryName())
-                                    .build()
+                        .setType(IPotionType.class)
+                        .setRegex("potiontype:.*")
+                        .setEntries(ForgeRegistries.POTION_TYPES.getValuesCollection())
+                        .setIdMapper(it -> "potiontype:" + it.getRegistryName())
+                        .build()
         );
         if (Loader.isModLoaded("contenttweaker")) {
             mirrors.addAll(ContentTweaker.dumpCoTBracketMirrors(classTree));
@@ -316,10 +349,10 @@ public class ProbeZSCommand extends CraftTweakerCommand {
             FileUtils.createFile(
                     dzsPath.resolve("preprocessors.json"),
                     registeredPreprocessorActions.keySet()
-                                                 .stream()
-                                                 .map(it -> StringUtils.wrap(it, "\""))
-                                                 .collect(Collectors.toList())
-                                                 .toString()
+                            .stream()
+                            .map(it -> StringUtils.wrap(it, "\""))
+                            .collect(Collectors.toList())
+                            .toString()
             );
         } catch (IOException e) {
             ProbeZS.logger.error("Failed to output preprocessor json", e);
@@ -352,7 +385,7 @@ public class ProbeZSCommand extends CraftTweakerCommand {
         Environment.put("probezsVersion", ProbeZS.VERSION);
         CrashReportCategory category = new CrashReport("", new Throwable()).getCategory();
         Map<String, CrashReportCategory.Entry> entries = category.children.stream()
-                                                                          .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
+                .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
         Environment.put("operatingSystem", entries.get("Operating System").getValue());
         Environment.put("javaVersion", entries.get("Java Version").getValue());
         Environment.put("javaPath", System.getProperty("java.home"));
@@ -374,31 +407,31 @@ public class ProbeZSCommand extends CraftTweakerCommand {
         private static List<BracketHandlerMirror> dumpCoTBracketMirrors(ZenClassTree tree) {
             return Lists.newArrayList(
                     BracketHandlerMirror.<String>builder(tree)
-                                        .setType(IBlockMaterialDefinition.class)
-                                        .setRegex("blockmaterial:.*")
-                                        .setEntries(ContentTweakerAPI.getInstance().getBlockMaterials().getAllNames())
-                                        .setIdMapper("blockmaterial:"::concat)
-                                        .build(),
+                            .setType(IBlockMaterialDefinition.class)
+                            .setRegex("blockmaterial:.*")
+                            .setEntries(ContentTweakerAPI.getInstance().getBlockMaterials().getAllNames())
+                            .setIdMapper("blockmaterial:"::concat)
+                            .build(),
                     BracketHandlerMirror.<String>builder(tree)
-                                        .setRegex("soundtype:.*")
-                                        .setType(ISoundTypeDefinition.class)
-                                        .setEntries(ContentTweakerAPI.getInstance().getSoundTypes().getAllNames())
-                                        .setIdMapper("soundtype:"::concat)
-                                        .build(),
+                            .setRegex("soundtype:.*")
+                            .setType(ISoundTypeDefinition.class)
+                            .setEntries(ContentTweakerAPI.getInstance().getSoundTypes().getAllNames())
+                            .setIdMapper("soundtype:"::concat)
+                            .build(),
                     BracketHandlerMirror.<String>builder(tree)
-                                        .setRegex("soundevent:.*")
-                                        .setType(ISoundEventDefinition.class)
-                                        .setEntries(ContentTweakerAPI.getInstance().getSoundEvents().getAllNames())
-                                        .setIdMapper("soundevent:"::concat)
-                                        .build(),
+                            .setRegex("soundevent:.*")
+                            .setType(ISoundEventDefinition.class)
+                            .setEntries(ContentTweakerAPI.getInstance().getSoundEvents().getAllNames())
+                            .setIdMapper("soundevent:"::concat)
+                            .build(),
                     BracketHandlerMirror.<MaterialPart>builder(tree)
-                                        .setRegex("materialpart:.*")
-                                        .setType(MaterialPartDefinition.class)
-                                        .setEntries(MaterialSystem.getMaterialParts().values())
-                                        .setIdMapper(it -> "materialpart:" + it.getMaterial()
-                                                                               .getUnlocalizedName() + ":" + it.getPart()
-                                                                                                               .getShortUnlocalizedName())
-                                        .build()
+                            .setRegex("materialpart:.*")
+                            .setType(MaterialPartDefinition.class)
+                            .setEntries(MaterialSystem.getMaterialParts().values())
+                            .setIdMapper(it -> "materialpart:" + it.getMaterial()
+                                    .getUnlocalizedName() + ":" + it.getPart()
+                                    .getShortUnlocalizedName())
+                            .build()
             );
         }
     }

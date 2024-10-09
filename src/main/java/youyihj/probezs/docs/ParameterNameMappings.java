@@ -10,20 +10,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.concurrent.CompletableFuture;
 
 public class ParameterNameMappings {
     private LoadingObject<Map<String, List<Map<String, Object>>>> nameMappings;
 
     public void load(String path) {
         Yaml yaml = new Yaml();
+        CompletableFuture<String> mappingsFuture = ProbeZS.instance.mappingsFuture;
         try {
-            if (!ProbeZS.instance.mappingsFuture.isDone()) {
-                ProbeZS.instance.mappingsFuture.cancel(true);
+            if (!mappingsFuture.isDone() || mappingsFuture.isCompletedExceptionally()) {
+                mappingsFuture.cancel(true);
                 try (InputStream inputStream = ParameterNameMappings.class.getClassLoader().getResourceAsStream(path)) {
                     nameMappings = LoadingObject.of(yaml.loadAs(inputStream, Map.class));
                 }
             } else {
-                nameMappings = LoadingObject.of(yaml.loadAs(ProbeZS.instance.mappingsFuture.get(), Map.class));
+                nameMappings = LoadingObject.of(yaml.loadAs(mappingsFuture.get(), Map.class));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
