@@ -34,8 +34,6 @@ import crafttweaker.zenscript.GlobalRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionType;
 import net.minecraft.server.MinecraftServer;
@@ -61,8 +59,6 @@ import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -70,7 +66,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -201,7 +196,7 @@ public class ProbeZSCommand extends CraftTweakerCommand {
         json.add("srcRoots", newJsonArray(srcRoots));
         JsonObject probezs = new JsonObject();
         probezs.addProperty("dumpDir", probeZSPath);
-        probezs.addProperty("rpcSocketPort", ProbeZSConfig.socketPort);
+        probezs.addProperty("port", 6489);
         json.add("probezs", probezs);
         try (BufferedWriter writer = Files.newBufferedWriter(intellizenPath)) {
             GSON.toJson(json, writer);
@@ -381,24 +376,24 @@ public class ProbeZSCommand extends CraftTweakerCommand {
     }
 
     private void dumpEnvironment(Path dzsPath) {
-        Environment.put("probezsSocketPort", String.valueOf(ProbeZSConfig.socketPort));
-        Environment.put("probezsVersion", ProbeZS.VERSION);
-        CrashReportCategory category = new CrashReport("", new Throwable()).getCategory();
-        Map<String, CrashReportCategory.Entry> entries = category.children.stream()
-                .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
-        Environment.put("operatingSystem", entries.get("Operating System").getValue());
-        Environment.put("javaVersion", entries.get("Java Version").getValue());
-        Environment.put("javaPath", System.getProperty("java.home"));
-        Environment.put("jvmVersion", entries.get("Java VM Version").getValue());
-        RuntimeMXBean runtimemxbean = ManagementFactory.getRuntimeMXBean();
-        Environment.put("jvmFlags", runtimemxbean.getInputArguments());
-        Environment.put("classpath", runtimemxbean.getClassPath());
-        try {
-            Environment.put("bootClassPath", runtimemxbean.getBootClassPath());
-        } catch (UnsupportedOperationException e) {
-            Environment.put("bootClassPath", "");
-        }
-        Environment.output(dzsPath.resolve("env.json"));
+//        Environment.put("probezsSocketPort", String.valueOf(ProbeZSConfig.socketPort));
+//        Environment.put("probezsVersion", ProbeZS.VERSION);
+//        CrashReportCategory category = new CrashReport("", new Throwable()).getCategory();
+//        Map<String, CrashReportCategory.Entry> entries = category.children.stream()
+//                .collect(Collectors.toMap(CrashReportCategory.Entry::getKey, Function.identity()));
+//        Environment.put("operatingSystem", entries.get("Operating System").getValue());
+//        Environment.put("javaVersion", entries.get("Java Version").getValue());
+//        Environment.put("javaPath", System.getProperty("java.home"));
+//        Environment.put("jvmVersion", entries.get("Java VM Version").getValue());
+//        RuntimeMXBean runtimemxbean = ManagementFactory.getRuntimeMXBean();
+//        Environment.put("jvmFlags", runtimemxbean.getInputArguments());
+//        Environment.put("classpath", runtimemxbean.getClassPath());
+//        try {
+//            Environment.put("bootClassPath", runtimemxbean.getBootClassPath());
+//        } catch (UnsupportedOperationException e) {
+//            Environment.put("bootClassPath", "");
+//        }
+//        Environment.output(dzsPath.resolve("env.json"));
     }
 
     private static class ContentTweaker {

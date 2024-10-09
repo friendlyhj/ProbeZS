@@ -14,9 +14,6 @@ public class ProbeZSConfig {
     @Config.Comment("whether output json files")
     public static boolean dumpJson = false;
 
-    @Config.Comment("Communication port with language server")
-    public static int socketPort = 6489;
-
     @Config.Comment("The way to collect zenscript libs")
     public static MemberCollector memberCollector = MemberCollector.REFLECTION;
 

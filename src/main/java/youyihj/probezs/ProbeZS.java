@@ -20,10 +20,10 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.logging.log4j.Logger;
-import youyihj.probezs.api.BracketHandlerServiceImpl;
 import youyihj.probezs.core.ASMMemberCollector;
 import youyihj.probezs.member.MemberFactory;
 import youyihj.probezs.member.reflection.ReflectionMemberFactory;
+import youyihj.probezs.network.BracketHandlerServer;
 import youyihj.probezs.util.LoadingObject;
 
 import java.io.BufferedReader;
@@ -31,11 +31,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -52,7 +47,7 @@ import java.util.stream.Collectors;
 @Mod(modid = ProbeZS.MODID, name = ProbeZS.NAME, version = ProbeZS.VERSION, dependencies = ProbeZS.DEPENDENCIES)
 public class ProbeZS {
     public static final String MODID = "probezs";
-    public static final String VERSION = "1.19.0";
+    public static final String VERSION = "2.0.0";
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
@@ -103,11 +98,7 @@ public class ProbeZS {
 
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
-        try {
-            registerRMI();
-        } catch (RemoteException e) {
-            logger.error(e);
-        }
+        BracketHandlerServer.start();
         CTChatCommand.registerCommand(new ProbeZSCommand());
     }
 
@@ -163,13 +154,4 @@ public class ProbeZS {
                                  .map(ModContainer::getModId)
                                  .orElse(null);
     }
-
-    private void registerRMI() throws RemoteException {
-        Registry registry = LocateRegistry.createRegistry(ProbeZSConfig.socketPort);
-        Remote remote = new BracketHandlerServiceImpl();
-        UnicastRemoteObject.exportObject(remote, ProbeZSConfig.socketPort);
-        registry.rebind("BracketHandler", remote);
-    }
-
-
 }
