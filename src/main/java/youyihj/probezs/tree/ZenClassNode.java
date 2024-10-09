@@ -178,20 +178,22 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             removeSelfExpansion(propertyNode);
             propertyNode.toZenScript(sb);
         }
-        for (ZenConstructorNode constructor : constructors) {
+        if (!properties.isEmpty()) {
             sb.interLine();
-            constructor.toZenScript(sb);
         }
-
-        for (ZenMemberNode member : members) {
+        for (ZenConstructorNode constructor : constructors) {
+            constructor.toZenScript(sb);
             sb.interLine();
+        }
+        for (ZenMemberNode member : members) {
             removeSelfExpansion(member);
             member.toZenScript(sb);
+            sb.interLine();
         }
         for (ZenOperatorNode operator : operators.values()) {
-            sb.interLine();
             removeSelfExpansion(operator);
             operator.toZenScript(sb);
+            sb.interLine();
         }
         sb.pop();
         sb.append("}");

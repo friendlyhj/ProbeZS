@@ -10,6 +10,7 @@ public class IndentStringBuilder {
     private final StringBuilder sb = new StringBuilder();
 
     private boolean emptyLine = true;
+    private boolean interLine = false;
 
     public IndentStringBuilder() {
         this(4);
@@ -20,6 +21,10 @@ public class IndentStringBuilder {
     }
 
     public IndentStringBuilder append(String s) {
+        if (interLine) {
+            forceNextLine();
+            interLine = false;
+        }
         sb.append(s);
         emptyLine = false;
         return this;
@@ -43,17 +48,21 @@ public class IndentStringBuilder {
     }
 
     public IndentStringBuilder interLine() {
-        return nextLine().forceNextLine();
+        nextLine();
+        interLine = true;
+        return this;
     }
 
     public IndentStringBuilder push() {
         indentLevel++;
+        interLine = false;
         forceNextLine();
         return this;
     }
 
     public IndentStringBuilder pop() {
         indentLevel--;
+        interLine = false;
         forceNextLine();
         return this;
     }
