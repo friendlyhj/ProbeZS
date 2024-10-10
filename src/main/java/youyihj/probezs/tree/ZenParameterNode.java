@@ -106,12 +106,7 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
                     if (optional.methodClass() == Optional.class) {
                         sb.append(null);
                     } else {
-                        sb.append(optional.methodClass().getName())
-                                .append(".")
-                                .append(optional.methodName())
-                                .append("(")
-                                .append("\"").append(optional.value()).append("\"")
-                                .append(")");
+                        sb.append("default");
                     }
                     break;
             }
