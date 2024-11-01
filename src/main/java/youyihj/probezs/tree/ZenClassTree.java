@@ -34,6 +34,7 @@ public class ZenClassTree {
             .create();
 
     private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();
+    private final Map<String, ZenExpandClassNode> builtinTypeExpansions = new LinkedHashMap<>();
     private final Map<Class<?>, ZenClassNode> javaMap = new HashMap<>();
     private final List<JavaTypeMirror> javaTypeMirrors = new ArrayList<>();
     private final ParameterNameMappings mappings = new ParameterNameMappings();
@@ -63,12 +64,19 @@ public class ZenClassTree {
             }
             if (zenExpansion != null) {
                 String name = zenExpansion.value();
-                // don't export collection expansion yet, and avoid empty name
-                if (name.contains("[") || name.isEmpty()) {
+                if (name.isEmpty()) {
+                    return;
+                }
+                if (name.contains("[")) {
+                    readBuiltinTypeExpansion(name, clazz);
                     return;
                 }
                 ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
-                classNode.readMembers(clazz, false);
+                if (classNode instanceof IBuiltinType) {
+                    readBuiltinTypeExpansion(name, clazz);
+                } else {
+                    classNode.readMembers(clazz, false);
+                }
             }
         } catch (Throwable e) {
             throw new RuntimeException("Failed to get members of " + clazz.getName() + ", try setting MemberCollector to ASM in config?", e);
@@ -108,6 +116,7 @@ public class ZenClassTree {
     public void output(Path dzsPath) {
         for (ZenClassNode classNode : classes.values()) {
             String filePath = classNode.getName().replace('.', '/');
+            if (classNode instanceof IBuiltinType) continue;
             try {
                 if (ProbeZSConfig.dumpDZS) {
                     IndentStringBuilder builder = new IndentStringBuilder();
@@ -124,6 +133,27 @@ public class ZenClassTree {
                 }
             } catch (IOException e) {
                 ProbeZS.logger.error("Failed to output: {} {}", classNode.getName(), e);
+            }
+        }
+
+        if (ProbeZSConfig.dumpDZS) {
+            IndentStringBuilder builder = new IndentStringBuilder();
+            ImportSet importSet = new ImportSet(null, new TreeSet<>());
+            for (ZenExpandClassNode expandClassNode : builtinTypeExpansions.values()) {
+                expandClassNode.fillImportMembers(importSet);
+            }
+            for (ZenClassNode anImport : importSet) {
+                builder.append("import ").append(anImport.getName()).append(";").nextLine();
+            }
+            builder.interLine();
+            for (ZenExpandClassNode expandClassNode : builtinTypeExpansions.values()) {
+                expandClassNode.toZenScript(builder);
+                builder.interLine();
+            }
+            try {
+                FileUtils.createFile(dzsPath.resolve("expands.dzs"), builder.toString());
+            } catch (IOException e) {
+                ProbeZS.logger.error("Failed to output expands.dzs", e);
             }
         }
     }
@@ -171,5 +201,10 @@ public class ZenClassTree {
         registerPrimitiveClass(CharSequence.class, stringNode);
         registerPrimitiveClass(IntRange.class, new ZenIntRangeNode(this));
         javaMap.put(Object.class, anyClass);
+    }
+
+    private void readBuiltinTypeExpansion(String name, Class<?> clazz) {
+        ZenExpandClassNode expandClassNode = builtinTypeExpansions.computeIfAbsent(name, it -> new ZenExpandClassNode(it, this));
+        expandClassNode.readMembers(clazz, false);
     }
 }

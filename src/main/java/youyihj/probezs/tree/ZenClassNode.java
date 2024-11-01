@@ -5,13 +5,11 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import crafttweaker.CraftTweakerAPI;
 import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.FieldData;
-import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenOperators;
 
@@ -44,7 +42,6 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
         this.tree = tree;
-
         Matcher matcher = QUALIFIED_NAME_REGEX.matcher(name);
         if (matcher.find()) {
             this.qualifiedName = matcher.group(3);
@@ -120,32 +117,8 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     public Set<ZenClassNode> getImportMembers() {
-        Set<ZenClassNode> imports = new TreeSet<ZenClassNode>() {
-            @Override
-            public boolean add(ZenClassNode node) {
-                if (node instanceof IPrimitiveType || node == ZenClassNode.this) {
-                    return false;
-                } else if (node == null) {
-                    CraftTweakerAPI.logInfo("[ProbeZS]: null import member in " + ZenClassNode.this.name);
-                    return false;
-                } else {
-                    return super.add(node);
-                }
-            }
-        };
+        Set<ZenClassNode> imports = new ImportSet(this, new TreeSet<>());
         this.fillImportMembers(imports);
-        for (ZenPropertyNode property : properties.values()) {
-            property.fillImportMembers(imports);
-        }
-        for (ZenMemberNode member : members) {
-            member.fillImportMembers(imports);
-        }
-        for (ZenConstructorNode constructor : constructors) {
-            constructor.fillImportMembers(imports);
-        }
-        for (ZenOperatorNode operator : operators.values()) {
-            operator.fillImportMembers(imports);
-        }
         return imports;
     }
 
@@ -204,22 +177,18 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (JavaTypeMirror extendClass : extendClasses) {
             members.addAll(extendClass.get().getTypeVariables());
         }
-    }
-
-    private ExecutableData findLambdaMethod(Class<?> clazz) {
-        ExecutableData lambdaMethod = null;
-        if (clazz.isInterface()) {
-            for (ExecutableData method : ProbeZS.getMemberFactory().getMethods(clazz)) {
-                int modifiers = method.getModifiers();
-                if (Modifier.isPublic(modifiers) && Modifier.isAbstract(modifiers)) {
-                    if (lambdaMethod != null) {
-                        return null;
-                    }
-                    lambdaMethod = method;
-                }
-            }
+        for (ZenPropertyNode property : properties.values()) {
+            property.fillImportMembers(members);
         }
-        return lambdaMethod;
+        for (ZenMemberNode member : this.members) {
+            member.fillImportMembers(members);
+        }
+        for (ZenConstructorNode constructor : constructors) {
+            constructor.fillImportMembers(members);
+        }
+        for (ZenOperatorNode operator : operators.values()) {
+            operator.fillImportMembers(members);
+        }
     }
 
     @Override
@@ -406,7 +375,6 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             expansionMember.setOwner(null);
         }
     }
-
 
     public static class Serializer implements JsonSerializer<ZenClassNode> {
 

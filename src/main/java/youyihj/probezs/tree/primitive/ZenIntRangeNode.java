@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @author youyihj
  */
-public class ZenIntRangeNode extends ZenClassNode {
+public class ZenIntRangeNode extends ZenClassNode implements IBuiltinType {
     public ZenIntRangeNode(ZenClassTree tree) {
         super(ZenTypeIntRange.INTRANGE.getName(), tree);
         properties.put("from", new ZenPropertyNode(tree.createJavaTypeMirror(int.class), "from"));
