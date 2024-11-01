@@ -161,10 +161,10 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
         sb.interLine();
         String extendInformation = extendClasses.stream()
-                                                .filter(JavaTypeMirror::isExisted)
-                                                .map(JavaTypeMirror::get)
-                                                .map(JavaTypeMirror.Result::getQualifiedName)
-                                                .collect(Collectors.joining(", "));
+                .filter(JavaTypeMirror::isExisted)
+                .map(JavaTypeMirror::get)
+                .map(JavaTypeMirror.Result::getQualifiedName)
+                .collect(Collectors.joining(", "));
         sb.append("zenClass ");
         sb.append(getQualifiedName());
         if (!extendInformation.isEmpty()) {
@@ -268,24 +268,23 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     private void readIteratorOperators(Class<?> clazz) {
-        String forIn = "for_in";
         if (clazz.isAnnotationPresent(IterableSimple.class)) {
             String value = clazz.getAnnotation(IterableSimple.class).value();
-            operators.put(forIn,
+            operators.put("for",
                     new ZenOperatorNode(
-                            forIn, Collections.emptyList(),
-                            () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses()
-                                                                                                          .get(value)))
+                            "for", Collections.singletonList(new ZenParameterNode(() -> "element", () -> JavaTypeMirror.Result.single(tree.getClasses()
+                            .get(value)), null, false)),
+                            tree.createJavaTypeMirror(void.class)
                     )
             );
         }
         if (clazz.isAnnotationPresent(IterableList.class)) {
             String value = clazz.getAnnotation(IterableList.class).value();
-            operators.put(forIn,
+            operators.put("for",
                     new ZenOperatorNode(
-                            forIn, Collections.emptyList(),
-                            () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses()
-                                                                                                          .get(value)))
+                            "for", Collections.singletonList(new ZenParameterNode(() -> "element", () -> JavaTypeMirror.Result.single(tree.getClasses()
+                            .get(value)), null, false)),
+                            tree.createJavaTypeMirror(void.class)
                     )
             );
         }
@@ -293,16 +292,12 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             IterableMap iterableMap = clazz.getAnnotation(IterableMap.class);
             String key = iterableMap.key();
             String value = iterableMap.value();
-            operators.put(forIn,
+            operators.put("for",
                     new ZenOperatorNode(
-                            forIn, Collections.emptyList(),
-                            () -> {
-                                JavaTypeMirror.Result keyResult = JavaTypeMirror.Result.single(tree.getClasses()
-                                                                                                   .get(key));
-                                JavaTypeMirror.Result valueResult = JavaTypeMirror.Result.single(tree.getClasses()
-                                                                                                     .get(value));
-                                return JavaTypeMirror.Result.compound("%s[%s]", valueResult, keyResult);
-                            }
+                            "for", Arrays.asList(
+                            new ZenParameterNode(() -> "key", () -> JavaTypeMirror.Result.single(tree.getClasses().get(key)), null, false),
+                            new ZenParameterNode(() -> "value", () -> JavaTypeMirror.Result.single(tree.getClasses().get(value)), null, false)
+                    ), tree.createJavaTypeMirror(void.class)
                     )
             );
         }

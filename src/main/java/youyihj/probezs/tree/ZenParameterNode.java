@@ -18,11 +18,11 @@ import java.util.function.Supplier;
  */
 public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
     private final Supplier<String> name;
-    private final JavaTypeMirror type;
+    private final Supplier<JavaTypeMirror.Result> type;
     private final Optional optional;
     private final boolean varArgs;
 
-    public ZenParameterNode(Supplier<String> name, JavaTypeMirror type, Optional optional, boolean varArgs) {
+    public ZenParameterNode(Supplier<String> name, Supplier<JavaTypeMirror.Result> type, Optional optional, boolean varArgs) {
         this.name = name;
         this.type = type;
         this.optional = optional;
@@ -67,8 +67,16 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
         return name;
     }
 
-    public JavaTypeMirror getType() {
-        return type;
+    public JavaTypeMirror.Result getType() {
+        return type.get();
+    }
+
+    public boolean isExisted() {
+        if (type instanceof JavaTypeMirror) {
+            return ((JavaTypeMirror) type).isExisted();
+        } else {
+            return true;
+        }
     }
 
     public Optional getOptional() {
@@ -127,7 +135,7 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
             json.add("type", context.serialize(src.getType()));
             Optional optional = src.getOptional();
             if (optional != null) {
-                String typeName = src.getType().get().getQualifiedName();
+                String typeName = src.getType().getQualifiedName();
                 switch (typeName) {
                     case "int":
                     case "short":

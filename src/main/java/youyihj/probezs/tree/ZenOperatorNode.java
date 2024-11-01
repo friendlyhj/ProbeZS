@@ -37,7 +37,7 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
 
     @Override
     protected boolean existed() {
-        return parameters.stream().map(ZenParameterNode::getType).allMatch(JavaTypeMirror::isExisted);
+        return parameters.stream().allMatch(ZenParameterNode::isExisted);
     }
 
     @Override
