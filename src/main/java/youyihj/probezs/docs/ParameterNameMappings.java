@@ -3,7 +3,6 @@ package youyihj.probezs.docs;
 import org.yaml.snakeyaml.Yaml;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.member.ExecutableData;
-import youyihj.probezs.util.LoadingObject;
 
 import java.io.InputStream;
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 
 public class ParameterNameMappings {
-    private LoadingObject<Map<String, List<Map<String, Object>>>> nameMappings;
+    private Map<String, List<Map<String, Object>>> nameMappings;
 
     public void load(String path) {
         Yaml yaml = new Yaml();
@@ -22,10 +21,10 @@ public class ParameterNameMappings {
             if (!mappingsFuture.isDone() || mappingsFuture.isCompletedExceptionally()) {
                 mappingsFuture.cancel(true);
                 try (InputStream inputStream = ParameterNameMappings.class.getClassLoader().getResourceAsStream(path)) {
-                    nameMappings = LoadingObject.of(yaml.loadAs(inputStream, Map.class));
+                    nameMappings = yaml.loadAs(inputStream, Map.class);
                 }
             } else {
-                nameMappings = LoadingObject.of(yaml.loadAs(mappingsFuture.get(), Map.class));
+                nameMappings = yaml.loadAs(mappingsFuture.get(), Map.class);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -37,7 +36,7 @@ public class ParameterNameMappings {
             load("mappings/method-parameter-names.yaml");
         }
         String clazzName = method.getDecalredClass().getCanonicalName();
-        List<Map<String, Object>> datas = nameMappings.get().get(clazzName);
+        List<Map<String, Object>> datas = nameMappings.get(clazzName);
 
         if (method.getParameterTypes().length == 0) {
             return null;

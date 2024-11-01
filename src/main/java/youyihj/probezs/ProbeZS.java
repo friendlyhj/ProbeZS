@@ -14,7 +14,6 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ModContainer;
-import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
@@ -24,7 +23,6 @@ import youyihj.probezs.core.ASMMemberCollector;
 import youyihj.probezs.member.MemberFactory;
 import youyihj.probezs.member.reflection.ReflectionMemberFactory;
 import youyihj.probezs.network.BracketHandlerServer;
-import youyihj.probezs.util.LoadingObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,7 +49,6 @@ public class ProbeZS {
     public static final String NAME = "ProbeZS";
     public static final String DEPENDENCIES = "required-after:crafttweaker;";
     public static Logger logger;
-    private static final List<LoadingObject<?>> loadingObjects = new ArrayList<>();
 
     public CompletableFuture<String> mappingsFuture = CompletableFuture.supplyAsync(() -> {
         try {
@@ -83,10 +80,6 @@ public class ProbeZS {
     @Mod.Instance
     public static ProbeZS instance;
 
-    public static void addLoadingObject(LoadingObject<?> object) {
-        loadingObjects.add(object);
-    }
-
     public static MemberFactory getMemberFactory() {
         return MEMBER_FACTORY.get();
     }
@@ -100,11 +93,6 @@ public class ProbeZS {
     public void onPostInit(FMLPostInitializationEvent event) {
         BracketHandlerServer.start();
         CTChatCommand.registerCommand(new ProbeZSCommand());
-    }
-
-    @Mod.EventHandler
-    public void onLoadComplete(FMLLoadCompleteEvent event) {
-        loadingObjects.forEach(LoadingObject::setAlreadyLoaded);
     }
 
     public static String safeGetItemName(IItemStack item) {
