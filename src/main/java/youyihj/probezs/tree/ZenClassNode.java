@@ -89,17 +89,16 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             if (!Modifier.isPublic(method.getModifiers())) continue;
             readGetter(method, isClass);
             readSetter(method, isClass);
+            ZenMemberNode currentMember = readMethod(method, isClass);
             if (findingLambdaFrom && Modifier.isAbstract(method.getModifiers())) {
                 if (lambdaForm == null) {
                     lambdaForm = method;
-                    lambdaFormZenCode = readMethod(method, true);
+                    lambdaFormZenCode = currentMember;
                 } else {
                     lambdaForm = null;
                     lambdaFormZenCode = null;
                     findingLambdaFrom = false;
                 }
-            } else {
-                readMethod(method, isClass);
             }
             readOperator(method, isClass);
             readCaster(method);
