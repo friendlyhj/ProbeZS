@@ -2,7 +2,6 @@ package youyihj.probezs.tree;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import stanhebben.zenscript.annotations.*;
@@ -315,41 +314,44 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     private void readOperator(ExecutableData method, boolean isClass) {
         int startIndex = isClass ? 0 : 1;
-        Set<String> operatorNames = Collections.emptySet();
-        boolean isCompare = false;
+        Map<String, Type> operatorNamesAndTypes = new HashMap<>();
         if (method.isAnnotationPresent(ZenOperator.class)) {
             OperatorType operatorType = method.getAnnotation(ZenOperator.class).value();
             switch (operatorType) {
                 case EQUALS:
-                    operatorNames = Sets.newHashSet("==", "!=");
-                    isCompare = true;
+                    operatorNamesAndTypes.put("==", boolean.class);
+                    operatorNamesAndTypes.put("!=", boolean.class);
                     break;
                 case COMPARE:
-                    operatorNames = Sets.newHashSet("==", "!=", ">", ">=", "<", "<=");
-                    isCompare = true;
+                    operatorNamesAndTypes.put("==", boolean.class);
+                    operatorNamesAndTypes.put("!=", boolean.class);
+                    operatorNamesAndTypes.put(">", boolean.class);
+                    operatorNamesAndTypes.put("<", boolean.class);
+                    operatorNamesAndTypes.put(">=", boolean.class);
+                    operatorNamesAndTypes.put("<=", boolean.class);
                     break;
                 default:
-                    operatorNames = Collections.singleton(ZenOperators.getZenScriptFormat(operatorType));
+                    operatorNamesAndTypes.put(ZenOperators.getZenScriptFormat(operatorType), method.getReturnType());
                     break;
             }
         }
         if (method.isAnnotationPresent(ZenMemberGetter.class)) {
-            operatorNames = Collections.singleton(".");
+            operatorNamesAndTypes.put(".", method.getReturnType());
         }
         if (method.isAnnotationPresent(ZenMemberSetter.class)) {
-            operatorNames = Collections.singleton(".=");
+            operatorNamesAndTypes.put(".=", method.getReturnType());
         }
-        for (String operatorName : operatorNames) {
+        operatorNamesAndTypes.forEach((name, type) -> {
             ZenOperatorNode operator = new ZenOperatorNode(
-                    operatorName,
+                    name,
                     ZenParameterNode.read(method, startIndex, tree),
-                    tree.createJavaTypeMirror(isCompare ? boolean.class : method.getReturnType())
+                    tree.createJavaTypeMirror(type)
             );
-            operators.put(operatorName, operator);
+            operators.put(name, operator);
             if (!isClass) {
                 readExpansionExecutableOwner(method, operator);
             }
-        }
+        });
     }
 
     private ZenMemberNode readMethod(ExecutableData method, boolean isClass) {
