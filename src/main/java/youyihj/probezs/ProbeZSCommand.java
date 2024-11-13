@@ -244,7 +244,7 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                 BracketHandlerMirror.<IItemStack>builder(classTree)
                         .setType(IItemStack.class)
                         .setEntries(ProbeZS.safeGetItemRegistry())
-                        .setRegex("item:.*")
+                        .setRegex("^item:.*")
                         .setIdMapper(it -> {
                             String commandString = it.toCommandString();
                             return commandString.substring(1, commandString.length() - 1);
@@ -256,19 +256,19 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                 BracketHandlerMirror.<Block>builder(classTree)
                         .setType(IBlockState.class)
                         .setEntries(ForgeRegistries.BLOCKS.getValuesCollection())
-                        .setRegex("blockstate:.*")
+                        .setRegex("^blockstate:.*")
                         .setIdMapper(it -> "blockstate:" + it.getRegistryName())
                         .setPropertiesAdder(this::fillBlockProperties)
                         .build(),
                 BracketHandlerMirror.<IIngredient>builder(classTree)
-                        .setRegex("\\*")
+                        .setRegex("^\\*$")
                         .setType(IIngredient.class)
                         .setEntries(Collections.singleton(IngredientAny.INSTANCE))
                         .setIdMapper(it -> "*")
                         .build(),
                 BracketHandlerMirror.<String>builder(classTree)
                         .setType(ILiquidStack.class)
-                        .setRegex("(fluid|liquid):.*")
+                        .setRegex("^(fluid|liquid):.*")
                         .setEntries(FluidRegistry.getRegisteredFluids().keySet())
                         .setIdMapper(it -> "liquid:" + it.replace(" ", ""))
                         .setPropertiesAdder((liquid, properties) -> {
@@ -278,19 +278,19 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                         .build(),
                 BracketHandlerMirror.<IBiome>builder(classTree)
                         .setType(IBiome.class)
-                        .setRegex("biome:.*")
+                        .setRegex("^biome:.*")
                         .setEntries(CraftTweakerAPI.game.getBiomes())
                         .setIdMapper(it -> "biome:" + it.getId().split(":")[1])
                         .build(),
                 BracketHandlerMirror.<String>builder(classTree)
                         .setType(ICreativeTab.class)
-                        .setRegex("creativetab:.*")
+                        .setRegex("^creativetab:.*")
                         .setEntries(CraftTweakerMC.creativeTabs.keySet())
                         .setIdMapper("creativetab:"::concat)
                         .build(),
                 BracketHandlerMirror.<Method>builder(classTree)
                         .setType(IDamageSource.class)
-                        .setRegex("damageSource:.*")
+                        .setRegex("^damageSource:.*")
                         .setEntries(Arrays.stream(MCDamageSourceExpand.class.getDeclaredMethods())
                                 .filter(it -> it.getParameterCount() == 0)
                                 .collect(Collectors.toList())
@@ -299,19 +299,19 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                         .build(),
                 BracketHandlerMirror.<String>builder(classTree)
                         .setType(IEnchantmentDefinition.class)
-                        .setRegex("enchantment:.*")
+                        .setRegex("^enchantment:.*")
                         .setEntries(BracketHandlerEnchantments.enchantments.keySet())
                         .setIdMapper(it -> "enchantment:" + it)
                         .build(),
                 BracketHandlerMirror.<IEntityDefinition>builder(classTree)
                         .setType(IEntityDefinition.class)
-                        .setRegex("entity:.*")
+                        .setRegex("^entity:.*")
                         .setEntries(CraftTweakerAPI.game.getEntities())
                         .setIdMapper(it -> "entity:" + it.getId())
                         .build(),
                 BracketHandlerMirror.<IOreDictEntry>builder(classTree)
                         .setType(IOreDictEntry.class)
-                        .setRegex("ore:.*")
+                        .setRegex("^ore:.*")
                         .setEntries(CraftTweakerAPI.oreDict.getEntries())
                         .setIdMapper(it -> "ore:" + it.getName())
                         .setPropertiesAdder((od, properties) -> {
@@ -320,13 +320,13 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                         .build(),
                 BracketHandlerMirror.<Potion>builder(classTree)
                         .setType(IPotion.class)
-                        .setRegex("potion:.*")
+                        .setRegex("^potion:.*")
                         .setEntries(ForgeRegistries.POTIONS.getValuesCollection())
                         .setIdMapper(it -> "potion:" + it.getRegistryName())
                         .build(),
                 BracketHandlerMirror.<PotionType>builder(classTree)
                         .setType(IPotionType.class)
-                        .setRegex("potiontype:.*")
+                        .setRegex("^potiontype:.*")
                         .setEntries(ForgeRegistries.POTION_TYPES.getValuesCollection())
                         .setIdMapper(it -> "potiontype:" + it.getRegistryName())
                         .build()
@@ -403,24 +403,24 @@ public class ProbeZSCommand extends CraftTweakerCommand {
             return Lists.newArrayList(
                     BracketHandlerMirror.<String>builder(tree)
                             .setType(IBlockMaterialDefinition.class)
-                            .setRegex("blockmaterial:.*")
+                            .setRegex("^blockmaterial:.*")
                             .setEntries(ContentTweakerAPI.getInstance().getBlockMaterials().getAllNames())
                             .setIdMapper("blockmaterial:"::concat)
                             .build(),
                     BracketHandlerMirror.<String>builder(tree)
-                            .setRegex("soundtype:.*")
+                            .setRegex("^soundtype:.*")
                             .setType(ISoundTypeDefinition.class)
                             .setEntries(ContentTweakerAPI.getInstance().getSoundTypes().getAllNames())
                             .setIdMapper("soundtype:"::concat)
                             .build(),
                     BracketHandlerMirror.<String>builder(tree)
-                            .setRegex("soundevent:.*")
+                            .setRegex("^soundevent:.*")
                             .setType(ISoundEventDefinition.class)
                             .setEntries(ContentTweakerAPI.getInstance().getSoundEvents().getAllNames())
                             .setIdMapper("soundevent:"::concat)
                             .build(),
                     BracketHandlerMirror.<MaterialPart>builder(tree)
-                            .setRegex("materialpart:.*")
+                            .setRegex("^materialpart:.*")
                             .setType(MaterialPartDefinition.class)
                             .setEntries(MaterialSystem.getMaterialParts().values())
                             .setIdMapper(it -> "materialpart:" + it.getMaterial()
