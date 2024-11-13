@@ -244,7 +244,7 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                 BracketHandlerMirror.<IItemStack>builder(classTree)
                         .setType(IItemStack.class)
                         .setEntries(ProbeZS.safeGetItemRegistry())
-                        .setRegex(".*")
+                        .setRegex("item:.*")
                         .setIdMapper(it -> {
                             String commandString = it.toCommandString();
                             return commandString.substring(1, commandString.length() - 1);
