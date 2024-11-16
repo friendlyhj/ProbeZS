@@ -1,8 +1,5 @@
 package youyihj.probezs.tree;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import stanhebben.zenscript.annotations.ZenClass;
 import stanhebben.zenscript.annotations.ZenExpansion;
 import stanhebben.zenscript.value.IntRange;
@@ -17,22 +14,11 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Supplier;
 
 /**
  * @author youyihj
  */
 public class ZenClassTree {
-    public static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .registerTypeAdapter(new TypeToken<Supplier<JavaTypeMirror.Result>>() {
-            }.getType(), new JavaTypeMirror.Serializer())
-            .registerTypeAdapter(JavaTypeMirror.class, new JavaTypeMirror.Serializer())
-            .registerTypeAdapter(ZenClassNode.class, new ZenClassNode.Serializer())
-            .registerTypeAdapter(ZenParameterNode.class, new ZenParameterNode.Serializer())
-            .registerTypeAdapter(ZenOperatorNode.As.class, new ZenOperatorNode.AsSerializer())
-            .create();
-
     private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();
     private final Map<String, ZenExpandClassNode> builtinTypeExpansions = new LinkedHashMap<>();
     private final Map<Class<?>, ZenClassNode> javaMap = new HashMap<>();
@@ -120,15 +106,9 @@ public class ZenClassTree {
             try {
                 if (ProbeZSConfig.dumpDZS) {
                     IndentStringBuilder builder = new IndentStringBuilder();
-                    classNode.toZenScript(builder);
+                    classNode.toZenScript(builder, classNode.getTypeNameContext());
                     FileUtils.createFile(dzsPath.resolve(filePath + ".dzs"),
                             builder.toString()
-                    );
-                }
-                if (ProbeZSConfig.dumpJson) {
-                    FileUtils.createFile(
-                            dzsPath.resolve(filePath + ".json"),
-                            GSON.toJson(classNode, ZenClassNode.class)
                     );
                 }
             } catch (IOException e) {
@@ -138,16 +118,14 @@ public class ZenClassTree {
 
         if (ProbeZSConfig.dumpDZS) {
             IndentStringBuilder builder = new IndentStringBuilder();
-            ImportSet importSet = new ImportSet(null, new TreeSet<>());
+            TypeNameContext context = new TypeNameContext(null);
             for (ZenExpandClassNode expandClassNode : builtinTypeExpansions.values()) {
-                expandClassNode.fillImportMembers(importSet);
+                expandClassNode.setMentionedTypes(context);
             }
-            for (ZenClassNode anImport : importSet) {
-                builder.append("import ").append(anImport.getName()).append(";").nextLine();
-            }
+            context.toZenScript(builder, context);
             builder.interLine();
             for (ZenExpandClassNode expandClassNode : builtinTypeExpansions.values()) {
-                expandClassNode.toZenScript(builder);
+                expandClassNode.toZenScript(builder, context);
                 builder.interLine();
             }
             try {

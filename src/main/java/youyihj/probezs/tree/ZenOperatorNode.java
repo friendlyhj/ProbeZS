@@ -9,13 +9,12 @@ import youyihj.probezs.util.IndentStringBuilder;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * @author youyihj
  */
-public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers {
+public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, ITypeNameContextAcceptor {
     private final String name;
     private final List<ZenParameterNode> parameters;
 
@@ -25,14 +24,6 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
         this.name = name;
         this.parameters = parameters;
         this.returnType = returnTypes;
-    }
-
-    @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
-        for (ZenParameterNode parameter : parameters) {
-            parameter.fillImportMembers(members);
-        }
-        members.addAll(returnType.get().getTypeVariables());
     }
 
     @Override
@@ -53,6 +44,14 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
     @Override
     protected JavaTypeMirror.Result getReturnType() {
         return returnType.get();
+    }
+
+    @Override
+    public void setMentionedTypes(TypeNameContext context) {
+        for (ZenParameterNode parameter : parameters) {
+            parameter.setMentionedTypes(context);
+        }
+        context.addClasses(returnType.get().getTypeVariables());
     }
 
     public static class As extends ZenOperatorNode {

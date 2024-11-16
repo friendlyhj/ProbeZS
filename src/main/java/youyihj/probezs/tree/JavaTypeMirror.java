@@ -145,7 +145,7 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
     public interface Result {
         String getFullName();
 
-        String getQualifiedName();
+        String getQualifiedName(TypeNameContext context);
 
         List<ZenClassNode> getTypeVariables();
 
@@ -184,8 +184,8 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
 
         @Override
-        public String getQualifiedName() {
-            return classNode.getQualifiedName();
+        public String getQualifiedName(TypeNameContext context) {
+            return context.getTypeName(classNode);
         }
 
         @Override
@@ -208,7 +208,7 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
 
         @Override
-        public String getQualifiedName() {
+        public String getQualifiedName(TypeNameContext context) {
             return "any";
         }
 
@@ -233,8 +233,8 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
 
         @Override
-        public String getQualifiedName() {
-            return String.format(format, results.stream().map(Result::getQualifiedName).toArray());
+        public String getQualifiedName(TypeNameContext context) {
+            return String.format(format, results.stream().map(context::getTypeName).toArray());
         }
 
         @Override
@@ -263,9 +263,9 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
 
         @Override
-        public String getQualifiedName() {
+        public String getQualifiedName(TypeNameContext context) {
             return results.stream()
-                    .map(Result::getQualifiedName)
+                    .map(context::getTypeName)
                     .collect(Collectors.joining(delimiter));
         }
 
@@ -278,15 +278,7 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
     }
 
-    public static class Serializer implements JsonSerializer<Supplier<Result>> {
-
-        @Override
-        public JsonElement serialize(Supplier<Result> src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(src.get().getQualifiedName());
-        }
-    }
-
-    public static class FullNameSerializer implements JsonSerializer<JavaTypeMirror> {
+    public static class Serializer implements JsonSerializer<JavaTypeMirror> {
 
         @Override
         public JsonElement serialize(JavaTypeMirror src, Type typeOfSrc, JsonSerializationContext context) {

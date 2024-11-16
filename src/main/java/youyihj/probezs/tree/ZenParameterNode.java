@@ -1,22 +1,19 @@
 package youyihj.probezs.tree;
 
-import com.google.gson.*;
 import stanhebben.zenscript.annotations.Optional;
 import youyihj.probezs.member.ExecutableData;
 import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenKeywords;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * @author youyihj
  */
-public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
+public class ZenParameterNode implements IZenDumpable, ITypeNameContextAcceptor {
     private final Supplier<String> name;
     private final Supplier<JavaTypeMirror.Result> type;
     private final Optional optional;
@@ -84,8 +81,8 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
     }
 
     @Override
-    public void toZenScript(IndentStringBuilder sb) {
-        String typeName = type.get().getQualifiedName();
+    public void toZenScript(IndentStringBuilder sb, TypeNameContext context) {
+        String typeName = context.getTypeName(getType());
         sb.append(getName()).append(" as ").append(typeName);
         if (optional != null) {
             sb.append(" = ");
@@ -122,57 +119,7 @@ public class ZenParameterNode implements IZenDumpable, IHasImportMembers {
     }
 
     @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
-        members.addAll(type.get().getTypeVariables());
-    }
-
-    public static class Serializer implements JsonSerializer<ZenParameterNode> {
-
-        @Override
-        public JsonElement serialize(ZenParameterNode src, Type typeOfSrc, JsonSerializationContext context) {
-            JsonObject json = new JsonObject();
-            json.addProperty("name", src.getName());
-            json.add("type", context.serialize(src.getType()));
-            Optional optional = src.getOptional();
-            if (optional != null) {
-                String typeName = src.getType().getQualifiedName();
-                switch (typeName) {
-                    case "int":
-                    case "short":
-                    case "long":
-                    case "byte":
-                        json.addProperty("optional", optional.valueLong());
-                        break;
-                    case "bool":
-                        json.addProperty("optional", optional.valueBoolean());
-                        break;
-                    case "float":
-                    case "double":
-                        json.addProperty("optional", optional.valueDouble());
-                        break;
-                    case "string":
-                        if (optional.value().isEmpty()) {
-                            json.add("optional", JsonNull.INSTANCE);
-                        } else {
-                            json.addProperty("optional", optional.value());
-                        }
-                        break;
-                    default:
-                        if (optional.methodClass() == Optional.class) {
-                            json.add("optional", JsonNull.INSTANCE);
-                        } else {
-                            String sb = optional.methodClass().getName() +
-                                    "." +
-                                    optional.methodName() +
-                                    "(" +
-                                    "\"" + optional.value() + "\"" +
-                                    ")";
-                            json.addProperty("optional", sb);
-                        }
-                        break;
-                }
-            }
-            return json;
-        }
+    public void setMentionedTypes(TypeNameContext context) {
+        context.addClasses(getType().getTypeVariables());
     }
 }

@@ -6,12 +6,11 @@ import youyihj.probezs.util.IndentStringBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author youyihj
  */
-public class ZenConstructorNode extends ZenExecutableNode implements IHasImportMembers {
+public class ZenConstructorNode extends ZenExecutableNode implements ITypeNameContextAcceptor {
     private final List<ZenParameterNode> parameters;
 
     public ZenConstructorNode(List<ZenParameterNode> parameters) {
@@ -28,9 +27,9 @@ public class ZenConstructorNode extends ZenExecutableNode implements IHasImportM
     }
 
     @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
+    public void setMentionedTypes(TypeNameContext context) {
         for (ZenParameterNode parameter : parameters) {
-            parameter.fillImportMembers(members);
+            parameter.setMentionedTypes(context);
         }
     }
 

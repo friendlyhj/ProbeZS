@@ -20,7 +20,7 @@ public abstract class ZenExecutableNode implements IMaybeExpansionMember, IZenDu
     protected abstract JavaTypeMirror.Result getReturnType();
 
     @Override
-    public final void toZenScript(IndentStringBuilder sb) {
+    public final void toZenScript(IndentStringBuilder sb, TypeNameContext context) {
         if (!existed()) return;
         if (expansionOwner != null) {
             sb.append("// expansion member from ").append(expansionOwner).nextLine();
@@ -29,7 +29,7 @@ public abstract class ZenExecutableNode implements IMaybeExpansionMember, IZenDu
         sb.append("(");
         Iterator<ZenParameterNode> iterator = getParameters().iterator();
         while (iterator.hasNext()) {
-            iterator.next().toZenScript(sb);
+            iterator.next().toZenScript(sb, context);
             if (iterator.hasNext()) {
                 sb.append(", ");
             }
@@ -37,7 +37,7 @@ public abstract class ZenExecutableNode implements IMaybeExpansionMember, IZenDu
         sb.append(")");
         JavaTypeMirror.Result returnType = getReturnType();
         if (returnType != null) {
-            sb.append(" as ").append(returnType.getQualifiedName());
+            sb.append(" as ").append(context.getTypeName(returnType));
         }
         sb.append(";");
     }

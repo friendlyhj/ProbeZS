@@ -9,12 +9,11 @@ import youyihj.probezs.util.IndentStringBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author youyihj
  */
-public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers, Comparable<ZenGlobalMethodNode> {
+public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpable, ITypeNameContextAcceptor, Comparable<ZenGlobalMethodNode> {
     private final String name;
     private final JavaTypeMirror returnType;
     private final List<ZenParameterNode> parameters;
@@ -44,10 +43,10 @@ public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpab
     }
 
     @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
-        members.addAll(returnType.get().getTypeVariables());
+    public void setMentionedTypes(TypeNameContext context) {
+        context.addClasses(returnType.get().getTypeVariables());
         for (ZenParameterNode parameter : parameters) {
-            parameter.fillImportMembers(members);
+            parameter.setMentionedTypes(context);
         }
     }
 

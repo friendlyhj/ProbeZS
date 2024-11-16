@@ -11,28 +11,28 @@ public class ZenExpandClassNode extends ZenClassNode {
     }
 
     @Override
-    public void toZenScript(IndentStringBuilder sb) {
+    public void toZenScript(IndentStringBuilder sb, TypeNameContext context) {
         sb.append("expand ");
         sb.append(getName());
         sb.append(" {");
         sb.push();
         for (ZenPropertyNode propertyNode : properties.values()) {
             sb.nextLine();
-            propertyNode.toZenScript(sb);
+            propertyNode.toZenScript(sb, context);
         }
         if (!properties.isEmpty()) {
             sb.interLine();
         }
         for (ZenConstructorNode constructor : constructors) {
-            constructor.toZenScript(sb);
+            constructor.toZenScript(sb, context);
             sb.interLine();
         }
         for (ZenMemberNode member : members) {
-            member.toZenScript(sb);
+            member.toZenScript(sb, context);
             sb.interLine();
         }
         for (ZenOperatorNode operator : operators.values()) {
-            operator.toZenScript(sb);
+            operator.toZenScript(sb, context);
             sb.interLine();
         }
         sb.pop();

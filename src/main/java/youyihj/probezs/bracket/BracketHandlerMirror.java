@@ -19,7 +19,7 @@ public class BracketHandlerMirror {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .disableHtmlEscaping()
-            .registerTypeAdapter(JavaTypeMirror.class, new JavaTypeMirror.FullNameSerializer())
+            .registerTypeAdapter(JavaTypeMirror.class, new JavaTypeMirror.Serializer())
             .registerTypeAdapter(BracketHandlerEntry.class, new BracketHandlerEntry.Serializer())
             .create();
 

@@ -2,8 +2,6 @@ package youyihj.probezs.tree;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
@@ -22,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * @author youyihj
  */
-public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable<ZenClassNode> {
+public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Comparable<ZenClassNode> {
     private static final Pattern QUALIFIED_NAME_REGEX = Pattern.compile("((\\w+\\.)*\\w+)\\.(\\w+)");
 
     private final String name;
@@ -114,27 +112,24 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
     }
 
-    public Set<ZenClassNode> getImportMembers() {
-        Set<ZenClassNode> imports = new ImportSet(this, new TreeSet<>());
-        this.fillImportMembers(imports);
-        return imports;
+    public TypeNameContext getTypeNameContext() {
+        TypeNameContext context = new TypeNameContext(this);
+        setMentionedTypes(context);
+        return context;
     }
 
     @Override
-    public void toZenScript(IndentStringBuilder sb) {
+    public void toZenScript(IndentStringBuilder sb, TypeNameContext context) {
         if (packageName != null) {
             sb.append("package ").append(packageName).append(";");
             sb.interLine();
         }
-        Set<ZenClassNode> imports = getImportMembers();
-        for (ZenClassNode anImport : imports) {
-            sb.append("import ").append(anImport.getName()).append(";").nextLine();
-        }
+        context.toZenScript(sb, context);
         sb.interLine();
         String extendInformation = extendClasses.stream()
                 .filter(JavaTypeMirror::isExisted)
                 .map(JavaTypeMirror::get)
-                .map(JavaTypeMirror.Result::getQualifiedName)
+                .map(context::getTypeName)
                 .collect(Collectors.joining(", "));
         sb.append("zenClass ");
         sb.append(getQualifiedName());
@@ -147,23 +142,23 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         for (ZenPropertyNode propertyNode : properties.values()) {
             sb.nextLine();
             removeSelfExpansion(propertyNode);
-            propertyNode.toZenScript(sb);
+            propertyNode.toZenScript(sb, context);
         }
         if (!properties.isEmpty()) {
             sb.interLine();
         }
         for (ZenConstructorNode constructor : constructors) {
-            constructor.toZenScript(sb);
+            constructor.toZenScript(sb, context);
             sb.interLine();
         }
         for (ZenMemberNode member : members) {
             removeSelfExpansion(member);
-            member.toZenScript(sb);
+            member.toZenScript(sb, context);
             sb.interLine();
         }
         for (ZenOperatorNode operator : operators.values()) {
             removeSelfExpansion(operator);
-            operator.toZenScript(sb);
+            operator.toZenScript(sb, context);
             sb.interLine();
         }
         sb.pop();
@@ -171,21 +166,21 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     }
 
     @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
+    public void setMentionedTypes(TypeNameContext context) {
         for (JavaTypeMirror extendClass : extendClasses) {
-            members.addAll(extendClass.get().getTypeVariables());
+            context.addClasses(extendClass.get().getTypeVariables());
         }
         for (ZenPropertyNode property : properties.values()) {
-            property.fillImportMembers(members);
+            property.setMentionedTypes(context);
         }
         for (ZenMemberNode member : this.members) {
-            member.fillImportMembers(members);
+            member.setMentionedTypes(context);
         }
         for (ZenConstructorNode constructor : constructors) {
-            constructor.fillImportMembers(members);
+            constructor.setMentionedTypes(context);
         }
         for (ZenOperatorNode operator : operators.values()) {
-            operator.fillImportMembers(members);
+            operator.setMentionedTypes(context);
         }
     }
 
@@ -376,30 +371,4 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             expansionMember.setOwner(null);
         }
     }
-
-    public static class Serializer implements JsonSerializer<ZenClassNode> {
-
-        @Override
-        public JsonElement serialize(ZenClassNode src, Type typeOfSrc, JsonSerializationContext context) {
-            JsonObject json = new JsonObject();
-            json.addProperty("name", src.getQualifiedName());
-            JsonArray imports = new JsonArray();
-            for (ZenClassNode importMember : src.getImportMembers()) {
-                imports.add(importMember.getName());
-            }
-            json.add("imports", imports);
-            json.add("extends", context.serialize(src.extendClasses, new TypeToken<List<JavaTypeMirror>>() {
-            }.getType()));
-            json.add("properties", context.serialize(src.properties.values(), new TypeToken<Collection<ZenPropertyNode>>() {
-            }.getType()));
-            json.add("constructors", context.serialize(src.constructors, new TypeToken<List<ZenConstructorNode>>() {
-            }.getType()));
-            json.add("members", context.serialize(src.members, new TypeToken<List<ZenMemberNode>>() {
-            }.getType()));
-            json.add("operators", context.serialize(src.operators, new TypeToken<List<ZenOperatorNode>>() {
-            }.getType()));
-            return json;
-        }
-    }
-
 }

@@ -2,12 +2,10 @@ package youyihj.probezs.tree;
 
 import youyihj.probezs.util.IndentStringBuilder;
 
-import java.util.Set;
-
 /**
  * @author youyihj
  */
-public class ZenPropertyNode implements IZenDumpable, IHasImportMembers, IMaybeExpansionMember {
+public class ZenPropertyNode implements IZenDumpable, ITypeNameContextAcceptor, IMaybeExpansionMember {
     private final JavaTypeMirror type;
     private final String name;
 
@@ -47,22 +45,21 @@ public class ZenPropertyNode implements IZenDumpable, IHasImportMembers, IMaybeE
     }
 
     @Override
-    public void toZenScript(IndentStringBuilder sb) {
+    public void toZenScript(IndentStringBuilder sb, TypeNameContext context) {
         if (type.isExisted()) {
             if (owner != null) {
                 sb.append("// expansion member from ").append(owner).nextLine();
             }
             String declareKeyword = isStatic ? "static" : isHasSetter() ? "var" : "val";
             sb.append(declareKeyword);
-            sb.append(" ").append(name).append(" as ").append(type.get().getQualifiedName()).append(";");
+            sb.append(" ").append(name).append(" as ").append(context.getTypeName(type.get())).append(";");
         }
     }
 
     @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
-        members.addAll(type.get().getTypeVariables());
+    public void setMentionedTypes(TypeNameContext context) {
+        context.addClasses(type.get().getTypeVariables());
     }
-
 
     @Override
     public void setOwner(String owner) {

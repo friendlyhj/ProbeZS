@@ -1,17 +1,15 @@
 package youyihj.probezs.tree.global;
 
-import youyihj.probezs.tree.IHasImportMembers;
+import youyihj.probezs.tree.ITypeNameContextAcceptor;
 import youyihj.probezs.tree.IZenDumpable;
 import youyihj.probezs.tree.JavaTypeMirror;
-import youyihj.probezs.tree.ZenClassNode;
+import youyihj.probezs.tree.TypeNameContext;
 import youyihj.probezs.util.IndentStringBuilder;
-
-import java.util.Set;
 
 /**
  * @author youyihj
  */
-public class ZenGlobalFieldNode implements IZenDumpable, IHasImportMembers, Comparable<ZenGlobalFieldNode> {
+public class ZenGlobalFieldNode implements IZenDumpable, ITypeNameContextAcceptor, Comparable<ZenGlobalFieldNode> {
     private final String name;
     private final JavaTypeMirror type;
 
@@ -21,13 +19,13 @@ public class ZenGlobalFieldNode implements IZenDumpable, IHasImportMembers, Comp
     }
 
     @Override
-    public void toZenScript(IndentStringBuilder sb) {
-        sb.append("global ").append(name).append(" as ").append(type.get().getQualifiedName()).append(";");
+    public void toZenScript(IndentStringBuilder sb, TypeNameContext context) {
+        sb.append("global ").append(name).append(" as ").append(context.getTypeName(type.get())).append(";");
     }
 
     @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
-        members.addAll(type.get().getTypeVariables());
+    public void setMentionedTypes(TypeNameContext context) {
+        context.addClasses(type.get().getTypeVariables());
     }
 
     @Override

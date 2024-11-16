@@ -8,13 +8,12 @@ import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Modifier;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * @author youyihj
  */
-public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers {
+public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, ITypeNameContextAcceptor {
     private final String name;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
@@ -94,11 +93,11 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
     }
 
     @Override
-    public void fillImportMembers(Set<ZenClassNode> members) {
+    public void setMentionedTypes(TypeNameContext context) {
         for (ZenParameterNode parameter : parameters) {
-            parameter.fillImportMembers(members);
+            parameter.setMentionedTypes(context);
         }
-        members.addAll(returnTypeResultSupplier.get().getTypeVariables());
+        context.addClasses(returnTypeResultSupplier.get().getTypeVariables());
     }
 
     public void setLambda() {

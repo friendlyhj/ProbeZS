@@ -1,9 +1,5 @@
 package youyihj.probezs.tree.global;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.reflect.TypeToken;
 import crafttweaker.mc1120.util.CraftTweakerHacks;
 import stanhebben.zenscript.symbols.IZenSymbol;
 import stanhebben.zenscript.symbols.SymbolJavaStaticField;
@@ -14,9 +10,8 @@ import stanhebben.zenscript.type.natives.JavaMethod;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.tree.IZenDumpable;
-import youyihj.probezs.tree.ZenClassNode;
+import youyihj.probezs.tree.TypeNameContext;
 import youyihj.probezs.tree.ZenClassTree;
-import youyihj.probezs.tree.primitive.IPrimitiveType;
 import youyihj.probezs.util.FileUtils;
 import youyihj.probezs.util.IndentStringBuilder;
 
@@ -61,64 +56,35 @@ public class ZenGlobalMemberTree {
         });
     }
 
-    public Set<ZenClassNode> getImportMembers() {
-        Set<ZenClassNode> imports = new TreeSet<ZenClassNode>() {
-            @Override
-            public boolean add(ZenClassNode node) {
-                if (node instanceof IPrimitiveType) {
-                    return false;
-                } else {
-                    return super.add(node);
-                }
-            }
-        };
+    public TypeNameContext getTypeNameContext() {
+        TypeNameContext context = new TypeNameContext(null);
         for (ZenGlobalFieldNode field : fields) {
-            field.fillImportMembers(imports);
+            field.setMentionedTypes(context);
         }
         for (ZenGlobalMethodNode member : members) {
-            member.fillImportMembers(imports);
+            member.setMentionedTypes(context);
         }
-        return imports;
+        return context;
     }
 
     public void output(Path dzsPath) {
         if (ProbeZSConfig.dumpDZS) {
             outputDZS(dzsPath);
         }
-        if (ProbeZSConfig.dumpJson) {
-            outputJson(dzsPath);
-        }
-    }
-
-    private void outputJson(Path dzsPath) {
-        JsonObject json = new JsonObject();
-        JsonArray imports = new JsonArray();
-        for (ZenClassNode importMember : getImportMembers()) {
-            imports.add(new JsonPrimitive(importMember.getName()));
-        }
-        json.add("imports", imports);
-        json.add("fields", ZenClassTree.GSON.toJsonTree(fields, new TypeToken<Set<ZenGlobalFieldNode>>() {}.getType()));
-        json.add("members", ZenClassTree.GSON.toJsonTree(members, new TypeToken<Set<ZenGlobalMethodNode>>() {}.getType()));
-        try {
-            FileUtils.createFile(dzsPath.resolve("globals.json"), ZenClassTree.GSON.toJson(json));
-        } catch (IOException e) {
-            ProbeZS.logger.error("Failed output globals dzs", e);
-        }
     }
 
     private void outputDZS(Path dzsPath) {
         IndentStringBuilder sb = new IndentStringBuilder();
-        for (ZenClassNode anImport : getImportMembers()) {
-            sb.append("import ").append(anImport.getName()).append(";").nextLine();
-        }
+        TypeNameContext context = getTypeNameContext();
+        context.toZenScript(sb, context);
         sb.interLine();
         for (IZenDumpable field : fields) {
-            field.toZenScript(sb);
+            field.toZenScript(sb, context);
             sb.nextLine();
         }
         sb.nextLine();
         for (ZenGlobalMethodNode member : members) {
-            member.toZenScript(sb);
+            member.toZenScript(sb, context);
             sb.nextLine();
         }
         try {
