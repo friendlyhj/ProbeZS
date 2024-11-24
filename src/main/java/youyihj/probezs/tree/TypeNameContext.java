@@ -18,6 +18,9 @@ public class TypeNameContext implements IZenDumpable {
 
     public TypeNameContext(ZenClassNode classDeclaration) {
         this.classDeclaration = classDeclaration;
+        if (classDeclaration != null) {
+            addClass(classDeclaration);
+        }
     }
 
     public void addClass(ZenClassNode classNode) {
