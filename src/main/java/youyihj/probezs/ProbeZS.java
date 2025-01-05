@@ -60,8 +60,7 @@ public class ProbeZS {
                 return reader.lines().collect(Collectors.joining("\n"));
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     });
 
@@ -125,6 +124,7 @@ public class ProbeZS {
             }
             for (int validMeta : validMetas.toIntArray()) {
                 IItemStack ctItem = CraftTweakerMC.getIItemStackMutable(new ItemStack(item, 1, validMeta));
+                ctItem.removeTag(null);
                 items.add(ctItem);
             }
         }
