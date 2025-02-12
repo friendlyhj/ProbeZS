@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout ProbeZS Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Set up JDK 17
@@ -26,7 +26,7 @@ jobs:
       - name: Generate Parameter Name Mappings
         run: gradle generateParameterNameMappings --stacktrace
       - name: Upload Parameter Name Mappings
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mappings
           path: generated
@@ -35,14 +35,14 @@ jobs:
     needs: generate
     steps:
       - name: Checkout ProbeZS Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up JDK 1.8
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 8
       - name: Download Parameter Name Mappings
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: mappings
           path: generated
@@ -72,12 +72,12 @@ jobs:
     needs: build
     steps:
       - name: Checkout Github Pages Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: friendlyhj/friendlyhj.github.io
           token: ${{ secrets.PAGE_TOKEN }}
       - name: Download Parameter Name Mappings
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: mappings
           path: probezs-mappings
@@ -89,7 +89,7 @@ jobs:
           author_email: youyi580@qq.com
           message: Update ProbeZS Parameter Name Mappings
       - name: Checkout ProbeZS Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Get gradle version
         uses: EmberCM/action-get-gradle-version@master
         id: version
