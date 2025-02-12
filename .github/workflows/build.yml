@@ -62,7 +62,7 @@ jobs:
         with:
           file: gradle.properties
       - name: Upload ProbeZS JAR
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jar
           path: build/libs/ProbeZS-${{ env.VERSION }}.jar
