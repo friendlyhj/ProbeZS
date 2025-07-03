@@ -30,3 +30,6 @@
 [submodule "ModSources/CraftTweakerIntegration"]
 	path = ModSources/CraftTweakerIntegration
 	url = https://github.com/TCreopargh/CraftTweakerIntegration.git
+[submodule "ModSources/Fluid-Interaction-Tweaker"]
+	path = ModSources/Fluid-Interaction-Tweaker
+	url = https://github.com/tttsaurus/Fluid-Interaction-Tweaker.git
