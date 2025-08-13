@@ -342,7 +342,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                     isCompare = true;
                     break;
                 case COMPARE:
-                    operatorTypes = Sets.newHashSet(ZenOperators.EQUALS, ZenOperators.NOT_EQUALS, ZenOperators.GREATER_THEN, ZenOperators.GREATER_THEN_OR_EQUAL, ZenOperators.LESS_THEN, ZenOperators.LESS_THEN_OR_EQUAL);
+                    operatorTypes = Sets.newHashSet(ZenOperators.EQUALS, ZenOperators.NOT_EQUALS, ZenOperators.GREATER_THAN, ZenOperators.GREATER_THAN_OR_EQUAL, ZenOperators.LESS_THAN, ZenOperators.LESS_THAN_OR_EQUAL);
                     isCompare = true;
                     break;
                 default:
