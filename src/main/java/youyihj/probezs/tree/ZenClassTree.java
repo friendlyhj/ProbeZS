@@ -125,6 +125,7 @@ public class ZenClassTree {
         removeOldScripts();
         for (ZenClassNode classNode : classes.values()) {
             String filePath = classNode.getName().replace('.', '/');
+            classNode.sortMembers();
             try {
                 if (ProbeZSConfig.dumpDZS) {
                     IndentStringBuilder builder = new IndentStringBuilder();

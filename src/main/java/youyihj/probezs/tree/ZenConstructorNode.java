@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * @author youyihj
  */
-public class ZenConstructorNode extends ZenExecutableNode implements IHasImportMembers {
+public class ZenConstructorNode extends ZenExecutableNode implements IHasImportMembers, Comparable<ZenConstructorNode> {
     private final List<ZenParameterNode> parameters;
 
     public ZenConstructorNode(List<ZenParameterNode> parameters) {
@@ -52,5 +52,19 @@ public class ZenConstructorNode extends ZenExecutableNode implements IHasImportM
     @Override
     protected JavaTypeMirror.Result getReturnType() {
         return null;
+    }
+
+    @Override
+    public int compareTo(ZenConstructorNode o) {
+        if (this.parameters.size() != o.parameters.size()) {
+            return Integer.compare(this.parameters.size(), o.parameters.size());
+        }
+        for (int i = 0; i < this.parameters.size(); i++) {
+            int comparison = this.parameters.get(i).getType().compareTo(o.parameters.get(i).getType());
+            if (comparison != 0) {
+                return comparison;
+            }
+        }
+        return 0; // All parameters are equal
     }
 }

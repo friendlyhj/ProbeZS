@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 /**
  * @author youyihj
  */
-public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers {
+public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IHasImportMembers, Comparable<ZenMemberNode> {
     private final String name;
     private final List<ZenParameterNode> parameters;
     private final boolean isStatic;
@@ -95,5 +95,28 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
             parameter.fillImportMembers(members);
         }
         members.addAll(returnTypeResultSupplier.get().getTypeVariables());
+    }
+
+    @Override
+    public int compareTo(ZenMemberNode o) {
+        if (this.isStatic != o.isStatic) {
+            return this.isStatic ? -1 : 1; // static members come first
+        }
+        int nameComparison = this.name.compareTo(o.name);
+        if (nameComparison != 0) {
+            return nameComparison;
+        }
+        int thisParamSize = this.parameters.size();
+        int otherParamSize = o.parameters.size();
+        if (thisParamSize != otherParamSize) {
+            return Integer.compare(thisParamSize, otherParamSize);
+        }
+        for (int i = 0; i < thisParamSize; i++) {
+            int paramComparison = this.parameters.get(i).getType().compareTo(o.parameters.get(i).getType());
+            if (paramComparison != 0) {
+                return paramComparison;
+            }
+        }
+        return this.returnTypeResultSupplier.get().getFullName().compareTo(o.returnTypeResultSupplier.get().getFullName());
     }
 }

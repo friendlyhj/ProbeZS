@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @author youyihj
  */
-public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
+public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result>, Comparable<JavaTypeMirror> {
     private final Type type;
     private final ZenClassTree classTree;
     private Result result;
@@ -134,6 +134,11 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
     }
 
+    @Override
+    public int compareTo(JavaTypeMirror o) {
+        return this.get().getFullName().compareTo(o.get().getFullName());
+    }
+
     public interface Result {
         String getFullName();
 
@@ -155,6 +160,7 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
 
         static Result intersection(List<Result> results) {
+            results.sort(Comparator.comparing(Result::getFullName));
             return new IntersectionResult(results);
         }
     }

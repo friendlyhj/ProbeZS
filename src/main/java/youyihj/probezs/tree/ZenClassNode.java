@@ -1,7 +1,7 @@
 package youyihj.probezs.tree;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -35,8 +35,8 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     protected final List<JavaTypeMirror> extendClasses = new ArrayList<>();
     protected final List<ZenMemberNode> members = new ArrayList<>();
     protected final List<ZenConstructorNode> constructors = new ArrayList<>();
-    protected final Map<String, ZenPropertyNode> properties = new LinkedHashMap<>();
-    protected final Multimap<String, ZenOperatorNode> operators = HashMultimap.create();
+    protected final Map<String, ZenPropertyNode> properties = new TreeMap<>();
+    protected final Multimap<ZenOperators, ZenOperatorNode> operators = Multimaps.newMultimap(new EnumMap<>(ZenOperators.class), ArrayList::new);
     private ZenOperatorNode.As caster;
     private String owner;
 
@@ -246,7 +246,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         String forIn = "for_in";
         if (clazz.isAnnotationPresent(IterableSimple.class)) {
             String value = clazz.getAnnotation(IterableSimple.class).value();
-            operators.put(forIn,
+            operators.put(ZenOperators.FOR_IN,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
                             () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses()
@@ -256,7 +256,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
         }
         if (clazz.isAnnotationPresent(IterableList.class)) {
             String value = clazz.getAnnotation(IterableList.class).value();
-            operators.put(forIn,
+            operators.put(ZenOperators.FOR_IN,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
                             () -> JavaTypeMirror.Result.compound("[%s]", JavaTypeMirror.Result.single(tree.getClasses()
@@ -268,7 +268,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             IterableMap iterableMap = clazz.getAnnotation(IterableMap.class);
             String key = iterableMap.key();
             String value = iterableMap.value();
-            operators.put(forIn,
+            operators.put(ZenOperators.FOR_IN,
                     new ZenOperatorNode(
                             forIn, Collections.emptyList(),
                             () -> {
@@ -281,6 +281,12 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                     )
             );
         }
+    }
+
+    public void sortMembers() {
+        extendClasses.sort(Comparator.naturalOrder());
+        members.sort(Comparator.naturalOrder());
+        constructors.sort(Comparator.naturalOrder());
     }
 
     private void readGetter(ExecutableData method, boolean isClass) {
@@ -318,7 +324,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             Type returnType = method.getReturnType();
             if (caster == null) {
                 caster = new ZenOperatorNode.As(tree);
-                operators.put("as", caster);
+                operators.put(ZenOperators.AS, caster);
             }
             caster.appendCastType(returnType);
         }
@@ -326,37 +332,37 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     private void readOperator(ExecutableData method, boolean isClass) {
         int startIndex = isClass ? 0 : 1;
-        Set<String> operatorNames = Collections.emptySet();
+        Set<ZenOperators> operatorTypes = Collections.emptySet();
         boolean isCompare = false;
         if (method.isAnnotationPresent(ZenOperator.class)) {
             OperatorType operatorType = method.getAnnotation(ZenOperator.class).value();
             switch (operatorType) {
                 case EQUALS:
-                    operatorNames = Sets.newHashSet("==", "!=");
+                    operatorTypes = Sets.newHashSet(ZenOperators.EQUALS, ZenOperators.NOT_EQUALS);
                     isCompare = true;
                     break;
                 case COMPARE:
-                    operatorNames = Sets.newHashSet("==", "!=", ">", ">=", "<", "<=");
+                    operatorTypes = Sets.newHashSet(ZenOperators.EQUALS, ZenOperators.NOT_EQUALS, ZenOperators.GREATER_THEN, ZenOperators.GREATER_THEN_OR_EQUAL, ZenOperators.LESS_THEN, ZenOperators.LESS_THEN_OR_EQUAL);
                     isCompare = true;
                     break;
                 default:
-                    operatorNames = Collections.singleton(ZenOperators.getZenScriptFormat(operatorType));
+                    operatorTypes = Collections.singleton(ZenOperators.getZenScriptFormat(operatorType));
                     break;
             }
         }
         if (method.isAnnotationPresent(ZenMemberGetter.class)) {
-            operatorNames = Collections.singleton(".");
+            operatorTypes = Collections.singleton(ZenOperators.MEMBERGETTER);
         }
         if (method.isAnnotationPresent(ZenMemberSetter.class)) {
-            operatorNames = Collections.singleton(".=");
+            operatorTypes = Collections.singleton(ZenOperators.MEMBERSETTER);
         }
-        for (String operatorName : operatorNames) {
+        for (ZenOperators operatorType : operatorTypes) {
             ZenOperatorNode operator = new ZenOperatorNode(
-                    operatorName,
+                    operatorType.getSymbol(),
                     ZenParameterNode.read(method, startIndex, tree),
                     tree.createJavaTypeMirror(isCompare ? boolean.class : method.getReturnType())
             );
-            operators.put(operatorName, operator);
+            operators.put(operatorType, operator);
             if (!isClass) {
                 readExpansionExecutableOwner(method, operator);
             }

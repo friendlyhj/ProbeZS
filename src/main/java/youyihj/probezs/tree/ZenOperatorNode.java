@@ -7,6 +7,7 @@ import youyihj.probezs.util.IntersectionType;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +58,7 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
 
     public static class As extends ZenOperatorNode {
 
-        private IntersectionType intersectionType;
+        private final List<Type> types = new ArrayList<>();
         private final ZenClassTree tree;
 
         public As(ZenClassTree tree) {
@@ -66,12 +67,8 @@ public class ZenOperatorNode extends ZenExecutableNode implements IZenDumpable, 
         }
 
         public void appendCastType(Type type) {
-            if (intersectionType == null) {
-                intersectionType = new IntersectionType(new Type[] {type});
-            } else {
-                intersectionType = intersectionType.append(type);
-            }
-            returnType = tree.createJavaTypeMirror(intersectionType);
+            types.add(type);
+            this.returnType = tree.createJavaTypeMirror(new IntersectionType(types.toArray(new Type[0])));
         }
     }
 
