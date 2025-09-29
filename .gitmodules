@@ -33,3 +33,6 @@
 [submodule "ModSources/Fluid-Interaction-Tweaker"]
 	path = ModSources/Fluid-Interaction-Tweaker
 	url = https://github.com/tttsaurus/Fluid-Interaction-Tweaker.git
+[submodule "ModSources/Roids-Tweaker"]
+	path = ModSources/Roids-Tweaker
+	url = https://github.com/roidrole/Roids-Tweaker.git
