@@ -4,31 +4,17 @@ import org.yaml.snakeyaml.Yaml;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.member.ExecutableData;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.concurrent.CompletableFuture;
 
 public class ParameterNameMappings {
     private Map<String, List<Map<String, Object>>> nameMappings;
 
     public void load(String path) {
         Yaml yaml = new Yaml();
-        CompletableFuture<String> mappingsFuture = ProbeZS.instance.mappingsFuture;
-        try {
-            if (!mappingsFuture.isDone() || mappingsFuture.isCompletedExceptionally()) {
-                mappingsFuture.cancel(true);
-                try (InputStream inputStream = ParameterNameMappings.class.getClassLoader().getResourceAsStream(path)) {
-                    nameMappings = yaml.loadAs(inputStream, Map.class);
-                }
-            } else {
-                nameMappings = yaml.loadAs(mappingsFuture.get(), Map.class);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        nameMappings = yaml.loadAs(ProbeZS.instance.mappingsFuture.join(), Map.class);
     }
 
     public List<String> find(ExecutableData method) {

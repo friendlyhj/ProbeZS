@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
 import youyihj.probezs.core.ASMMemberCollector;
 import youyihj.probezs.member.MemberFactory;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -59,6 +61,12 @@ public class ProbeZS {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
                 return reader.lines().collect(Collectors.joining("\n"));
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }).exceptionally(ex -> {
+        try {
+            return IOUtils.toString(ProbeZS.class.getClassLoader().getResourceAsStream("mappings/method-parameter-names.yaml"), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
