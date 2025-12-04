@@ -33,8 +33,7 @@ public class MethodParameterNamesGenerator {
     );
 
     private static final Set<Path> invalidUnits = Sets.newHashSet(
-            Paths.get("gregtech", "api", "util", "RelativeDirection.java"),
-            Paths.get("dev", "redstudio", "alfheim", "lighting", "LightingEngine.java")
+            Paths.get("gregtech", "api", "util", "RelativeDirection.java")
     );
 
 
@@ -45,6 +44,7 @@ public class MethodParameterNamesGenerator {
         Launcher launcher = new Launcher();
         launcher.addInputResource(folderPath);
         launcher.getModelBuilder().addCompilationUnitFilter(MethodParameterNamesGenerator::isInvalidUnit);
+        launcher.getEnvironment().setIgnoreDuplicateDeclarations(true);
         launcher.buildModel();
         CtModel model = launcher.getModel();
 
