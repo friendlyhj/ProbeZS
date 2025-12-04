@@ -1,6 +1,5 @@
 package youyihj.probezs;
 
-import com.google.common.base.Suppliers;
 import crafttweaker.api.item.IItemStack;
 import crafttweaker.api.minecraft.CraftTweakerMC;
 import crafttweaker.mc1120.commands.CTChatCommand;
@@ -20,9 +19,6 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
-import youyihj.probezs.core.ASMMemberCollector;
-import youyihj.probezs.member.MemberFactory;
-import youyihj.probezs.member.reflection.ReflectionMemberFactory;
 import youyihj.probezs.network.BracketHandlerServer;
 
 import java.io.BufferedReader;
@@ -38,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +44,7 @@ public class ProbeZS {
     public static final String MODID = "probezs";
     public static final String VERSION = "2.0.0";
     public static final String NAME = "ProbeZS";
-    public static final String DEPENDENCIES = "required-after:crafttweaker;";
+    public static final String DEPENDENCIES = "required-after:crafttweaker;required-after:zenutils@[1.25.11,)";
     public static Logger logger;
 
     public CompletableFuture<String> mappingsFuture = CompletableFuture.supplyAsync(() -> {
@@ -73,23 +68,9 @@ public class ProbeZS {
     });
 
     public static final Map<String, ModContainer> pathToModMap = new HashMap<>();
-    private static final Supplier<MemberFactory> MEMBER_FACTORY = Suppliers.memoize(() -> {
-        switch (ProbeZSConfig.memberCollector) {
-            case REFLECTION:
-                return new ReflectionMemberFactory();
-            case ASM:
-                return ASMMemberCollector.MEMBER_FACTORY;
-            default:
-                throw new AssertionError();
-        }
-    });
 
     @Mod.Instance
     public static ProbeZS instance;
-
-    public static MemberFactory getMemberFactory() {
-        return MEMBER_FACTORY.get();
-    }
 
     @Mod.EventHandler
     public void onPreInit(FMLPreInitializationEvent event) {

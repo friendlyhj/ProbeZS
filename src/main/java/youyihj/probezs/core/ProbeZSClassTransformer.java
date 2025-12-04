@@ -4,8 +4,6 @@ import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.ClassNode;
-import youyihj.probezs.ProbeZSConfig;
 import youyihj.probezs.core.asm.ASMCraftTweakerAPI;
 
 import java.util.Arrays;
@@ -36,11 +34,6 @@ public class ProbeZSClassTransformer implements IClassTransformer {
             if (transformedName.startsWith(excludePackage)) {
                 return basicClass;
             }
-        }
-        if (ProbeZSConfig.memberCollector == ProbeZSConfig.MemberCollector.ASM) {
-            ClassNode classNode = new ClassNode();
-            new ClassReader(basicClass).accept(classNode, 0);
-            ASMMemberCollector.MEMBER_FACTORY.putClassNode(classNode);
         }
         return basicClass;
     }

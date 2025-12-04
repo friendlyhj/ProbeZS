@@ -2,10 +2,10 @@ package youyihj.probezs.tree.global;
 
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
-import youyihj.probezs.member.ExecutableData;
-import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.tree.*;
 import youyihj.probezs.util.IndentStringBuilder;
+import youyihj.zenutils.impl.member.ExecutableData;
+import youyihj.zenutils.impl.member.TypeData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,19 +25,22 @@ public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpab
     }
 
     public static ZenGlobalMethodNode read(String name, ExecutableData method, ZenClassTree tree) {
-        JavaTypeMirror returnType = tree.createJavaTypeMirror(method.getReturnType());
+        JavaTypeMirror returnType = tree.createJavaTypeMirror(method.returnType().javaType());
 
-        ParameterData[] parameters = method.getParameters();
-        List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
-        for (int i = 0; i < method.getParameterCount(); i++) {
-            parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));
+        List<TypeData> parameters = method.parameters();
+        List<ZenParameterNode> parameterNodes = new ArrayList<>(method.parameterCount());
+        for (int i = 0; i < method.parameterCount(); i++) {
+            parameterNodes.add(ZenParameterNode.read(method, i, parameters.get(i), tree));
         }
         ZenGlobalMethodNode globalMethodNode = new ZenGlobalMethodNode(name, returnType, parameterNodes);
-        if (ProbeZSConfig.outputSourceExpansionMembers) {
-            String classOwner = ProbeZS.instance.getClassOwner(method.getDecalredClass());
-            if (!"crafttweaker".equals(classOwner)) {
-                globalMethodNode.setOwner(classOwner);
+        try {
+            if (ProbeZSConfig.outputSourceExpansionMembers) {
+                String classOwner = ProbeZS.instance.getClassOwner(Class.forName(method.declaringClass().name()));
+                if (!"crafttweaker".equals(classOwner)) {
+                    globalMethodNode.setOwner(classOwner);
+                }
             }
+        } catch (ClassNotFoundException ignored) {
         }
         return globalMethodNode;
     }

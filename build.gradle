@@ -17,11 +17,11 @@ archivesBaseName = project.archives_base_name
 
 // Set the toolchain version to decouple the Java we run Gradle with from the Java used to compile and run the mod
 java {
-//    toolchain {
-//        languageVersion.set(JavaLanguageVersion.of(8))
-//        // Azul covers the most platforms for Java 8 toolchains, crucially including MacOS arm64
-//        vendor.set(org.gradle.jvm.toolchain.JvmVendorSpec.AZUL)
-//    }
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+        // Azul covers the most platforms for Java 8 toolchains, crucially including MacOS arm64
+        vendor.set(org.gradle.jvm.toolchain.JvmVendorSpec.AZUL)
+    }
     // Generate sources and javadocs jars when building and publishing
     withSourcesJar()
     withJavadocJar()
@@ -84,23 +84,26 @@ dependencies {
         implementation 'com.cleanroommc:assetmover:2.0'
     }
     if (project.use_mixins.toBoolean()) {
-        implementation 'zone.rong:mixinbooter:7.0'
+        implementation 'zone.rong:mixinbooter:10.6'
     }
 
     // Example deobf dependency
     // compileOnly rfg.deobf("curse.maven:endercore-231868:2972849:")
 
     if (project.use_mixins.toBoolean()) {
-        api("org.spongepowered:mixin:0.8.3") { transitive = false }
+//        api("org.spongepowered:mixin:0.8.3") { transitive = false }
         annotationProcessor('org.ow2.asm:asm-debug-all:5.2')
         annotationProcessor('com.google.guava:guava:24.1.1-jre')
         annotationProcessor('com.google.code.gson:gson:2.8.6')
         annotationProcessor("org.spongepowered:mixin:0.8.3") { transitive = false }
     }
 
-    implementation rfg.deobf("CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.685")
+    implementation rfg.deobf("CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.709")
     implementation rfg.deobf("com.teamacronymcoders.base:base:1.12.2-3.13.0-SNAPSHOT.+")
     implementation rfg.deobf("com.teamacronymcoders:ContentTweaker:1.12.2-4.10.0")
+
+    implementation rfg.deobf("curse.maven:zenutil-401178:7234972")
+    implementation rfg.deobf("com.cleanroommc:configanytime:3.0")
 
 
     embed('org.yaml:snakeyaml:2.0')

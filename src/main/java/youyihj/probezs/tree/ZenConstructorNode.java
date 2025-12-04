@@ -1,8 +1,8 @@
 package youyihj.probezs.tree;
 
-import youyihj.probezs.member.ExecutableData;
-import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.IndentStringBuilder;
+import youyihj.zenutils.impl.member.ExecutableData;
+import youyihj.zenutils.impl.member.TypeData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +18,10 @@ public class ZenConstructorNode extends ZenExecutableNode implements ITypeNameCo
     }
 
     public static ZenConstructorNode read(ExecutableData constructor, ZenClassTree tree) {
-        List<ZenParameterNode> parameterNodes = new ArrayList<>(constructor.getParameterCount());
-        ParameterData[] parameters = constructor.getParameters();
-        for (int i = 0; i < constructor.getParameterCount(); i++) {
-            parameterNodes.add(ZenParameterNode.read(constructor, i, parameters[i], tree));
+        List<ZenParameterNode> parameterNodes = new ArrayList<>(constructor.parameterCount());
+        List<TypeData> parameters = constructor.parameters();
+        for (int i = 0; i < constructor.parameterCount(); i++) {
+            parameterNodes.add(ZenParameterNode.read(constructor, i, parameters.get(i), tree));
         }
         return new ZenConstructorNode(parameterNodes);
     }

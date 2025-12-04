@@ -5,10 +5,12 @@ import com.google.common.collect.Multimap;
 import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
-import youyihj.probezs.member.ExecutableData;
-import youyihj.probezs.member.FieldData;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenOperators;
+import youyihj.zenutils.impl.member.ExecutableData;
+import youyihj.zenutils.impl.member.FieldData;
+import youyihj.zenutils.impl.member.LookupRequester;
+import youyihj.zenutils.impl.util.InternalUtils;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -83,12 +85,13 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
         boolean findingLambdaFrom = isClass;
         ExecutableData lambdaForm = null;
         ZenMemberNode lambdaFormZenCode = null;
-        for (ExecutableData method : ProbeZS.getMemberFactory().getMethods(clazz)) {
-            if (!Modifier.isPublic(method.getModifiers())) continue;
+        for (ExecutableData method : InternalUtils.getClassDataFetcher()
+                .forClass(clazz)
+                .methods(LookupRequester.PUBLIC)) {
             readGetter(method, isClass);
             readSetter(method, isClass);
             ZenMemberNode currentMember = readMethod(method, isClass);
-            if (findingLambdaFrom && Modifier.isAbstract(method.getModifiers())) {
+            if (findingLambdaFrom && Modifier.isAbstract(method.modifiers())) {
                 if (lambdaForm == null) {
                     lambdaForm = method;
                     lambdaFormZenCode = currentMember;
@@ -203,26 +206,24 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
     }
 
     private void readProperties(Class<?> clazz) {
-        for (FieldData field : ProbeZS.getMemberFactory().getFields(clazz)) {
-            if (!Modifier.isPublic(field.getModifiers())) continue;
+        for (FieldData field : InternalUtils.getClassDataFetcher().forClass(clazz).fields(LookupRequester.PUBLIC)) {
             if (field.isAnnotationPresent(ZenProperty.class)) {
-                JavaTypeMirror type = tree.createJavaTypeMirror(field.getType());
+                JavaTypeMirror type = tree.createJavaTypeMirror(field.type().javaType());
                 String name = field.getAnnotation(ZenProperty.class).value();
                 if (name.isEmpty()) {
-                    name = field.getName();
+                    name = field.name();
                 }
                 ZenPropertyNode propertyNode = new ZenPropertyNode(type, name);
-                propertyNode.setStatic(Modifier.isStatic(field.getModifiers()));
+                propertyNode.setStatic(Modifier.isStatic(field.modifiers()));
                 propertyNode.setHasGetter(true);
-                propertyNode.setHasSetter(!Modifier.isFinal(field.getModifiers()));
+                propertyNode.setHasSetter(!Modifier.isFinal(field.modifiers()));
                 properties.put(name, propertyNode);
             }
         }
     }
 
     private void readConstructors(Class<?> clazz) {
-        for (ExecutableData constructor : ProbeZS.getMemberFactory().getConstructors(clazz)) {
-            if (!Modifier.isPublic(constructor.getModifiers())) continue;
+        for (ExecutableData constructor : InternalUtils.getClassDataFetcher().forClass(clazz).constructors(LookupRequester.PUBLIC)) {
             if (constructor.isAnnotationPresent(ZenConstructor.class)) {
                 constructors.add(ZenConstructorNode.read(constructor, tree));
             }
@@ -257,8 +258,10 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
             operators.put("for",
                     new ZenOperatorNode(
                             "for", Arrays.asList(
-                            new ZenParameterNode(() -> "key", () -> JavaTypeMirror.Result.single(tree.getClasses().get(key)), null, false),
-                            new ZenParameterNode(() -> "value", () -> JavaTypeMirror.Result.single(tree.getClasses().get(value)), null, false)
+                            new ZenParameterNode(() -> "key", () -> JavaTypeMirror.Result.single(tree.getClasses()
+                                    .get(key)), null, false),
+                            new ZenParameterNode(() -> "value", () -> JavaTypeMirror.Result.single(tree.getClasses()
+                                    .get(value)), null, false)
                     ), tree.createJavaTypeMirror(void.class)
                     )
             );
@@ -267,10 +270,10 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
 
     private void readGetter(ExecutableData method, boolean isClass) {
         if (method.isAnnotationPresent(ZenGetter.class)) {
-            JavaTypeMirror type = tree.createJavaTypeMirror(method.getReturnType());
+            JavaTypeMirror type = tree.createJavaTypeMirror(method.returnType().javaType());
             String name = method.getAnnotation(ZenGetter.class).value();
             if (name.isEmpty()) {
-                name = method.getName();
+                name = method.name();
             }
             ZenPropertyNode propertyNode = properties.computeIfAbsent(name, it -> new ZenPropertyNode(type, it));
             propertyNode.setHasGetter(true);
@@ -282,10 +285,10 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
 
     private void readSetter(ExecutableData method, boolean isClass) {
         if (method.isAnnotationPresent(ZenSetter.class)) {
-            JavaTypeMirror type = tree.createJavaTypeMirror(method.getParameters()[isClass ? 0 : 1].getGenericType());
+            JavaTypeMirror type = tree.createJavaTypeMirror(method.parameters().get(isClass ? 0 : 1).javaType());
             String name = method.getAnnotation(ZenSetter.class).value();
             if (name.isEmpty()) {
-                name = method.getName();
+                name = method.name();
             }
             ZenPropertyNode propertyNode = properties.computeIfAbsent(name, it -> new ZenPropertyNode(type, it));
             propertyNode.setHasSetter(true);
@@ -297,7 +300,7 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
 
     private void readCaster(ExecutableData method) {
         if (method.isAnnotationPresent(ZenCaster.class)) {
-            Type returnType = method.getReturnType();
+            Type returnType = method.returnType().javaType();
             if (caster == null) {
                 caster = new ZenOperatorNode.As(tree);
                 operators.put("as", caster);
@@ -325,15 +328,15 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
                     operatorNamesAndTypes.put("<=", boolean.class);
                     break;
                 default:
-                    operatorNamesAndTypes.put(ZenOperators.getZenScriptFormat(operatorType), method.getReturnType());
+                    operatorNamesAndTypes.put(ZenOperators.getZenScriptFormat(operatorType), method.returnType().javaType());
                     break;
             }
         }
         if (method.isAnnotationPresent(ZenMemberGetter.class)) {
-            operatorNamesAndTypes.put(".", method.getReturnType());
+            operatorNamesAndTypes.put(".", method.returnType().javaType());
         }
         if (method.isAnnotationPresent(ZenMemberSetter.class)) {
-            operatorNamesAndTypes.put(".=", method.getReturnType());
+            operatorNamesAndTypes.put(".=", method.returnType().javaType());
         }
         operatorNamesAndTypes.forEach((name, type) -> {
             ZenOperatorNode operator = new ZenOperatorNode(
@@ -361,8 +364,11 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
 
     private void readExpansionExecutableOwner(ExecutableData method, IMaybeExpansionMember expansionMember) {
         if (ProbeZSConfig.outputSourceExpansionMembers) {
-            String classOwner = ProbeZS.instance.getClassOwner(method.getDecalredClass());
-            expansionMember.setOwner(classOwner);
+            try {
+                String classOwner = ProbeZS.instance.getClassOwner(Class.forName(method.declaringClass().name()));
+                expansionMember.setOwner(classOwner);
+            } catch (ClassNotFoundException ignored) {
+            }
         }
     }
 

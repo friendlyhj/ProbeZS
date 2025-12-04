@@ -21,7 +21,7 @@ import java.util.*;
 public class ZenClassTree {
     private final Map<String, ZenClassNode> classes = new LinkedHashMap<>();
     private final Map<String, ZenExpandClassNode> builtinTypeExpansions = new LinkedHashMap<>();
-    private final Map<Class<?>, ZenClassNode> javaMap = new HashMap<>();
+    private final Map<String, ZenClassNode> javaMap = new HashMap<>();
     private final List<JavaTypeMirror> javaTypeMirrors = new ArrayList<>();
     private final ParameterNameMappings mappings = new ParameterNameMappings();
 
@@ -44,7 +44,7 @@ public class ZenClassTree {
                     name = clazz.getName();
                 }
                 ZenClassNode classNode = classes.computeIfAbsent(name, it -> new ZenClassNode(it, this));
-                javaMap.put(clazz, classNode);
+                javaMap.put(clazz.getName(), classNode);
                 classNode.readExtendClasses(clazz);
                 classNode.readMembers(clazz, true);
             }
@@ -87,7 +87,7 @@ public class ZenClassTree {
         return anyClass;
     }
 
-    public Map<Class<?>, ZenClassNode> getJavaMap() {
+    public Map<String, ZenClassNode> getJavaMap() {
         return javaMap;
     }
 
@@ -137,16 +137,16 @@ public class ZenClassTree {
     }
 
     public void putGlobalInternalClass(Class<?> clazz) {
-        if (!javaMap.containsKey(clazz)) {
+        if (!javaMap.containsKey(clazz.getName())) {
             ZenClassNode classNode = classes.computeIfAbsent(clazz.getName(), it -> new ZenClassNode(it, this));
-            javaMap.put(clazz, classNode);
+            javaMap.put(clazz.getName(), classNode);
             classNode.readMembers(clazz, true);
         }
     }
 
-    private void registerPrimitiveClass(Class<?> javaClass, ZenClassNode node) {
+    private void  registerPrimitiveClass(Class<?> javaClass, ZenClassNode node) {
         classes.put(node.getName(), node);
-        javaMap.put(javaClass, node);
+        javaMap.put(javaClass.getName(), node);
     }
 
     private void registerPrimitiveClasses() {
@@ -173,12 +173,12 @@ public class ZenClassTree {
         registerPrimitiveClass(Float.class, floatNode);
         registerPrimitiveClass(double.class, doubleNode);
         registerPrimitiveClass(Double.class, doubleNode);
-        javaMap.put(void.class, voidNode);
-        javaMap.put(Void.class, voidNode);
+        javaMap.put(void.class.getName(), voidNode);
+        javaMap.put(Void.class.getName(), voidNode);
         registerPrimitiveClass(String.class, stringNode);
         registerPrimitiveClass(CharSequence.class, stringNode);
         registerPrimitiveClass(IntRange.class, new ZenIntRangeNode(this));
-        javaMap.put(Object.class, anyClass);
+        javaMap.put(Object.class.getName(), anyClass);
     }
 
     private void readBuiltinTypeExpansion(String name, Class<?> clazz) {

@@ -3,7 +3,7 @@ package youyihj.probezs.tree;
 import com.google.gson.annotations.SerializedName;
 import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
-import youyihj.probezs.member.ExecutableData;
+import youyihj.zenutils.impl.member.ExecutableData;
 import youyihj.probezs.util.IndentStringBuilder;
 
 import java.lang.reflect.Modifier;
@@ -33,22 +33,22 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IT
         if (isClass && method.isAnnotationPresent(ZenMethod.class)) {
             String name = method.getAnnotation(ZenMethod.class).value();
             if (name.isEmpty()) {
-                name = method.getName();
+                name = method.name();
             }
-            return readDirectly(method, tree, name, Modifier.isStatic(method.getModifiers()), false);
+            return readDirectly(method, tree, name, Modifier.isStatic(method.modifiers()), false);
         }
         if (!isClass) {
             if (method.isAnnotationPresent(ZenMethod.class)) {
                 String name = method.getAnnotation(ZenMethod.class).value();
                 if (name.isEmpty()) {
-                    name = method.getName();
+                    name = method.name();
                 }
                 return readDirectly(method, tree, name, false, true);
             }
             if (method.isAnnotationPresent(ZenMethodStatic.class)) {
                 String name = method.getAnnotation(ZenMethodStatic.class).value();
                 if (name.isEmpty()) {
-                    name = method.getName();
+                    name = method.name();
                 }
                 return readDirectly(method, tree, name, true, false);
             }
@@ -60,7 +60,7 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IT
         int startIndex = expansion ? 1 : 0;
         return new ZenMemberNode(
                 name,
-                tree.createJavaTypeMirror(method.getReturnType()),
+                tree.createJavaTypeMirror(method.returnType().javaType()),
                 ZenParameterNode.read(method, startIndex, tree),
                 isStatic
         );

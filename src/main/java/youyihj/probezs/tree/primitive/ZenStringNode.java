@@ -1,10 +1,11 @@
 package youyihj.probezs.tree.primitive;
 
-import youyihj.probezs.ProbeZS;
 import youyihj.probezs.tree.ZenClassNode;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.ZenMemberNode;
 import youyihj.probezs.tree.ZenParameterNode;
+import youyihj.zenutils.impl.member.reflect.ReflectionClassData;
+import youyihj.zenutils.impl.member.reflect.ReflectionExecutableData;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -40,7 +41,7 @@ public class ZenStringNode extends ZenClassNode implements IPrimitiveType {
                         Parameter parameter = parameters[i];
                         Type convertType = convertType(parameter.getParameterizedType());
                         if (convertType == null) continue readMethod;
-                        parameterNodes.add(ZenParameterNode.read(ProbeZS.getMemberFactory().reflect(method), i, ProbeZS.getMemberFactory().reflect(parameter), tree));
+                        parameterNodes.add(ZenParameterNode.read(new ReflectionExecutableData(method), i, ReflectionClassData.of(parameter.getType()), tree));
                     }
                     ZenMemberNode zenMemberNode = new ZenMemberNode(method.getName(), tree.createJavaTypeMirror(method.getGenericReturnType()), parameterNodes, false);
                     members.add(zenMemberNode);

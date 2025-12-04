@@ -1,11 +1,18 @@
 package youyihj.probezs.tree;
 
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import org.objectweb.asm.tree.MethodNode;
 import stanhebben.zenscript.annotations.Optional;
-import youyihj.probezs.member.ExecutableData;
-import youyihj.probezs.member.ParameterData;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenKeywords;
+import youyihj.zenutils.impl.member.ExecutableData;
+import youyihj.zenutils.impl.member.LiteralType;
+import youyihj.zenutils.impl.member.TypeData;
+import youyihj.zenutils.impl.member.bytecode.BytecodeAnnotatedMember;
+import youyihj.zenutils.impl.member.bytecode.BytecodeMethodData;
+import youyihj.zenutils.impl.member.reflect.ReflectionExecutableData;
 
+import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -26,29 +33,47 @@ public class ZenParameterNode implements IZenDumpable, ITypeNameContextAcceptor 
         this.varArgs = varArgs;
     }
 
-    public static ZenParameterNode read(ExecutableData method, int index, ParameterData parameter, ZenClassTree tree) {
-        boolean varArgs = parameter.isVarargs();
+    public static ZenParameterNode read(ExecutableData method, int index, TypeData parameterType, ZenClassTree tree) {
+        boolean varArgs = method.isVarArgs() && index == method.parameterCount() - 1;
         JavaTypeMirror returnType;
-        if (varArgs && parameter.getType().isArray()) {
-            returnType = tree.createJavaTypeMirror(parameter.getType().getComponentType());
+        if (varArgs && parameterType.descriptor().startsWith("[")) {
+            returnType = tree.createJavaTypeMirror(new LiteralType(parameterType.descriptor().substring(1)));
         } else {
-            returnType = tree.createJavaTypeMirror(parameter.getGenericType());
+            returnType = tree.createJavaTypeMirror(parameterType.javaType());
         }
         Supplier<String> name = () -> {
             List<String> list = tree.getMappings().find(method);
             if (list != null && index < list.size()) {
                 return list.get(index);
             }
-            return parameter.getName();
+            return "arg" + index;
         };
-        return new ZenParameterNode(name, returnType, parameter.getAnnotation(Optional.class), varArgs);
+        Optional optional = null;
+        if (method instanceof ReflectionExecutableData) {
+            Executable executable = ObfuscationReflectionHelper.getPrivateValue(ReflectionExecutableData.class, (ReflectionExecutableData) method, "executable");
+            optional = executable.getParameters()[index].getAnnotation(Optional.class);
+        } else if (method instanceof BytecodeMethodData) {
+            MethodNode methodNode = ObfuscationReflectionHelper.getPrivateValue(BytecodeMethodData.class, (BytecodeMethodData) method, "methodNode");
+            optional = new BytecodeAnnotatedMember() {
+                {
+                    if (methodNode.visibleParameterAnnotations != null && index < methodNode.visibleParameterAnnotations.length) {
+                        setAnnotationNodes(methodNode.visibleParameterAnnotations[index]);
+                    }
+                    if (methodNode.invisibleParameterAnnotations != null && index < methodNode.invisibleParameterAnnotations.length) {
+                        setAnnotationNodes(methodNode.invisibleParameterAnnotations[index]);
+                    }
+                }
+            }.getAnnotation(Optional.class);
+        }
+
+        return new ZenParameterNode(name, returnType, optional, varArgs);
     }
 
     public static List<ZenParameterNode> read(ExecutableData method, int startIndex, ZenClassTree tree) {
-        ParameterData[] parameters = method.getParameters();
-        List<ZenParameterNode> parameterNodes = new ArrayList<>(method.getParameterCount());
-        for (int i = startIndex; i < method.getParameterCount(); i++) {
-            parameterNodes.add(ZenParameterNode.read(method, i, parameters[i], tree));
+        List<TypeData> parameters = method.parameters();
+        List<ZenParameterNode> parameterNodes = new ArrayList<>(method.parameterCount() - startIndex);
+        for (int i = startIndex; i < method.parameterCount(); i++) {
+            parameterNodes.add(ZenParameterNode.read(method, i, parameters.get(i), tree));
         }
         return parameterNodes;
     }

@@ -8,6 +8,10 @@ import crafttweaker.util.IEventHandler;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.util.CastRuleType;
 import youyihj.probezs.util.IntersectionType;
+import youyihj.zenutils.impl.member.ClassData;
+import youyihj.zenutils.impl.member.LiteralType;
+import youyihj.zenutils.impl.member.bytecode.MethodParameterParser;
+import youyihj.zenutils.impl.util.InternalUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -53,7 +57,7 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
     }
 
     private Result getResult(Type type) {
-        Map<Class<?>, ZenClassNode> javaMap = classTree.getJavaMap();
+        Map<String, ZenClassNode> javaMap = classTree.getJavaMap();
         try {
             if (type instanceof Class) {
                 Class<?> clazz = (Class<?>) type;
@@ -61,7 +65,7 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
                     Result baseClass = getResult(clazz.getComponentType());
                     return Result.compound("%s[]", baseClass);
                 } else {
-                    ZenClassNode zsClass = javaMap.get(type);
+                    ZenClassNode zsClass = javaMap.get(((Class<?>) type).getName());
                     // the class is exposed to zs
                     if (zsClass != null) {
                         return Result.single(zsClass);
@@ -104,10 +108,72 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
             } else if (type instanceof CastRuleType) {
                 return Result.castResult(
                         ((CastRuleType) type).getTypes()
-                        .stream()
-                        .map(this::getResult)
-                        .collect(Collectors.toList())
+                                .stream()
+                                .map(this::getResult)
+                                .collect(Collectors.toList())
                 );
+            } else if (type instanceof LiteralType) {
+                String name = type.getTypeName();
+                switch (name) {
+                    case "I":
+                        return getResult(int.class);
+                    case "Z":
+                        return getResult(boolean.class);
+                    case "D":
+                        return getResult(double.class);
+                    case "F":
+                        return getResult(float.class);
+                    case "J":
+                        return getResult(long.class);
+                    case "B":
+                        return getResult(byte.class);
+                    case "S":
+                        return getResult(short.class);
+                    case "C":
+                        return getResult(char.class);
+                }
+                if (name.startsWith("[")) {
+                    // array type
+                    String elementTypeName = name.substring(1);
+                    LiteralType elementType = new LiteralType(elementTypeName);
+                    Result baseClass = getResult(elementType);
+                    return Result.compound("%s[]", baseClass);
+                }
+                if (name.startsWith("L") && name.endsWith(";")) {
+                    if (!name.contains("<")) {
+                        String className = name.substring(1, name.length() - 1).replace('/', '.');
+                        ZenClassNode zsClass = javaMap.get(className);
+                        if (zsClass != null) {
+                            return Result.single(zsClass);
+                        }
+                    } else {
+                        String genericInfo = name.substring(name.indexOf("<") + 1, name.lastIndexOf(">"));
+                        String rawClassName = name.substring(1, name.indexOf("<")).replace('/', '.');
+                        List<String> genericTypes = new MethodParameterParser("(" + genericInfo + ")").parse();
+                        ClassData rawClassData = InternalUtils.getClassDataFetcher().forName(rawClassName);
+                        if (genericTypes.size() == 1) {
+                            if (InternalUtils.getClassDataFetcher().forClass(List.class).isAssignableFrom(rawClassData)) {
+                                Result baseClass = getResult(new LiteralType(genericTypes.get(0)));
+                                return Result.compound("[%s]", baseClass);
+                            }
+                            if (InternalUtils.getClassDataFetcher().forClass(IEventHandler.class).isAssignableFrom(rawClassData)) {
+                                Result baseClass = getResult(new LiteralType(genericTypes.get(0)));
+                                return Result.compound("function(%s)void", baseClass);
+                            }
+                        }
+                        if (genericTypes.size() == 2) {
+                            if (InternalUtils.getClassDataFetcher().forClass(Map.class).isAssignableFrom(rawClassData)) {
+                                Result keyClass = getResult(new LiteralType(genericTypes.get(0)));
+                                Result valueClass = getResult(new LiteralType(genericTypes.get(1)));
+                                return Result.compound("%s[%s]", valueClass, keyClass);
+                            }
+                        }
+                        ZenClassNode zsClass = javaMap.get(rawClassName);
+                        if (zsClass != null) {
+                            return Result.single(zsClass);
+                        }
+                    }
+                }
             }
         } catch (Exception ignored) {
         }
