@@ -115,10 +115,6 @@ dependencies {
 
 }
 
-test {
-    useJUnitPlatform()
-}
-
 def mixinConfigRefMap = 'mixins.' + project.archives_base_name + '.refmap.json'
 def mixinTmpDir = buildDir.path + File.separator + 'tmp' + File.separator + 'mixins'
 def refMap = "${mixinTmpDir}" + File.separator + mixinConfigRefMap

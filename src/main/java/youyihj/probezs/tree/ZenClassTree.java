@@ -9,6 +9,7 @@ import youyihj.probezs.docs.ParameterNameMappings;
 import youyihj.probezs.tree.primitive.*;
 import youyihj.probezs.util.FileUtils;
 import youyihj.probezs.util.IndentStringBuilder;
+import youyihj.zenutils.impl.member.ClassData;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -67,6 +68,26 @@ public class ZenClassTree {
         } catch (Throwable e) {
             throw new RuntimeException("Failed to get members of " + clazz.getName() + ", try setting MemberCollector to ASM in config?", e);
         }
+    }
+
+    public void putNativeClass(ClassData classNode) {
+        String qualifiedName = classNode.name().replace('$', '.');
+        if (!qualifiedName.contains(".")) {
+            return;
+        }
+        String simpleName = qualifiedName.substring(qualifiedName.lastIndexOf('.') + 1);
+        if (simpleName.isEmpty() || !Character.isAlphabetic(simpleName.charAt(0))) {
+            return;
+        }
+        ZenNativeClassNode nativeClassNode = new ZenNativeClassNode(qualifiedName, this);
+        try {
+            nativeClassNode.fill(classNode);
+        } catch (Exception e) {
+            ProbeZS.logger.error("Failed to read native class: {}", classNode.name(), e);
+            return;
+        }
+        classes.put(nativeClassNode.getName(), nativeClassNode);
+        javaMap.put(classNode.name(), nativeClassNode);
     }
 
     public JavaTypeMirror createJavaTypeMirror(Type type) {

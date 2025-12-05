@@ -5,7 +5,6 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import crafttweaker.util.IEventHandler;
-import youyihj.probezs.ProbeZS;
 import youyihj.probezs.util.CastRuleType;
 import youyihj.probezs.util.IntersectionType;
 import youyihj.zenutils.impl.member.ClassData;
@@ -220,7 +219,7 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result> {
         }
 
         static Result missing(ZenClassTree tree, Type originType) {
-            ProbeZS.logger.warn("Do not know zenscript type for {}", originType.getTypeName());
+//            ProbeZS.logger.warn("Do not know zenscript type for {}", originType.getTypeName());
             return new MissingResult(tree);
         }
 

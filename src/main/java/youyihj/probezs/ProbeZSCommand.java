@@ -34,6 +34,8 @@ import crafttweaker.zenscript.GlobalRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.launchwrapper.Launch;
+import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionType;
 import net.minecraft.server.MinecraftServer;
@@ -54,18 +56,27 @@ import youyihj.probezs.core.asm.CraftTweakerAPIHooks;
 import youyihj.probezs.tree.ZenClassTree;
 import youyihj.probezs.tree.global.ZenGlobalMemberTree;
 import youyihj.probezs.util.FileUtils;
+import youyihj.zenutils.Reference;
+import youyihj.zenutils.impl.member.ClassData;
+import youyihj.zenutils.impl.util.InternalUtils;
+import youyihj.zenutils.impl.zenscript.nat.NativeClassValidate;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -73,6 +84,48 @@ import java.util.stream.Collectors;
  */
 public class ProbeZSCommand extends CraftTweakerCommand {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    private static final List<String> BLACKLIST = Lists.newArrayList(
+            "java.io",
+            "java.nio",
+            "java.awt",
+            "java.applet",
+            "java.rmi",
+            "java.net",
+            "java.security",
+            "java.util.zip",
+            "java.util.concurrent",
+            "java.util.logging",
+            "scala",
+            "kotlin",
+            "stanhebben.zenscript",
+            "org.apache.commons.io",
+            "org.apache.http",
+            "org.apache.logging",
+            "io.netty",
+            "org.spongepowered.",
+            "com.llamalad7.mixinextras",
+            "org.objectweb.asm",
+            "sun.",
+            "jdk",
+            "javax",
+            "groovy",
+            "com.cleanroommc.groovyscript",
+            "org.prismlauncher",
+            "org.jackhuang.hmcl"
+    );
+
+    private static final Method TRANSFORM_NAME_METHOD;
+
+    static {
+        try {
+            Class<?> lclClass = Reference.IS_CLEANROOM ? Class.forName("top.outlands.foundation.boot.ActualClassLoader") : LaunchClassLoader.class;
+            TRANSFORM_NAME_METHOD = lclClass.getDeclaredMethod("transformName", String.class);
+            TRANSFORM_NAME_METHOD.setAccessible(true);
+        } catch (NoSuchMethodException | ClassNotFoundException e) {
+            throw new RuntimeException("Failed to get transformName method", e);
+        }
+    }
 
     public ProbeZSCommand() {
         super("probezs");
@@ -101,32 +154,46 @@ public class ProbeZSCommand extends CraftTweakerCommand {
             }
         }
         if (probeZSPath != null) {
-            try {
-                if (Files.exists(probeZSPath)) {
-                    removeOldScripts(probeZSPath);
-                } else {
-                    Files.createDirectories(probeZSPath);
-                }
-                Files.createDirectories(probeZSPath);
-                ZenClassTree tree = new ZenClassTree(CraftTweakerAPIHooks.ZEN_CLASSES);
-                ZenGlobalMemberTree globalMemberTree = dumpGlobalMembers(tree);
-                List<BracketHandlerMirror> mirrors = dumpBracketHandlerMirrors(tree);
-                tree.fresh();
-                tree.output(probeZSPath);
-                globalMemberTree.output(probeZSPath);
-                outputBracketHandlerMirrors(mirrors, probeZSPath);
-                outputPreprocessors(probeZSPath);
-                dumpEnvironment(probeZSPath);
-            } catch (IOException e) {
-                sender.sendMessage(new TextComponentString(TextFormatting.RED + "Can not dump zs lib " + e));
-            }
-            sender.sendMessage(new TextComponentString("Dump dzs successfully!"));
+            Path finalProbeZSPath = probeZSPath;
+            sender.sendMessage(new TextComponentString("Dumping dzs to " + finalProbeZSPath.toAbsolutePath()));
+            CompletableFuture.runAsync(() -> run(finalProbeZSPath))
+                    .exceptionally(throwable -> {
+                        sender.sendMessage(new TextComponentString(TextFormatting.RED + "Can not dump dzs lib " + throwable));
+                        return null;
+                    })
+                    .thenAccept(aVoid -> sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Dumped dzs to " + finalProbeZSPath.toAbsolutePath())));
         }
     }
 
     @Override
     public List<String> getSubSubCommand(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
         return Arrays.asList("minecraft", "user");
+    }
+
+    private void run(Path probeZSPath) {
+        try {
+            if (Files.exists(probeZSPath)) {
+                removeOldScripts(probeZSPath);
+            } else {
+                Files.createDirectories(probeZSPath);
+            }
+            Files.createDirectories(probeZSPath);
+            ZenClassTree tree = new ZenClassTree(CraftTweakerAPIHooks.ZEN_CLASSES);
+            if (ProbeZSConfig.dumpNativeMembers) {
+                dumpNativeClasses(tree);
+            }
+            ZenGlobalMemberTree globalMemberTree = dumpGlobalMembers(tree);
+            List<BracketHandlerMirror> mirrors = dumpBracketHandlerMirrors(tree);
+            tree.fresh();
+            tree.output(probeZSPath);
+            globalMemberTree.output(probeZSPath);
+            outputBracketHandlerMirrors(mirrors, probeZSPath);
+            outputPreprocessors(probeZSPath);
+            dumpEnvironment(probeZSPath);
+        } catch (Exception e) {
+            ProbeZS.logger.error("Can not dump zs lib ", e);
+            throw new RuntimeException(e);
+        }
     }
 
     private Path getProbeZSPathFromIntellizenJson() {
@@ -372,6 +439,50 @@ public class ProbeZSCommand extends CraftTweakerCommand {
                 values.add(propertyT.getName(allowedValue));
             }
             properties.add(property.getName(), values, false);
+        }
+    }
+
+    private void dumpNativeClasses(ZenClassTree tree) {
+        List<URL> urls = Lists.newArrayList(Launch.classLoader.getURLs());
+        try {
+            urls.add(new URL(("file:/" + System.getProperty("java.home") + "/lib/rt.jar").replace(" ", "%20")));
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("jdk path is invalid");
+        }
+        for (URL url : urls) {
+            ProbeZS.logger.info("Classloader url: {}", url);
+        }
+        for (URL url : urls) {
+            if (url.getFile().endsWith(".jar")) {
+                try (FileSystem jarFs = FileSystems.newFileSystem(URI.create("jar:" + url.toURI().toASCIIString()), Collections.emptyMap())) {
+                    ProbeZS.logger.info("Reading jar file {}", url.getFile());
+                    Files.walkFileTree(jarFs.getPath("/"), new SimpleFileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                            if (file.toString().endsWith(".class")) {
+                                String className = file.toString()
+                                        .substring(1, file.toString().length() - 6)
+                                        .replace('/', '.');
+                                try {
+                                    className = TRANSFORM_NAME_METHOD.invoke(Launch.classLoader, className).toString();
+                                    if (BLACKLIST.stream().anyMatch(className::startsWith)) {
+                                        return FileVisitResult.CONTINUE;
+                                    }
+                                    ClassData classData = InternalUtils.getClassDataFetcher().forName(className);
+                                    if (NativeClassValidate.isValid(classData)) {
+                                        tree.putNativeClass(classData);
+                                    }
+                                } catch (Throwable e) {
+                                    ProbeZS.logger.warn("Failed to read native class {}", className);
+                                }
+                            }
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+                } catch (IOException | URISyntaxException | FileSystemNotFoundException e) {
+                    ProbeZS.logger.warn("Failed to read jar file {}", url.getFile(), e);
+                }
+            }
         }
     }
 

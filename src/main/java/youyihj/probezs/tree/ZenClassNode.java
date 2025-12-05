@@ -26,7 +26,7 @@ public class ZenClassNode implements IZenDumpable, ITypeNameContextAcceptor, Com
     private static final Pattern QUALIFIED_NAME_REGEX = Pattern.compile("((\\w+\\.)*\\w+)\\.(\\w+)");
 
     private final String name;
-    private final ZenClassTree tree;
+    protected final ZenClassTree tree;
     private final String qualifiedName;
     private final String packageName;
 

@@ -2,6 +2,7 @@ package youyihj.probezs.tree;
 
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.ParameterNode;
 import stanhebben.zenscript.annotations.Optional;
 import youyihj.probezs.util.IndentStringBuilder;
 import youyihj.probezs.util.ZenKeywords;
@@ -45,6 +46,18 @@ public class ZenParameterNode implements IZenDumpable, ITypeNameContextAcceptor 
             List<String> list = tree.getMappings().find(method);
             if (list != null && index < list.size()) {
                 return list.get(index);
+            }
+            if (method instanceof ReflectionExecutableData) {
+                Executable executable = ObfuscationReflectionHelper.getPrivateValue(ReflectionExecutableData.class, (ReflectionExecutableData) method, "executable");
+                return executable.getParameters()[index].getName();
+            } else if (method instanceof BytecodeMethodData) {
+                MethodNode methodNode = ObfuscationReflectionHelper.getPrivateValue(BytecodeMethodData.class, (BytecodeMethodData) method, "methodNode");
+                if (methodNode.parameters != null && index < methodNode.parameters.size()) {
+                    ParameterNode parameterNode = methodNode.parameters.get(index);
+                    if (parameterNode.name != null && !parameterNode.name.isEmpty()) {
+                        return parameterNode.name;
+                    }
+                }
             }
             return "arg" + index;
         };
