@@ -75,8 +75,8 @@ public class ZenClassTree {
         if (!qualifiedName.contains(".")) {
             return;
         }
-        String simpleName = qualifiedName.substring(qualifiedName.lastIndexOf('.') + 1);
-        if (simpleName.isEmpty() || !Character.isAlphabetic(simpleName.charAt(0))) {
+        String[] packageParts = qualifiedName.split("\\.");
+        if (!Arrays.stream(packageParts).allMatch("[a-zA-Z_][a-zA-Z_0-9]*"::matches)) {
             return;
         }
         ZenNativeClassNode nativeClassNode = new ZenNativeClassNode(qualifiedName, this);

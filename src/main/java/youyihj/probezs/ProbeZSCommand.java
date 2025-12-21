@@ -68,7 +68,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -156,7 +155,7 @@ public class ProbeZSCommand extends CraftTweakerCommand {
         if (probeZSPath != null) {
             Path finalProbeZSPath = probeZSPath;
             sender.sendMessage(new TextComponentString("Dumping dzs to " + finalProbeZSPath.toAbsolutePath()));
-            CompletableFuture.runAsync(() -> run(finalProbeZSPath))
+            CompletableFuture.runAsync(() -> run(finalProbeZSPath, sender))
                     .exceptionally(throwable -> {
                         sender.sendMessage(new TextComponentString(TextFormatting.RED + "Can not dump dzs lib " + throwable));
                         return null;
@@ -170,7 +169,7 @@ public class ProbeZSCommand extends CraftTweakerCommand {
         return Arrays.asList("minecraft", "user");
     }
 
-    private void run(Path probeZSPath) {
+    private void run(Path probeZSPath, ICommandSender sender) {
         try {
             if (Files.exists(probeZSPath)) {
                 removeOldScripts(probeZSPath);
@@ -180,7 +179,7 @@ public class ProbeZSCommand extends CraftTweakerCommand {
             Files.createDirectories(probeZSPath);
             ZenClassTree tree = new ZenClassTree(CraftTweakerAPIHooks.ZEN_CLASSES);
             if (ProbeZSConfig.dumpNativeMembers) {
-                dumpNativeClasses(tree);
+                dumpNativeClasses(tree, sender);
             }
             ZenGlobalMemberTree globalMemberTree = dumpGlobalMembers(tree);
             List<BracketHandlerMirror> mirrors = dumpBracketHandlerMirrors(tree);
@@ -442,48 +441,61 @@ public class ProbeZSCommand extends CraftTweakerCommand {
         }
     }
 
-    private void dumpNativeClasses(ZenClassTree tree) {
-        List<URL> urls = Lists.newArrayList(Launch.classLoader.getURLs());
-        try {
-            urls.add(new URL(("file:/" + System.getProperty("java.home") + "/lib/rt.jar").replace(" ", "%20")));
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("jdk path is invalid");
-        }
-        for (URL url : urls) {
-            ProbeZS.logger.info("Classloader url: {}", url);
-        }
-        for (URL url : urls) {
-            if (url.getFile().endsWith(".jar")) {
-                try (FileSystem jarFs = FileSystems.newFileSystem(URI.create("jar:" + url.toURI().toASCIIString()), Collections.emptyMap())) {
-                    ProbeZS.logger.info("Reading jar file {}", url.getFile());
-                    Files.walkFileTree(jarFs.getPath("/"), new SimpleFileVisitor<Path>() {
-                        @Override
-                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                            if (file.toString().endsWith(".class")) {
-                                String className = file.toString()
-                                        .substring(1, file.toString().length() - 6)
-                                        .replace('/', '.');
-                                try {
-                                    className = TRANSFORM_NAME_METHOD.invoke(Launch.classLoader, className).toString();
-                                    if (BLACKLIST.stream().anyMatch(className::startsWith)) {
-                                        return FileVisitResult.CONTINUE;
-                                    }
-                                    ClassData classData = InternalUtils.getClassDataFetcher().forName(className);
-                                    if (NativeClassValidate.isValid(classData)) {
-                                        tree.putNativeClass(classData);
-                                    }
-                                } catch (Throwable e) {
-                                    ProbeZS.logger.warn("Failed to read native class {}", className);
-                                }
-                            }
-                            return FileVisitResult.CONTINUE;
-                        }
-                    });
-                } catch (IOException | URISyntaxException | FileSystemNotFoundException e) {
-                    ProbeZS.logger.warn("Failed to read jar file {}", url.getFile(), e);
-                }
+    private void dumpNativeClasses(ZenClassTree tree, ICommandSender sender) {
+        List<URL> urls = Lists.newArrayList(Launch.classLoader.getURLs()).stream().filter(it -> it.toString().endsWith(".jar")).collect(Collectors.toList());
+        // java 8
+        if (!Reference.IS_CLEANROOM) {
+            try {
+                urls.add(new URL(("file:/" + System.getProperty("java.home") + "/lib/rt.jar").replace(" ", "%20")));
+            } catch (MalformedURLException e) {
+                throw new RuntimeException("jdk path is invalid");
             }
         }
+        for (int i = 0; i < urls.size(); i++) {
+            URL url = urls.get(i);
+            notifySenderAsync(sender, "Dumping native classes from jar " + url + " (" + (i + 1) + "/" + urls.size() + ")");
+            try (FileSystem jarFs = FileSystems.newFileSystem(URI.create("jar:" + url.toURI().toASCIIString()), Collections.emptyMap())) {
+                readJarFile(jarFs, tree);
+            } catch (Exception e) {
+                ProbeZS.logger.warn("Failed to read jar file {}", url, e);
+            }
+        }
+        // java 9+
+        if (Reference.IS_CLEANROOM) {
+            notifySenderAsync(sender, "Dumping jdk classes");
+            try {
+                FileSystem jrtFs = FileSystems.getFileSystem(URI.create("jrt:/"));
+                readJarFile(jrtFs, tree);
+            } catch (Exception e) {
+                ProbeZS.logger.warn("Failed to read jrt file system", e);
+            }
+        }
+    }
+
+    private void readJarFile(FileSystem jarFs, ZenClassTree tree) throws IOException {
+        Files.walkFileTree(jarFs.getPath("/"), new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                if (file.toString().endsWith(".class")) {
+                    String className = file.toString()
+                            .substring(1, file.toString().length() - 6)
+                            .replace('/', '.');
+                    try {
+                        className = TRANSFORM_NAME_METHOD.invoke(Launch.classLoader, className).toString();
+                        if (BLACKLIST.stream().anyMatch(className::startsWith)) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                        ClassData classData = InternalUtils.getClassDataFetcher().forName(className);
+                        if (NativeClassValidate.isValid(classData)) {
+                            tree.putNativeClass(classData);
+                        }
+                    } catch (Throwable e) {
+                        ProbeZS.logger.warn("Failed to read native class {}", className);
+                    }
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
     private void dumpEnvironment(Path dzsPath) {
@@ -505,6 +517,10 @@ public class ProbeZSCommand extends CraftTweakerCommand {
 //            Environment.put("bootClassPath", "");
 //        }
 //        Environment.output(dzsPath.resolve("env.json"));
+    }
+
+    private void notifySenderAsync(ICommandSender sender, String message) {
+        sender.getServer().addScheduledTask(() -> sender.sendMessage(new TextComponentString(message)));
     }
 
     private static class ContentTweaker {
