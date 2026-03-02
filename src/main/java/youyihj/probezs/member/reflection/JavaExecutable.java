@@ -59,6 +59,18 @@ public class JavaExecutable implements ExecutableData {
 
     @Override
     public ParameterData[] getParameters() {
-        return Arrays.map(executable.getParameters(), ParameterData.class, JavaParameter::new);
+        try {
+            return Arrays.map(executable.getParameters(), ParameterData.class, JavaParameter::new);
+        } catch (MalformedParametersException e) {
+            Class<?>[] parameterTypes = getParameterTypes();
+            Type[] genericParameterTypes = executable.getGenericParameterTypes();
+            Annotation[][] parameterAnnotations = executable.getParameterAnnotations();
+            boolean isVarArgs = executable.isVarArgs();
+            ParameterData[] parameters = new ParameterData[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                parameters[i] = new JavaParameterBackup(i, parameterTypes[i], genericParameterTypes[i], parameterAnnotations[i], isVarArgs && i == parameterTypes.length - 1);
+            }
+            return parameters;
+        }
     }
 }
