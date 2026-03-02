@@ -33,3 +33,9 @@
 [submodule "ModSources/Roids-Tweaker"]
 	path = ModSources/Roids-Tweaker
 	url = https://github.com/roidrole/Roids-Tweaker.git
+[submodule "ModSources/Daomephsta-Loot-Shared"]
+	path = ModSources/Daomephsta-Loot-Shared
+	url = https://github.com/Daomephsta/Daomephsta-Loot-Shared.git
+[submodule "ModSources/LootTweaker"]
+	path = ModSources/LootTweaker
+	url = https://github.com/Daomephsta/LootTweaker.git
