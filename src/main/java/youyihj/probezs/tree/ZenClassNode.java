@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import crafttweaker.CraftTweakerAPI;
+import crafttweaker.annotations.ZenDoc;
 import stanhebben.zenscript.annotations.*;
 import youyihj.probezs.ProbeZS;
 import youyihj.probezs.ProbeZSConfig;
@@ -39,6 +40,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
     protected final Multimap<ZenOperators, ZenOperatorNode> operators = Multimaps.newMultimap(new EnumMap<>(ZenOperators.class), ArrayList::new);
     private ZenOperatorNode.As caster;
     private String owner;
+    private String[] doc;
 
     public ZenClassNode(String name, ZenClassTree tree) {
         this.name = name;
@@ -77,6 +79,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
             readConstructors(clazz);
             readProperties(clazz);
             readIteratorOperators(clazz);
+            readDoc(clazz);
             if (ProbeZSConfig.outputSourceExpansionMembers) {
                 owner = ProbeZS.instance.getClassOwner(clazz);
             }
@@ -133,6 +136,15 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                                                 .map(JavaTypeMirror::get)
                                                 .map(JavaTypeMirror.Result::getQualifiedName)
                                                 .collect(Collectors.joining(", "));
+
+        if (doc != null) {
+            sb.append("/**").nextLine();
+            for (String line : doc) {
+                sb.append(" * ").append(line).nextLine();
+            }
+            sb.append(" */").nextLine();
+        }
+
         sb.append("zenClass ");
         sb.append(getQualifiedName());
         if (!extendInformation.isEmpty()) {
@@ -228,6 +240,9 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                 propertyNode.setStatic(Modifier.isStatic(field.getModifiers()));
                 propertyNode.setHasGetter(true);
                 propertyNode.setHasSetter(!Modifier.isFinal(field.getModifiers()));
+                if (field.isAnnotationPresent(ZenDoc.class)) {
+                    propertyNode.doc = field.getAnnotation(ZenDoc.class).value().split("\n");
+                }
                 properties.put(name, propertyNode);
             }
         }
@@ -280,6 +295,12 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
                             }
                     )
             );
+        }
+    }
+
+    private void readDoc(Class<?> clazz) {
+        if (clazz.isAnnotationPresent(ZenDoc.class)) {
+            doc = clazz.getAnnotation(ZenDoc.class).value().split("\n");
         }
     }
 

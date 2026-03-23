@@ -10,6 +10,7 @@ import java.util.List;
  */
 public abstract class ZenExecutableNode implements IMaybeExpansionMember, IZenDumpable {
     private String expansionOwner;
+    public String[] doc;
 
     protected abstract boolean existed();
 
@@ -24,6 +25,13 @@ public abstract class ZenExecutableNode implements IMaybeExpansionMember, IZenDu
         if (!existed()) return;
         if (expansionOwner != null) {
             sb.append("// expansion member from ").append(expansionOwner).nextLine();
+        }
+        if (doc != null) {
+            sb.append("/**").nextLine();
+            for (String line : doc) {
+                sb.append(" * ").append(line).nextLine();
+            }
+            sb.append(" */").nextLine();
         }
         writeModifiersAndName(sb);
         sb.append("(");

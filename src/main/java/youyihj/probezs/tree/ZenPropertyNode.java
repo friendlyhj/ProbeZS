@@ -17,6 +17,8 @@ public class ZenPropertyNode implements IZenDumpable, IHasImportMembers, IMaybeE
     private boolean isStatic;
     private String owner;
 
+    public String[] doc;
+
     public ZenPropertyNode(JavaTypeMirror type, String name) {
         this.type = type;
         this.name = name;
@@ -51,6 +53,13 @@ public class ZenPropertyNode implements IZenDumpable, IHasImportMembers, IMaybeE
         if (type.isExisted()) {
             if (owner != null) {
                 sb.append("// expansion member from ").append(owner).nextLine();
+            }
+            if (doc != null) {
+                sb.append("/**").nextLine();
+                for (String line : doc) {
+                    sb.append(" * ").append(line).nextLine();
+                }
+                sb.append(" */").nextLine();
             }
             String declareKeyword = isStatic ? "static" : isHasSetter() ? "var" : "val";
             sb.append(declareKeyword);

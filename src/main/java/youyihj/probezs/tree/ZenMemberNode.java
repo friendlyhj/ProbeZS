@@ -1,6 +1,7 @@
 package youyihj.probezs.tree;
 
 import com.google.gson.annotations.SerializedName;
+import crafttweaker.annotations.ZenDoc;
 import stanhebben.zenscript.annotations.ZenMethod;
 import stanhebben.zenscript.annotations.ZenMethodStatic;
 import youyihj.probezs.member.ExecutableData;
@@ -58,12 +59,16 @@ public class ZenMemberNode extends ZenExecutableNode implements IZenDumpable, IH
 
     public static ZenMemberNode readDirectly(ExecutableData method, ZenClassTree tree, String name, boolean isStatic, boolean expansion) {
         int startIndex = expansion ? 1 : 0;
-        return new ZenMemberNode(
+        ZenMemberNode member = new ZenMemberNode(
                 name,
                 tree.createJavaTypeMirror(method.getReturnType()),
                 ZenParameterNode.read(method, startIndex, tree),
                 isStatic
         );
+        if (method.isAnnotationPresent(ZenDoc.class)) {
+            member.doc = method.getAnnotation(ZenDoc.class).value().split("\n");
+        }
+        return member;
     }
 
     @Override
