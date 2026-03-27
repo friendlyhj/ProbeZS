@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author youyihj
@@ -76,7 +77,8 @@ public class ZenClassTree {
             return;
         }
         String[] packageParts = qualifiedName.split("\\.");
-        if (!Arrays.stream(packageParts).allMatch("[a-zA-Z_][a-zA-Z_0-9]*"::matches)) {
+        Pattern identifierPattern = Pattern.compile("[a-zA-Z_][a-zA-Z_0-9]*");
+        if (!Arrays.stream(packageParts).allMatch(identifierPattern.asPredicate())) {
             return;
         }
         ZenNativeClassNode nativeClassNode = new ZenNativeClassNode(qualifiedName, this);

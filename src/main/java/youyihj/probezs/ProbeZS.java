@@ -44,7 +44,7 @@ public class ProbeZS {
     public static final String MODID = "probezs";
     public static final String VERSION = "2.0.0";
     public static final String NAME = "ProbeZS";
-    public static final String DEPENDENCIES = "required-after:crafttweaker;required-after:zenutils@[1.25.11,)";
+    public static final String DEPENDENCIES = "required-after:crafttweaker;required-after:zenutils@[1.26.19,)";
     public static Logger logger;
 
     public CompletableFuture<String> mappingsFuture = CompletableFuture.supplyAsync(() -> {
