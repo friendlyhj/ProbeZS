@@ -394,11 +394,16 @@ public class ProbeZS {
             if (item == Items.AIR)
                 continue;
             NonNullList<ItemStack> subItems = NonNullList.create();
-            CreativeTabs tab = item.getCreativeTab() != null ? item.getCreativeTab() : CreativeTabs.SEARCH;
-            item.getSubItems(tab, subItems);
             IntSet validMetas = new IntArraySet();
-            for (ItemStack subItem : subItems) {
-                validMetas.add(subItem.getMetadata());
+            try {
+                CreativeTabs tab = item.getCreativeTab() != null ? item.getCreativeTab() : CreativeTabs.SEARCH;
+                item.getSubItems(tab, subItems);
+                for (ItemStack subItem : subItems) {
+                    validMetas.add(subItem.getMetadata());
+                }
+            } catch (Exception e) {
+                ProbeZS.logger.warn("Failed to get sub items for {}, using 0 as fallback", item.getRegistryName(), e);
+                validMetas.add(0);
             }
             for (int validMeta : validMetas.toIntArray()) {
                 IItemStack ctItem = CraftTweakerMC.getIItemStackMutable(new ItemStack(item, 1, validMeta));
