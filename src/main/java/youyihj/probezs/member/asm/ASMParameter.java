@@ -15,17 +15,19 @@ public class ASMParameter extends ASMAnnotatedMember implements ParameterData {
     private final MethodNode methodNode;
     private final int index;
     private final ASMMethod method;
+    private final String name;
 
-    public ASMParameter(ASMMethod method, MethodNode methodNode, int index, ASMMemberFactory memberFactory, List<AnnotationNode> annotationNode) {
+    public ASMParameter(ASMMethod method, MethodNode methodNode, int index, ASMMemberFactory memberFactory, List<AnnotationNode> annotationNode, String name) {
         super(annotationNode, memberFactory);
         this.method = method;
         this.methodNode = methodNode;
         this.index = index;
+        this.name = name != null ? name : "arg" + index;
     }
 
     @Override
     public String getName() {
-        return "arg" + index;
+        return name;
     }
 
     @Override
