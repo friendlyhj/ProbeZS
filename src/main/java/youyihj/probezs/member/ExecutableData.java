@@ -8,7 +8,7 @@ import java.lang.reflect.Type;
 public interface ExecutableData extends AnnotatedMember {
     String getName();
 
-    Class<?> getDecalredClass();
+    Class<?> getDeclaredClass();
 
     Class<?>[] getParameterTypes();
 

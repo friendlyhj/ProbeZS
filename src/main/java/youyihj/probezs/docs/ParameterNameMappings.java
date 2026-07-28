@@ -32,7 +32,7 @@ public class ParameterNameMappings {
         if (nameMappings == null) {
             load("mappings/method-parameter-names.yaml");
         }
-        String clazzName = method.getDecalredClass().getCanonicalName();
+        String clazzName = method.getDeclaredClass().getCanonicalName();
         List<Map<String, Object>> datas = nameMappings.get().get(clazzName);
 
         if (method.getParameterTypes().length == 0) {

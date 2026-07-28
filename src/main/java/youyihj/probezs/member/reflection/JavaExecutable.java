@@ -33,7 +33,7 @@ public class JavaExecutable implements ExecutableData {
     }
 
     @Override
-    public Class<?> getDecalredClass() {
+    public Class<?> getDeclaredClass() {
         return executable.getDeclaringClass();
     }
 
@@ -54,7 +54,7 @@ public class JavaExecutable implements ExecutableData {
 
     @Override
     public Type getReturnType() {
-        return executable instanceof Method ? ((Method) executable).getGenericReturnType() : getDecalredClass();
+        return executable instanceof Method ? ((Method) executable).getGenericReturnType() : getDeclaredClass();
     }
 
     @Override

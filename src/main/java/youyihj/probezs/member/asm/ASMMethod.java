@@ -14,12 +14,12 @@ import java.util.List;
  */
 public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
     private final MethodNode methodNode;
-    private final Class<?> decalredClass;
+    private final Class<?> declaredClass;
 
-    public ASMMethod(MethodNode methodNode, ASMMemberFactory memberFactory, Class<?> decalredClass) {
+    public ASMMethod(MethodNode methodNode, ASMMemberFactory memberFactory, Class<?> declaredClass) {
         super(methodNode.visibleAnnotations, memberFactory);
         this.methodNode = methodNode;
-        this.decalredClass = decalredClass;
+        this.declaredClass = declaredClass;
     }
 
     @Override
@@ -28,8 +28,8 @@ public class ASMMethod extends ASMAnnotatedMember implements ExecutableData {
     }
 
     @Override
-    public Class<?> getDecalredClass() {
-        return decalredClass;
+    public Class<?> getDeclaredClass() {
+        return declaredClass;
     }
 
     @Override
