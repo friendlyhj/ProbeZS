@@ -81,14 +81,14 @@ dependencies {
         implementation 'com.cleanroommc:assetmover:2.0'
     }
     if (project.use_mixins.toBoolean()) {
-        implementation 'zone.rong:mixinbooter:7.0'
+        implementation 'zone.rong:mixinbooter:11.10'
     }
 
     // Example deobf dependency
     // compileOnly rfg.deobf("curse.maven:endercore-231868:2972849:")
 
     if (project.use_mixins.toBoolean()) {
-        api("org.spongepowered:mixin:0.8.3") { transitive = false }
+//        api("org.spongepowered:mixin:0.8.3") { transitive = false }
         annotationProcessor('org.ow2.asm:asm-debug-all:5.2')
         annotationProcessor('com.google.guava:guava:24.1.1-jre')
         annotationProcessor('com.google.code.gson:gson:2.8.6')
@@ -175,12 +175,15 @@ jar {
             attribute_map['FMLCorePlugin'] = project.coremod_plugin_class_name
             if (project.include_mod.toBoolean()) {
                 attribute_map['FMLCorePluginContainsFMLMod'] = true
-                attribute_map['ForceLoadAsMod'] = project.gradle.startParameter.taskNames[0] == "build"
             }
         }
         if (project.use_access_transformer.toBoolean()) {
             attribute_map['FMLAT'] = project.archives_base_name + '_at.cfg'
         }
+        if (project.use_mixins.toBoolean()) {
+            attribute_map['MixinConfigs'] = project.mixin_config_file
+        }
+
         attributes(attribute_map)
     }
     // Add all embedded dependencies into the jar
