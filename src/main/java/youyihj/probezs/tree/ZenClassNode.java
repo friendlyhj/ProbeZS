@@ -402,7 +402,7 @@ public class ZenClassNode implements IZenDumpable, IHasImportMembers, Comparable
 
     private void readExpansionExecutableOwner(ExecutableData method, IMaybeExpansionMember expansionMember) {
         if (ProbeZSConfig.outputSourceExpansionMembers) {
-            String classOwner = ProbeZS.instance.getClassOwner(method.getDecalredClass());
+            String classOwner = ProbeZS.instance.getClassOwner(method.getDeclaredClass());
             expansionMember.setOwner(classOwner);
         }
     }

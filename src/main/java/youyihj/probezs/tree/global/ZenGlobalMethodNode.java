@@ -35,7 +35,7 @@ public class ZenGlobalMethodNode extends ZenExecutableNode implements IZenDumpab
         }
         ZenGlobalMethodNode globalMethodNode = new ZenGlobalMethodNode(name, returnType, parameterNodes);
         if (ProbeZSConfig.outputSourceExpansionMembers) {
-            String classOwner = ProbeZS.instance.getClassOwner(method.getDecalredClass());
+            String classOwner = ProbeZS.instance.getClassOwner(method.getDeclaredClass());
             if (!"crafttweaker".equals(classOwner)) {
                 globalMethodNode.setOwner(classOwner);
             }

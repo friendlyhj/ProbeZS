@@ -151,7 +151,10 @@ public class JavaTypeMirror implements Supplier<JavaTypeMirror.Result>, Comparab
         }
 
         static Result missing(ZenClassTree tree, Type originType) {
-            ProbeZS.logger.warn("Do not know zenscript type for {}", originType.getTypeName());
+            if(originType != null)
+                ProbeZS.logger.warn("Do not know zenscript type for {}", originType.getTypeName());
+            else
+                ProbeZS.logger.warn("Do not know zenscript type for null");
             return new MissingResult(tree);
         }
 
